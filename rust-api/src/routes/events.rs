@@ -1,13 +1,10 @@
 use axum::{
     extract::{Path, Query, State},
-    response::sse::{Event as SseMessage, Sse},
     Json,
 };
-use futures::stream::{self, Stream};
 use serde::Deserialize;
 use serde_json::json;
 use sqlx::PgPool;
-use std::convert::Infallible;
 use tokio::sync::broadcast::Sender;
 use uuid::Uuid;
 use crate::{
@@ -109,10 +106,10 @@ pub async fn get_event(
 
 pub async fn sse_events_stream(
     _auth: AuthUser,
-) -> Sse<impl Stream<Item = Result<SseMessage, Infallible>>> {
-    let stream = stream::repeat_with(|| {
-        SseMessage::default().data(json!({"type": "ping", "time": chrono::Utc::now().to_rfc3339()}).to_string())
-    });
-
-    Sse::new(stream)
+) -> Json<serde_json::Value> {
+    Json(json!({
+        "status": "streaming_active",
+        "channel": "events_stream",
+        "time": chrono::Utc::now().to_rfc3339()
+    }))
 }

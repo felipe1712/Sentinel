@@ -51,7 +51,7 @@ pub struct User {
     pub created_at: Option<DateTime<Utc>>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, sqlx::FromRow)]
 pub struct UserDTO {
     pub id: Uuid,
     pub state_id: Option<Uuid>,
