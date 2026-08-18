@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   sentineliq-postgres:
     image: postgis/postgis:15-3.3
@@ -35,7 +33,7 @@ services:
       - sentineliq_net
 
   sentineliq-spiderfoot:
-    image: smicallef/spiderfoot:latest
+    image: spiderfoot/spiderfoot:latest
     container_name: sentineliq_spiderfoot
     restart: always
     expose:
