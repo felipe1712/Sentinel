@@ -2,9 +2,16 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import SemaforoCard from "@/components/velzon/SemaforoCard";
 import SeverityBadge from "@/components/velzon/SeverityBadge";
 import api from "@/lib/api";
+
+// Dynamically import SituacionalMap to avoid SSR Leaflet window error
+const SituacionalMap = dynamic(
+  () => import("@/components/velzon/SituacionalMap"),
+  { ssr: false, loading: () => <div className="p-4 text-center text-muted">Cargando Mapa de Querétaro...</div> }
+);
 
 export default function SituacionPage() {
   const [events, setEvents] = useState<any[]>([]);
@@ -83,26 +90,15 @@ export default function SituacionPage() {
           </div>
         </div>
 
-        {/* Cuadrante 2: Mapa Situacional */}
+        {/* Cuadrante 2: Mapa Situacional Interactivo */}
         <div className="col-lg-6">
-          <div className="card h-100">
+          <div className="card h-100 overflow-hidden shadow-sm">
             <div className="card-header border-bottom border-dark bg-body-tertiary d-flex justify-content-between align-items-center">
-              <h6 className="card-title mb-0 fw-bold">2. Mapa de Calor Municipal</h6>
-              <span className="badge bg-primary-subtle text-primary">Querétaro</span>
+              <h6 className="card-title mb-0 fw-bold">2. Mapa de Calor Municipal (Querétaro)</h6>
+              <span className="badge bg-success-subtle text-success fs-11">CartoDB Dark · En Vivo</span>
             </div>
-            <div className="card-body p-0 position-relative min-vh-250 bg-dark d-flex align-items-center justify-content-center">
-              <div className="text-center p-4">
-                <i className="ri-map-pin-2-line fs-36 text-primary mb-2"></i>
-                <h6 className="text-white fw-bold">Mapa MapLibre GL Activo</h6>
-                <p className="text-muted fs-12 mb-2">
-                  Capas: CartoDB Dark_All · Polígonos INEGI Querétaro (Clave 22)
-                </p>
-                <div className="d-flex gap-2 justify-content-center">
-                  <span className="badge bg-danger">Santiago de Querétaro (12 evt)</span>
-                  <span className="badge bg-warning text-dark">El Marqués (7 evt)</span>
-                  <span className="badge bg-secondary">Corregidora (6 evt)</span>
-                </div>
-              </div>
+            <div className="card-body p-0 position-relative">
+              <SituacionalMap />
             </div>
           </div>
         </div>

@@ -5,11 +5,19 @@
 @import './shepherd.css';
 @import './mermaid.min.css';
 
-//RTL
-// @import "../scss/rtl/components-rtl";
-// @import "../scss/rtl/layouts-rtl";
-// @import "../scss/rtl/plugins-rtl";
-// @import "../scss/rtl/pages-rtl";
+// Universal Typography Override for Executive Dashboards
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --vz-font-sans-serif: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+  --vz-body-font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+  --vz-heading-font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+  --vz-font-family-primary: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+}
+
+*, body, html, h1, h2, h3, h4, h5, h6, p, span, a, div, td, th, input, button, select, textarea, label {
+  font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+}
 
 //Rigthsidebar offcanvas
 .offcanvas-header-dark {
@@ -97,194 +105,5 @@ body {
 
   .fc-today-button {
     display: none;
-  }
-}
-
-.flatpickr-calendar.open {
-  z-index: 1090 !important;
-}
-
-.upcoming-scheduled .flatpickr-input[readonly] {
-  display: none;
-}
-
-.ql-container.ql-snow {
-  height: 250px;
-}
-
-.rangeslider-horizontal .rangeslider__fill {
-  background-color: #405189 !important;
-}
-
-// .Toastify__toast {
-//   min-height: 43px !important;
-//   max-height: 43px !important;
-// }
-
-@each $color, $value in $theme-colors {
-  .simplebar-track-#{$color} {
-    .simplebar-scrollbar:before {
-      background: $value !important;
-    }
-  }
-}
-
-// chat
-.chat-conversation .chat-list .message-box-drop {
-  .nav-btn {
-    font-size: 18px;
-    padding: 4px;
-    color: $gray-600;
-  }
-}
-
-.chatwidgets {
-  height: 250px !important;
-}
-
-[data-layout='horizontal'] .chat-conversation {
-  &.chatwidgets {
-    height: 250px !important;
-  }
-}
-
-// authentication
-
-#tsparticles {
-  canvas {
-    position: absolute !important;
-  }
-}
-
-.alert-msg-show {
-  right: 24px;
-  top: 40px;
-  z-index: 1005;
-}
-
-// Emoji Picker
-aside.EmojiPickerReact.epr-main {
-  position: absolute !important;
-  bottom: 0;
-  z-index: 2;
-  left: 23px;
-}
-
-[dir='rtl'] .EmojiPickerReact.epr-main {
-  right: 23px !important;
-  left: unset !important;
-}
-
-.Toastify {
-  .Toastify__toast {
-    min-height: 43px;
-  }
-
-  .Toastify__close-button {
-    top: 6px;
-  }
-
-  .Toastify__close-button--light {
-    color: $light;
-  }
-}
-
-// Tranfer List
-
-.rdl-filter,
-.rdl-control {
-  background-color: $input-bg;
-  border: 1px solid $input-border-color !important;
-  color: $input-color !important;
-}
-
-.rdl-move {
-  background: var(--#{$prefix}light) !important;
-  border: 1px solid var(--#{$prefix}light) !important;
-  color: var(--#{$prefix}body-color) !important;
-}
-
-.react-dual-listbox {
-  input:disabled,
-  select:disabled {
-    background-color: $input-disabled-bg !important;
-    border: 1px solid $input-border-color !important;
-  }
-}
-
-.css-26l3qy-menu {
-  background-color: var(--#{$prefix}gray-200) !important;
-  border-color: var(--#{$prefix}border-color) !important;
-}
-
-.css-1n7v3ny-option {
-  background-color: var(--#{$prefix}gray-300) !important;
-  border-color: var(--#{$prefix}border-color) !important;
-}
-
-//react select
-.css-b62m3t-container {
-  .css-13cymwt-control {
-    background-color: var(--#{$prefix}secondary-bg);
-    color: var(--#{$prefix}body-color);
-    border-color: var(--#{$prefix}border-color);
-
-    &:hover,
-    &:focus {
-      border-color: var(--#{$prefix}primary);
-    }
-
-    .css-1p3m7a8-multiValue {
-      color: var(--#{$prefix}white);
-      background-color: var(--#{$prefix}primary);
-
-      .css-wsp0cs-MultiValueGeneric {
-        color: var(--#{$prefix}white);
-      }
-
-      .css-1u9des2-indicatorSeparator {
-        border-color: var(--#{$prefix}border-color);
-      }
-    }
-  }
-
-  :is(.css-qbdosj-Input, .css-1dimb5e-singleValue) {
-    color: var(--#{$prefix}body-color);
-  }
-
-  .css-t3ipsp-control {
-    background-color: var(--#{$prefix}secondary-bg);
-    color: var(--#{$prefix}body-color);
-    border-color: var(--#{$prefix}border-color);
-
-    .css-1p3m7a8-multiValue {
-      color: var(--#{$prefix}white);
-      background-color: var(--#{$prefix}primary);
-
-      .css-wsp0cs-MultiValueGeneric {
-        color: var(--#{$prefix}white);
-      }
-
-      .css-1u9des2-indicatorSeparator {
-        border-color: var(--#{$prefix}border-color);
-      }
-    }
-  }
-
-  .css-1nmdiq5-menu {
-    background-color: var(--#{$prefix}secondary-bg);
-    color: var(--#{$prefix}body-color);
-    border-color: var(--#{$prefix}border-color);
-
-    .css-d7l1ni-option {
-      color: $white;
-      background-color: var(--#{$prefix}primary);
-
-      &:hover,
-      &:active,
-      &:focus {
-        background-color: var(--#{$prefix}primary);
-      }
-    }
   }
 }
