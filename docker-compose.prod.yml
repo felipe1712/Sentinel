@@ -1,0 +1,101 @@
+version: '3.8'
+
+services:
+  sentineliq-postgres:
+    image: postgis/postgis:15-3.3
+    container_name: sentineliq_postgres
+    restart: always
+    environment:
+      POSTGRES_DB: sentineliq
+      POSTGRES_USER: sentinel
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-sentinel_qro_sec_2026}
+    ports:
+      - "127.0.0.1:5433:5432"
+    volumes:
+      - sentineliq_pgdata:/var/lib/postgresql/data
+    networks:
+      - sentineliq_net
+
+  sentineliq-redis:
+    image: redis:7-alpine
+    container_name: sentineliq_redis
+    restart: always
+    ports:
+      - "127.0.0.1:6380:6379"
+    networks:
+      - sentineliq_net
+
+  sentineliq-qdrant:
+    image: qdrant/qdrant:v1.7.4
+    container_name: sentineliq_qdrant
+    restart: always
+    expose:
+      - "6333"
+    networks:
+      - sentineliq_net
+
+  sentineliq-spiderfoot:
+    image: smicallef/spiderfoot:latest
+    container_name: sentineliq_spiderfoot
+    restart: always
+    expose:
+      - "5001"
+    networks:
+      - sentineliq_net
+
+  sentineliq-rust-api:
+    build:
+      context: ./rust-api
+      dockerfile: ../docker/Dockerfile.rust
+    container_name: sentineliq_rust_api
+    restart: always
+    ports:
+      - "127.0.0.1:8085:8080"
+    environment:
+      DATABASE_URL: postgres://sentinel:${POSTGRES_PASSWORD:-sentinel_qro_sec_2026}@sentineliq-postgres:5432/sentineliq
+      JWT_SECRET: ${JWT_SECRET:-sentineliq_secret_key_queretaro_production_min_256_bits_length}
+      CLAUDE_API_KEY: ${CLAUDE_API_KEY:-""}
+      SERVICE_TOKEN: ${SERVICE_TOKEN:-sentineliq_internal_service_token_2026}
+      PORT: 8080
+      RUST_LOG: info,sentineliq_api=info
+    depends_on:
+      - sentineliq-postgres
+    networks:
+      - sentineliq_net
+
+  sentineliq-nextjs:
+    build:
+      context: ./nextjs-app
+      dockerfile: ../docker/Dockerfile.nextjs
+    container_name: sentineliq_nextjs
+    restart: always
+    ports:
+      - "127.0.0.1:3004:3000"
+    environment:
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-https://sentinel.queretaro.gob.mx/api}
+    networks:
+      - sentineliq_net
+
+  sentineliq-workers:
+    build:
+      context: ./workers
+      dockerfile: ../docker/Dockerfile.workers
+    container_name: sentineliq_workers
+    restart: always
+    environment:
+      RUST_API_URL: http://sentineliq-rust-api:8080
+      REDIS_URL: redis://sentineliq-redis:6379/0
+      SERVICE_TOKEN: ${SERVICE_TOKEN:-sentineliq_internal_service_token_2026}
+      CLAUDE_API_KEY: ${CLAUDE_API_KEY:-""}
+    depends_on:
+      - sentineliq-rust-api
+      - sentineliq-redis
+    networks:
+      - sentineliq_net
+
+networks:
+  sentineliq_net:
+    driver: bridge
+
+volumes:
+  sentineliq_pgdata:
