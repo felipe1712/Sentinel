@@ -1,0 +1,32 @@
+# Node / Next.js
+nextjs-app/node_modules/
+nextjs-app/.next/
+nextjs-app/out/
+nextjs-app/build/
+nextjs-app/.env*.local
+
+# Rust / Cargo
+rust-api/target/
+
+# Python / Virtualenvs
+workers/__pycache__/
+workers/*.pyc
+workers/.venv/
+workers/venv/
+workers/*.egg-info/
+workers/sample_report.pdf
+
+# Environment & Credentials
+.env
+*.pem
+*.key
+
+# Docker & Databases
+pgdata/
+*.mmdb
+
+# IDE & OS
+.DS_Store
+.vscode/
+.idea/
+Thumbs.db

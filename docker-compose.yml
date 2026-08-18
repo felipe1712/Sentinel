@@ -1,0 +1,101 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgis/postgis:15-3.3
+    container_name: sentineliq-postgres
+    restart: always
+    environment:
+      POSTGRES_DB: sentineliq
+      POSTGRES_USER: sentinel
+      POSTGRES_PASSWORD: sentinel123
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - sentinel-net
+
+  redis:
+    image: redis:7-alpine
+    container_name: sentineliq-redis
+    restart: always
+    ports:
+      - "6379:6379"
+    networks:
+      - sentinel-net
+
+  qdrant:
+    image: qdrant/qdrant:v1.7.4
+    container_name: sentineliq-qdrant
+    restart: always
+    expose:
+      - "6333"
+    networks:
+      - sentinel-net
+
+  spiderfoot:
+    image: smicallef/spiderfoot:latest
+    container_name: sentineliq-spiderfoot
+    restart: always
+    expose:
+      - "5001"
+    networks:
+      - sentinel-net
+
+  rust-api:
+    build:
+      context: ./rust-api
+      dockerfile: ../docker/Dockerfile.rust
+    container_name: sentineliq-rust-api
+    restart: always
+    ports:
+      - "8080:8080"
+    environment:
+      DATABASE_URL: postgres://sentinel:sentinel123@postgres:5432/sentineliq
+      JWT_SECRET: sentineliq_secret_key_change_me_in_production_min_256_bits_length_secure_string_key
+      CLAUDE_API_KEY: ${CLAUDE_API_KEY:-""}
+      SERVICE_TOKEN: sentineliq_internal_service_token_2026
+      PORT: 8080
+      RUST_LOG: info,sentineliq_api=debug
+    depends_on:
+      - postgres
+    networks:
+      - sentinel-net
+
+  nextjs-app:
+    build:
+      context: ./nextjs-app
+      dockerfile: ../docker/Dockerfile.nextjs
+    container_name: sentineliq-nextjs
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8080
+    networks:
+      - sentinel-net
+
+  python-workers:
+    build:
+      context: ./workers
+      dockerfile: ../docker/Dockerfile.workers
+    container_name: sentineliq-workers
+    restart: always
+    environment:
+      RUST_API_URL: http://rust-api:8080
+      REDIS_URL: redis://redis:6379/0
+      SERVICE_TOKEN: sentineliq_internal_service_token_2026
+      CLAUDE_API_KEY: ${CLAUDE_API_KEY:-""}
+    depends_on:
+      - rust-api
+      - redis
+    networks:
+      - sentinel-net
+
+networks:
+  sentinel-net:
+    driver: bridge
+
+volumes:
+  pgdata:
