@@ -72,7 +72,7 @@ services:
     ports:
       - "127.0.0.1:3004:3000"
     environment:
-      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-https://sentinel.queretaro.gob.mx/api}
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-https://qro.sentineliq.com.mx/api}
     networks:
       - sentineliq_net
 
