@@ -43,21 +43,21 @@ export default function SituacionalMap({ onSelectMunicipio }: SituacionalMapProp
 
       mapInstanceRef.current = map;
 
-      // Add CartoDB Dark Matter tile layer (FREE & NO API KEY REQUIRED)
-      L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
+      // Add CartoDB Voyager / Positron LIGHT tile layer (High Contrast, Ultra-Clear - FREE & NO API KEY REQUIRED)
+      L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>',
         subdomains: "abcd",
         maxZoom: 19,
       }).addTo(map);
 
-      // Custom markers for Querétaro Municipalities
+      // Custom markers for Querétaro Municipalities (Bright, High-Contrast colors for Light Mode)
       const municipalities = [
         {
           name: "Santiago de Querétaro",
           lat: 20.5888,
           lng: -100.3899,
           events: 12,
-          color: "#f06548",
+          color: "#e63946", // Bright Red
           status: "Alerta Vial Paseo 5 de Febrero",
         },
         {
@@ -65,7 +65,7 @@ export default function SituacionalMap({ onSelectMunicipio }: SituacionalMapProp
           lat: 20.6720,
           lng: -100.2811,
           events: 7,
-          color: "#f7b84b",
+          color: "#d97706", // Amber
           status: "Monitoreo Hidrológico Preventivo",
         },
         {
@@ -73,7 +73,7 @@ export default function SituacionalMap({ onSelectMunicipio }: SituacionalMapProp
           lat: 20.5367,
           lng: -100.4439,
           events: 6,
-          color: "#3577f1",
+          color: "#2563eb", // Vibrant Blue
           status: "Operativo de Seguridad ZMQ",
         },
         {
@@ -81,7 +81,7 @@ export default function SituacionalMap({ onSelectMunicipio }: SituacionalMapProp
           lat: 20.3872,
           lng: -99.9961,
           events: 3,
-          color: "#0ab39c",
+          color: "#059669", // Emerald Green
           status: "Vigilancia Industrial & Carretera",
         },
       ];
@@ -92,7 +92,7 @@ export default function SituacionalMap({ onSelectMunicipio }: SituacionalMapProp
           fillColor: m.color,
           color: "#ffffff",
           weight: 3,
-          opacity: 0.95,
+          opacity: 1,
           fillOpacity: 0.85,
         }).addTo(map);
 
@@ -105,10 +105,10 @@ export default function SituacionalMap({ onSelectMunicipio }: SituacionalMapProp
 
         circle.bindPopup(`
           <div style="font-family: 'Plus Jakarta Sans', sans-serif; padding: 6px;">
-            <strong style="font-size: 15px; color: #212529;">${m.name}</strong><br/>
-            <span style="font-size: 12px; color: #6c757d;">Incidentes Activos: <strong>${m.events}</strong></span><br/>
+            <strong style="font-size: 15px; color: #1e293b;">${m.name}</strong><br/>
+            <span style="font-size: 12px; color: #475569;">Incidentes Activos: <strong>${m.events}</strong></span><br/>
             <small style="color: ${m.color}; font-weight: bold; display: block; margin-top: 4px;">${m.status}</small>
-            <button id="btn-drill-${m.name.replace(/\s+/g, "")}" style="margin-top: 8px; width: 100%; border: none; background: #3577f1; color: white; border-radius: 4px; padding: 4px 8px; font-size: 11px; cursor: pointer;">
+            <button id="btn-drill-${m.name.replace(/\s+/g, "")}" style="margin-top: 8px; width: 100%; border: none; background: #2563eb; color: white; border-radius: 4px; padding: 6px 10px; font-size: 11px; font-weight: bold; cursor: pointer;">
               Ver Detalle en Gabinete &darr;
             </button>
           </div>
@@ -138,7 +138,7 @@ export default function SituacionalMap({ onSelectMunicipio }: SituacionalMapProp
   return (
     <div
       ref={mapRef}
-      className="w-100 rounded-bottom cursor-pointer"
+      className="w-100 rounded-bottom cursor-pointer shadow-inner"
       style={{ height: "380px", minHeight: "380px", zIndex: 1 }}
     />
   );

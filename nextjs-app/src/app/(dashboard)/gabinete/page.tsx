@@ -192,17 +192,17 @@ export default function GabineteView() {
   return (
     <div
       className={`min-vh-100 pt-4 pt-md-5 mt-2 px-3 px-md-4 px-lg-5 pb-5 ${
-        isCrisis ? "bg-danger-subtle text-danger-emphasis" : "bg-dark text-white"
+        isCrisis ? "bg-danger-subtle text-danger-emphasis" : "bg-light text-dark"
       }`}
       style={{ fontSize: "1.15rem", maxWidth: "1600px", margin: "0 auto" }}
     >
-      {/* Header Proyector */}
-      <div className="d-flex flex-column flex-md-row align-items-md-center justify-content-between mb-4 border-bottom border-secondary pb-4 gap-3">
+      {/* Header Proyector Modo Claro */}
+      <div className="d-flex flex-column flex-md-row align-items-md-center justify-content-between mb-4 border-bottom border-gray-300 pb-4 gap-3">
         <div>
           <span className="badge bg-primary px-3 py-2 fs-13 text-uppercase fw-bold mb-2 shadow-sm">
             SALA DE GABINETE DE GOBIERNO · ESTADO DE QUERÉTARO
           </span>
-          <h2 className="fw-extrabold text-white mb-0 fs-28">
+          <h2 className="fw-extrabold text-dark mb-0 fs-28">
             Monitoreo Estratégico en Tiempo Real
           </h2>
         </div>
@@ -214,43 +214,43 @@ export default function GabineteView() {
         </div>
       </div>
 
-      {/* Layout 2 Columnas Proyector */}
+      {/* Layout 2 Columnas Proyector Modo Claro */}
       <div className="row g-4 mb-4">
-        {/* Izquierda (60%): Mapa Situacional Interactivo */}
+        {/* Izquierda (60%): Mapa Situacional Interactivo Claro */}
         <div className="col-lg-7">
-          <div className="card bg-black border-secondary h-100 overflow-hidden shadow-lg">
-            <div className="card-header bg-dark border-secondary d-flex justify-content-between align-items-center py-3">
-              <h4 className="card-title mb-0 fw-bold fs-16 text-white">
+          <div className="card bg-white border-0 overflow-hidden shadow-sm h-100">
+            <div className="card-header bg-body-tertiary border-bottom d-flex justify-content-between align-items-center py-3">
+              <h4 className="card-title mb-0 fw-bold fs-16 text-dark">
                 <i className="ri-map-pin-2-fill text-danger me-2"></i> Mapa de Calor Querétaro
               </h4>
-              <span className="badge bg-info-subtle text-info fs-11">
-                Haz clic en los círculos para hacer Drilldown &darr;
+              <span className="badge bg-primary-subtle text-primary fs-11">
+                CartoDB Voyager (Claro) · Clic para Drilldown &darr;
               </span>
             </div>
             <div className="card-body p-0 position-relative">
               <SituacionalMap onSelectMunicipio={handleSelectMunicipio} />
             </div>
-            <div className="card-footer bg-dark border-secondary p-3 d-flex flex-wrap gap-2 justify-content-center">
+            <div className="card-footer bg-light border-top p-3 d-flex flex-wrap gap-2 justify-content-center">
               <button
-                className="btn btn-outline-danger btn-sm rounded-pill px-3"
+                className="btn btn-outline-danger btn-sm rounded-pill px-3 fw-semibold"
                 onClick={() => handleSelectMunicipio("Santiago de Querétaro")}
               >
                 🔴 Santiago de Querétaro (12 evt)
               </button>
               <button
-                className="btn btn-outline-warning btn-sm rounded-pill px-3"
+                className="btn btn-outline-warning btn-sm rounded-pill px-3 text-dark fw-semibold"
                 onClick={() => handleSelectMunicipio("El Marqués")}
               >
                 🟡 El Marqués (7 evt)
               </button>
               <button
-                className="btn btn-outline-primary btn-sm rounded-pill px-3"
+                className="btn btn-outline-primary btn-sm rounded-pill px-3 fw-semibold"
                 onClick={() => handleSelectMunicipio("Corregidora")}
               >
                 🔵 Corregidora (6 evt)
               </button>
               <button
-                className="btn btn-outline-success btn-sm rounded-pill px-3"
+                className="btn btn-outline-success btn-sm rounded-pill px-3 fw-semibold"
                 onClick={() => handleSelectMunicipio("San Juan del Río")}
               >
                 🟢 San Juan del Río (3 evt)
@@ -259,12 +259,12 @@ export default function GabineteView() {
           </div>
         </div>
 
-        {/* Derecha (40%): Semáforos Interactivos por Ramo */}
+        {/* Derecha (40%): Semáforos Interactivos Modo Claro */}
         <div className="col-lg-5">
-          <div className="card bg-dark border-secondary h-100 shadow-lg">
-            <div className="card-header bg-secondary-subtle border-secondary d-flex justify-content-between align-items-center py-3">
+          <div className="card bg-white border-0 h-100 shadow-sm">
+            <div className="card-header bg-body-tertiary border-bottom d-flex justify-content-between align-items-center py-3">
               <h4 className="card-title mb-0 fw-bold fs-18 text-body">Semáforos por Ramo</h4>
-              <span className="badge bg-secondary fs-10">Haz clic en un recuadro &darr;</span>
+              <span className="badge bg-secondary fs-10">Clic para seleccionar &darr;</span>
             </div>
             <div className="card-body p-4 d-flex flex-column gap-3">
               <div
@@ -331,19 +331,19 @@ export default function GabineteView() {
         </div>
       </div>
 
-      {/* PANEL DE DETALLE & DRILLDOWN SELECCIONADO (Se muestra abajo) */}
+      {/* PANEL DE DETALLE & DRILLDOWN MODO CLARO */}
       {selectedDetail && (
-        <div ref={detailPanelRef} className="card bg-dark-subtle border-primary shadow-lg rounded-4 overflow-hidden mb-5 border-2">
+        <div ref={detailPanelRef} className="card bg-white border-primary shadow-lg rounded-4 overflow-hidden mb-5 border-2">
           <div className="card-header bg-primary text-white p-4 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2">
             <div>
-              <span className="badge bg-white text-primary text-uppercase px-3 py-1 fs-11 fw-bold mb-1">
+              <span className="badge bg-white text-primary text-uppercase px-3 py-1 fs-11 fw-bold mb-1 shadow-sm">
                 Panel de Detalle & Drilldown de Gabinete
               </span>
               <h3 className="fw-bold text-white mb-0 display-7">{selectedDetail.title}</h3>
               <p className="text-white-50 fs-13 mb-0">{selectedDetail.subtitle}</p>
             </div>
             <div className="d-flex align-items-center gap-2">
-              <span className={`badge ${selectedDetail.badgeColor} fs-14 px-3 py-2 fw-bold`}>
+              <span className={`badge ${selectedDetail.badgeColor} fs-14 px-3 py-2 fw-bold shadow-sm`}>
                 {selectedDetail.badge}
               </span>
               <button
@@ -358,12 +358,12 @@ export default function GabineteView() {
 
           <div className="card-body p-4 p-md-5">
             <div className="row g-4">
-              {/* Columna Izquierda: Diagnóstico Ejecutivo */}
+              {/* Columna Izquierda: Diagnóstico Ejecutivo Modo Claro */}
               <div className="col-lg-7">
                 <h5 className="fw-bold text-primary mb-3">
                   <i className="ri-file-text-line me-2"></i> Diagnóstico de Inteligencia Procesada
                 </h5>
-                <p className="fs-15 lh-lg text-body mb-4 bg-body p-3 rounded-3 border border-dark">
+                <p className="fs-15 lh-lg text-body mb-4 bg-light p-4 rounded-3 border border-gray-200">
                   {selectedDetail.description}
                 </p>
 
@@ -372,7 +372,7 @@ export default function GabineteView() {
                 </h5>
                 <ul className="list-group list-group-flush mb-4">
                   {selectedDetail.actions.map((act, idx) => (
-                    <li key={idx} className="list-group-item bg-transparent text-body fs-14 border-dark py-2 px-0 d-flex align-items-start">
+                    <li key={idx} className="list-group-item bg-transparent text-body fs-14 border-bottom py-2 px-0 d-flex align-items-start">
                       <i className="ri-arrow-right-s-fill text-primary me-2 mt-1"></i>
                       <span>{act}</span>
                     </li>
@@ -380,9 +380,9 @@ export default function GabineteView() {
                 </ul>
               </div>
 
-              {/* Columna Derecha: Cronología & Expediente */}
+              {/* Columna Derecha: Cronología & Expediente Modo Claro */}
               <div className="col-lg-5">
-                <div className="bg-body p-4 rounded-3 border border-dark h-100">
+                <div className="bg-light p-4 rounded-3 border border-gray-200 h-100">
                   <h5 className="fw-bold text-body mb-3 fs-16">
                     <i className="ri-history-line me-2 text-warning"></i> Cronología del Incidente (24h)
                   </h5>
@@ -398,7 +398,7 @@ export default function GabineteView() {
                     ))}
                   </div>
 
-                  <div className="pt-3 border-top border-dark d-flex gap-2">
+                  <div className="pt-3 border-top d-flex gap-2">
                     <Link
                       href={`/dossiers/nuevo?municipio=${encodeURIComponent(selectedDetail.title)}`}
                       className="btn btn-primary btn-sm w-100 fw-semibold"
