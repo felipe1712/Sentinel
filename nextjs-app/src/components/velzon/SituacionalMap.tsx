@@ -2,7 +2,11 @@
 
 import React, { useEffect, useRef } from "react";
 
-export default function SituacionalMap() {
+interface SituacionalMapProps {
+  onSelectMunicipio?: (nombre: string) => void;
+}
+
+export default function SituacionalMap({ onSelectMunicipio }: SituacionalMapProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<any>(null);
 
@@ -84,21 +88,42 @@ export default function SituacionalMap() {
 
       municipalities.forEach((m) => {
         const circle = L.circleMarker([m.lat, m.lng], {
-          radius: 12 + m.events * 1.5,
+          radius: 14 + m.events * 1.5,
           fillColor: m.color,
           color: "#ffffff",
-          weight: 2,
-          opacity: 0.9,
-          fillOpacity: 0.7,
+          weight: 3,
+          opacity: 0.95,
+          fillOpacity: 0.85,
         }).addTo(map);
 
+        // Click handler on circle marker to trigger drilldown
+        circle.on("click", () => {
+          if (onSelectMunicipio) {
+            onSelectMunicipio(m.name);
+          }
+        });
+
         circle.bindPopup(`
-          <div style="font-family: 'Plus Jakarta Sans', sans-serif; padding: 4px;">
-            <strong style="font-size: 14px; color: #212529;">${m.name}</strong><br/>
+          <div style="font-family: 'Plus Jakarta Sans', sans-serif; padding: 6px;">
+            <strong style="font-size: 15px; color: #212529;">${m.name}</strong><br/>
             <span style="font-size: 12px; color: #6c757d;">Incidentes Activos: <strong>${m.events}</strong></span><br/>
-            <small style="color: ${m.color}; font-weight: bold;">${m.status}</small>
+            <small style="color: ${m.color}; font-weight: bold; display: block; margin-top: 4px;">${m.status}</small>
+            <button id="btn-drill-${m.name.replace(/\s+/g, "")}" style="margin-top: 8px; width: 100%; border: none; background: #3577f1; color: white; border-radius: 4px; padding: 4px 8px; font-size: 11px; cursor: pointer;">
+              Ver Detalle en Gabinete &darr;
+            </button>
           </div>
         `);
+
+        circle.on("popupopen", () => {
+          const btn = document.getElementById(`btn-drill-${m.name.replace(/\s+/g, "")}`);
+          if (btn) {
+            btn.onclick = () => {
+              if (onSelectMunicipio) {
+                onSelectMunicipio(m.name);
+              }
+            };
+          }
+        });
       });
     });
 
@@ -108,13 +133,13 @@ export default function SituacionalMap() {
         mapInstanceRef.current = null;
       }
     };
-  }, []);
+  }, [onSelectMunicipio]);
 
   return (
     <div
       ref={mapRef}
-      className="w-100 rounded-bottom"
-      style={{ height: "350px", minHeight: "350px", zIndex: 1 }}
+      className="w-100 rounded-bottom cursor-pointer"
+      style={{ height: "380px", minHeight: "380px", zIndex: 1 }}
     />
   );
 }
