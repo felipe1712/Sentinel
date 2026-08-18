@@ -33,7 +33,9 @@ services:
       - sentinel-net
 
   spiderfoot:
-    image: spiderfoot/spiderfoot:latest
+    build:
+      context: ./docker
+      dockerfile: Dockerfile.spiderfoot
     container_name: sentineliq-spiderfoot
     restart: always
     expose:
