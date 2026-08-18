@@ -114,11 +114,21 @@ export const Sidebar: React.FC = () => {
           )}
 
           {isJefeOficina && (
-            <li className="nav-item">
-              <Link href="/admin" className={`nav-link ${isActive("/admin") ? "active" : ""}`}>
-                <i className="ri-settings-4-line me-2"></i> <span>Administración</span>
-              </Link>
-            </li>
+            <>
+              <li className="nav-item">
+                <Link href="/admin" className={`nav-link ${isActive("/admin") ? "active" : ""}`}>
+                  <i className="ri-settings-4-line me-2"></i> <span>Administración</span>
+                </Link>
+              </li>
+
+              <li className="nav-item">
+                <Link href="/admin/mcp" className={`nav-link ${isActive("/admin/mcp") ? "active" : ""}`}>
+                  <i className="ri-cpu-line me-2"></i> 
+                  <span>Gestión MCP</span>
+                  <span className="badge bg-info-subtle text-info ms-auto fs-10">Tools</span>
+                </Link>
+              </li>
+            </>
           )}
         </ul>
       </div>
