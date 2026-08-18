@@ -115,9 +115,19 @@ export const Sidebar: React.FC = () => {
 
           {isJefeOficina && (
             <>
+              <li className="menu-title mt-3"><span data-key="t-admin">Administración Soberana</span></li>
+
               <li className="nav-item">
-                <Link href="/admin" className={`nav-link ${isActive("/admin") ? "active" : ""}`}>
-                  <i className="ri-settings-4-line me-2"></i> <span>Administración</span>
+                <Link href="/admin" className={`nav-link ${pathname === "/admin" ? "active" : ""}`}>
+                  <i className="ri-user-settings-line me-2"></i> <span>Usuarios & Roles</span>
+                </Link>
+              </li>
+
+              <li className="nav-item">
+                <Link href="/admin/keys" className={`nav-link ${isActive("/admin/keys") ? "active" : ""}`}>
+                  <i className="ri-key-fill me-2"></i> 
+                  <span>Llaves API & Secretos</span>
+                  <span className="badge bg-primary-subtle text-primary ms-auto fs-10">Keys</span>
                 </Link>
               </li>
 
