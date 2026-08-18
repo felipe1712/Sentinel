@@ -7,7 +7,7 @@ use futures::stream::{self, Stream};
 use serde::Deserialize;
 use serde_json::json;
 use sqlx::PgPool;
-use std::{convert::Infallible, time::Duration};
+use std::convert::Infallible;
 use tokio::sync::broadcast::Sender;
 use uuid::Uuid;
 use crate::{
@@ -53,7 +53,8 @@ pub async fn list_events(
 
 pub async fn create_event(
     auth: AuthUser,
-    State((pool, tx_event)): State<(PgPool, Sender<String>)>,
+    State(pool): State<PgPool>,
+    State(tx_event): State<Sender<String>>,
     Json(payload): Json<CreateEventDTO>,
 ) -> Result<Json<Event>, AppError> {
     auth.require_role(&["analista", "jefe_oficina", "superadmin"])?;
@@ -84,7 +85,6 @@ pub async fn create_event(
     .fetch_one(&pool)
     .await?;
 
-    // Notificar por SSE broadcast
     if let Ok(event_json) = serde_json::to_string(&event) {
         let _ = tx_event.send(event_json);
     }
@@ -112,9 +112,7 @@ pub async fn sse_events_stream(
 ) -> Sse<impl Stream<Item = Result<SseMessage, Infallible>>> {
     let stream = stream::repeat_with(|| {
         SseMessage::default().data(json!({"type": "ping", "time": chrono::Utc::now().to_rfc3339()}).to_string())
-    })
-    .map(Ok)
-    .throttle(Duration::from_secs(15));
+    });
 
     Sse::new(stream)
 }

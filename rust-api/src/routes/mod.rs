@@ -1,27 +1,47 @@
+pub mod admin;
 pub mod auth;
 pub mod briefings;
-pub mod events;
+pub mod cabinet;
 pub mod dossiers;
+pub mod events;
+pub mod intel;
+pub mod municipios;
 pub mod narratives;
 pub mod profiles;
-pub mod sources;
-pub mod municipios;
 pub mod reports;
+pub mod sources;
 pub mod spiderfoot;
-pub mod intel;
-pub mod cabinet;
-pub mod admin;
 
 use axum::{
+    extract::FromRef,
     routing::{get, patch, post},
     Router,
 };
 use sqlx::PgPool;
-use tokio::sync::broadcast;
+use tokio::sync::broadcast::{self, Sender};
 use tower_http::cors::{Any, CorsLayer};
+
+#[derive(Clone)]
+pub struct AppState {
+    pub pool: PgPool,
+    pub tx_event: Sender<String>,
+}
+
+impl FromRef<AppState> for PgPool {
+    fn from_ref(app_state: &AppState) -> Self {
+        app_state.pool.clone()
+    }
+}
+
+impl FromRef<AppState> for Sender<String> {
+    fn from_ref(app_state: &AppState) -> Self {
+        app_state.tx_event.clone()
+    }
+}
 
 pub fn create_router(pool: PgPool) -> Router {
     let (tx_event, _) = broadcast::channel::<String>(100);
+    let state = AppState { pool, tx_event };
 
     let cors = CorsLayer::new()
         .allow_origin(Any)
@@ -77,5 +97,5 @@ pub fn create_router(pool: PgPool) -> Router {
         .route("/admin/states", get(admin::list_states))
         .route("/admin/users", get(admin::list_users))
         .layer(cors)
-        .with_state((pool, tx_event))
+        .with_state(state)
 }

