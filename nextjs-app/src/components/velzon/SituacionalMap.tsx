@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useEffect, useRef } from "react";
-import "leaflet/dist/leaflet.css";
 
 export default function SituacionalMap() {
   const mapRef = useRef<HTMLDivElement>(null);
@@ -10,11 +9,20 @@ export default function SituacionalMap() {
   useEffect(() => {
     if (typeof window === "undefined" || !mapRef.current) return;
 
-    // Dynamically import Leaflet client-side
-    import("leaflet").then((L) => {
-      if (mapInstanceRef.current) return; // Prevent double init
+    // Inject Leaflet CSS dynamically if not present
+    if (!document.getElementById("leaflet-css")) {
+      const link = document.createElement("link");
+      link.id = "leaflet-css";
+      link.rel = "stylesheet";
+      link.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
+      document.head.appendChild(link);
+    }
 
-      // Fix default marker icon issues in Webpack/Next.js
+    // Dynamically import Leaflet client-side only
+    import("leaflet").then((L) => {
+      if (mapInstanceRef.current) return;
+
+      // Fix default icon paths
       delete (L.Icon.Default.prototype as any)._getIconUrl;
       L.Icon.Default.mergeOptions({
         iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
@@ -22,7 +30,7 @@ export default function SituacionalMap() {
         shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
       });
 
-      // Initialize map centered at Querétaro City
+      // Initialize map centered at Santiago de Querétaro
       const map = L.map(mapRef.current!, {
         center: [20.5888, -100.3899],
         zoom: 10,
@@ -31,21 +39,21 @@ export default function SituacionalMap() {
 
       mapInstanceRef.current = map;
 
-      // Add CartoDB Dark Matter tile layer (FREE - NO API KEY REQUIRED)
+      // Add CartoDB Dark Matter tile layer (FREE & NO API KEY REQUIRED)
       L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>',
         subdomains: "abcd",
         maxZoom: 19,
       }).addTo(map);
 
-      // Custom circle markers for Querétaro Municipalities
+      // Custom markers for Querétaro Municipalities
       const municipalities = [
         {
           name: "Santiago de Querétaro",
           lat: 20.5888,
           lng: -100.3899,
           events: 12,
-          color: "#f06548", // Red
+          color: "#f06548",
           status: "Alerta Vial Paseo 5 de Febrero",
         },
         {
@@ -53,7 +61,7 @@ export default function SituacionalMap() {
           lat: 20.6720,
           lng: -100.2811,
           events: 7,
-          color: "#f7b84b", // Warning
+          color: "#f7b84b",
           status: "Monitoreo Hidrológico Preventivo",
         },
         {
@@ -61,7 +69,7 @@ export default function SituacionalMap() {
           lat: 20.5367,
           lng: -100.4439,
           events: 6,
-          color: "#3577f1", // Info
+          color: "#3577f1",
           status: "Operativo de Seguridad ZMQ",
         },
         {
@@ -69,7 +77,7 @@ export default function SituacionalMap() {
           lat: 20.3872,
           lng: -99.9961,
           events: 3,
-          color: "#0ab39c", // Success
+          color: "#0ab39c",
           status: "Vigilancia Industrial & Carretera",
         },
       ];
