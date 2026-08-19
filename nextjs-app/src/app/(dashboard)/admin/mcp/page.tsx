@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import api from "@/lib/api";
+import Link from "next/link";
 
 interface McpTool {
   id: string;
@@ -69,6 +69,15 @@ export default function McpAdminPage() {
       lastRun: "Hace 8 min",
       latencyMs: 180,
     },
+    {
+      id: "intel_climate_anomalies",
+      name: "Anomalías Climáticas & Embalses",
+      category: "infraestructura",
+      description: "Niveles de sequía y monitoreo pluvial en embalses de Querétaro.",
+      active: true,
+      lastRun: "Hace 15 min",
+      latencyMs: 210,
+    },
   ]);
 
   const [testResult, setTestResult] = useState<any>(null);
@@ -93,77 +102,103 @@ export default function McpAdminPage() {
         }
       });
       setTestingTool(null);
-    }, 1000);
+    }, 800);
   };
 
   return (
-    <div>
+    <div className="pb-5">
       {/* Header */}
-      <div className="d-flex align-items-center justify-content-between mb-4">
+      <div className="d-flex flex-column flex-md-row align-items-md-center justify-content-between mb-4 gap-3">
         <div>
-          <span className="badge bg-primary-subtle text-primary text-uppercase px-3 py-1 fs-11 fw-bold mb-1">
-            world-intel-mcp · Local Server
+          <span className="badge bg-primary text-white text-uppercase px-3 py-1 fs-11 fw-bold mb-1 shadow-sm">
+            world-intel-mcp · Servidor Soberano Local
           </span>
-          <h4 className="fw-bold mb-1">Administración de Servidores & Tools MCP</h4>
-          <p className="text-muted fs-13 mb-0">
+          <h4 className="fw-extrabold text-dark mb-1 fs-24" style={{ color: "#0f172a" }}>
+            Administración de Servidores & Tools MCP
+          </h4>
+          <p className="text-dark fs-13 mb-0 fw-semibold" style={{ color: "#334155" }}>
             Control de herramientas de inteligencia global que alimentan los briefings y dossiers del Gobernador.
           </p>
         </div>
         <div className="d-flex gap-2">
-          <span className="badge bg-success-subtle text-success fs-12 px-3 py-2 d-flex align-items-center">
+          <span className="badge bg-success text-white fs-12 px-3 py-2 d-flex align-items-center shadow-sm">
             <i className="ri-checkbox-circle-fill me-1"></i> Qdrant Vector Store: Online
-          </span>
-          <span className="badge bg-dark fs-12 px-3 py-2 d-flex align-items-center">
-            113 Tools Registradas (6 Activas)
           </span>
         </div>
       </div>
 
+      {/* Menú de Navegación de Administración */}
+      <div className="card bg-white border-0 shadow-sm mb-4 rounded-3">
+        <div className="card-body p-2 bg-white">
+          <ul className="nav nav-pills nav-custom">
+            <li className="nav-item">
+              <Link href="/admin" className="nav-link">
+                <i className="ri-user-settings-line me-1"></i> Usuarios & Roles
+              </Link>
+            </li>
+            <li className="nav-item">
+              <Link href="/admin/keys" className="nav-link">
+                <i className="ri-key-fill me-1"></i> Llaves API & Secretos
+              </Link>
+            </li>
+            <li className="nav-item">
+              <Link href="/admin/mcp" className="nav-link active fw-bold">
+                <i className="ri-cpu-line me-1"></i> Gestión MCP & Tools
+              </Link>
+            </li>
+          </ul>
+        </div>
+      </div>
+
       {/* Explicación de Arquitectura MCP */}
-      <div className="card mb-4 border-start border-4 border-info">
-        <div className="card-body">
-          <h6 className="fw-bold text-info text-uppercase fs-12 mb-1">¿Qué es MCP y cómo se utiliza en SentinelIQ?</h6>
-          <p className="fs-13 text-muted mb-0">
-            El <strong>Model Context Protocol (MCP)</strong> es un estándar de comunicación entre modelos LLM (Claude API / Antigravity) y fuentes de datos externas. SentinelIQ ejecuta localmente el servidor <code>world-intel-mcp</code> en la red soberana, permitiendo al generador de briefings consultar sismos, inundaciones, disturbios e índices de inestabilidad sin exponer datos sensibles a servicios de terceros.
+      <div className="card bg-white border-0 shadow-sm mb-4 border-start border-4 border-primary rounded-3">
+        <div className="card-body p-4 bg-white">
+          <h6 className="fw-extrabold text-primary text-uppercase fs-12 mb-1" style={{ color: "#1e40af" }}>
+            ¿Qué es MCP y cómo se utiliza en SentinelIQ?
+          </h6>
+          <p className="fs-13 text-dark fw-semibold mb-0" style={{ color: "#0f172a" }}>
+            El <strong>Model Context Protocol (MCP)</strong> es el estándar de comunicación soberana entre modelos de IA (Claude 3.5 Sonnet) y fuentes de datos. SentinelIQ ejecuta localmente el servidor <code>world-intel-mcp</code> en la infraestructura de Querétaro, permitiendo consultar sismos, inundaciones, disturbios e índices de inestabilidad sin fuga de información a terceros.
           </p>
         </div>
       </div>
 
       {/* Lista de Tools Configurada */}
-      <div className="card shadow-sm mb-4">
-        <div className="card-header bg-body-tertiary d-flex justify-content-between align-items-center">
-          <h6 className="card-title mb-0 fw-bold">Herramientas MCP Habilitadas para Querétaro</h6>
-          <span className="fs-12 text-muted">Protección Civil · Seguridad · Salud · Inteligencia</span>
+      <div className="card bg-white border-0 shadow-sm mb-4 rounded-3 overflow-hidden">
+        <div className="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+          <h6 className="card-title mb-0 fw-extrabold text-dark fs-15" style={{ color: "#0f172a" }}>
+            7 Herramientas MCP Habilitadas para Querétaro
+          </h6>
+          <span className="badge bg-primary text-white fs-11 fw-bold shadow-sm">Protección Civil · Seguridad · Salud</span>
         </div>
-        <div className="card-body p-0">
+        <div className="card-body p-0 bg-white">
           <div className="table-responsive">
             <table className="table table-hover align-middle mb-0">
-              <thead className="table-dark">
+              <thead className="bg-light text-dark border-bottom">
                 <tr>
-                  <th>Herramienta MCP</th>
-                  <th>Categoría</th>
-                  <th>Última Consulta</th>
-                  <th>Latencia</th>
-                  <th>Estado</th>
-                  <th>Prueba</th>
+                  <th className="text-dark fw-bold py-3 ps-4">Herramienta MCP</th>
+                  <th className="text-dark fw-bold">Categoría</th>
+                  <th className="text-dark fw-bold">Última Invocación</th>
+                  <th className="text-dark fw-bold">Latencia</th>
+                  <th className="text-dark fw-bold">Estado</th>
+                  <th className="text-dark fw-bold text-end pe-4">Prueba</th>
                 </tr>
               </thead>
               <tbody>
                 {tools.map((t) => (
-                  <tr key={t.id}>
-                    <td>
-                      <h6 className="fw-bold mb-0 text-body">{t.name}</h6>
-                      <code className="fs-11 text-muted">{t.id}</code>
+                  <tr key={t.id} className="bg-white">
+                    <td className="ps-4 py-3">
+                      <h6 className="fw-extrabold mb-1 text-dark fs-14" style={{ color: "#0f172a" }}>{t.name}</h6>
+                      <code className="fs-12 text-primary fw-bold">{t.id}</code>
                     </td>
                     <td>
-                      <span className="badge bg-primary-subtle text-primary text-uppercase">
+                      <span className="badge bg-primary-subtle text-primary fw-bold text-uppercase fs-11">
                         {t.category.replace("_", " ")}
                       </span>
                     </td>
-                    <td className="fs-13 text-muted">{t.lastRun}</td>
-                    <td className="fs-13 fw-semibold">{t.latencyMs} ms</td>
+                    <td className="fs-13 text-dark fw-semibold" style={{ color: "#334155" }}>{t.lastRun}</td>
+                    <td className="fs-13 fw-bold text-dark">{t.latencyMs} ms</td>
                     <td>
-                      <div className="form-check form-switch">
+                      <div className="form-check form-switch d-inline-block">
                         <input
                           className="form-check-input"
                           type="checkbox"
@@ -172,9 +207,9 @@ export default function McpAdminPage() {
                         />
                       </div>
                     </td>
-                    <td>
+                    <td className="text-end pe-4">
                       <button
-                        className="btn btn-outline-secondary btn-sm"
+                        className="btn btn-outline-primary btn-sm fw-bold"
                         onClick={() => handleTestTool(t.id)}
                         disabled={testingTool === t.id}
                       >
@@ -191,15 +226,15 @@ export default function McpAdminPage() {
 
       {/* Resultado de Prueba Manual */}
       {testResult && (
-        <div className="card border-success shadow-sm">
-          <div className="card-header bg-success-subtle text-success-emphasis d-flex justify-content-between">
-            <h6 className="card-title mb-0 fw-bold">
+        <div className="card bg-white border-success shadow-sm rounded-3 overflow-hidden border-2">
+          <div className="card-header bg-success text-white py-3 d-flex justify-content-between align-items-center">
+            <h6 className="card-title mb-0 fw-extrabold text-white">
               Resultado de Ejecución MCP: <code>{testResult.tool}</code>
             </h6>
-            <span className="badge bg-success">Status 200 OK</span>
+            <span className="badge bg-white text-success fw-bold fs-11">Status 200 OK</span>
           </div>
-          <div className="card-body">
-            <pre className="bg-dark text-success p-3 rounded mb-0 fs-12 font-monospace">
+          <div className="card-body p-4 bg-white">
+            <pre className="bg-light text-dark p-3 rounded-3 border border-gray-300 mb-0 fs-13 font-monospace fw-bold" style={{ color: "#0f172a" }}>
               {JSON.stringify(testResult.data, null, 2)}
             </pre>
           </div>
