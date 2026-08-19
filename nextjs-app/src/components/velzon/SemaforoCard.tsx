@@ -11,34 +11,55 @@ interface SemaforoProps {
 }
 
 export const SemaforoCard: React.FC<SemaforoProps> = ({ area, nivel, color, mensaje, tendencia }) => {
-  const getBgClass = () => {
+  const getBadgeStyle = () => {
     switch (color) {
       case "danger":
-        return "border-danger bg-danger-subtle";
+        return "bg-danger text-white";
       case "warning":
-        return "border-warning bg-warning-subtle";
+        return "bg-warning text-dark fw-bold";
       case "success":
-        return "border-success bg-success-subtle";
+        return "bg-success text-white";
+      default:
+        return "bg-primary text-white";
+    }
+  };
+
+  const getBorderStyle = () => {
+    switch (color) {
+      case "danger":
+        return "border-danger";
+      case "warning":
+        return "border-warning";
+      case "success":
+        return "border-success";
       default:
         return "border-primary";
     }
   };
 
   return (
-    <div className={`card border-start border-4 ${getBgClass()} shadow-sm mb-3`}>
-      <div className="card-body p-3">
-        <div className="d-flex align-items-center justify-content-between">
+    <div className={`card bg-white border-start border-4 ${getBorderStyle()} shadow-sm mb-3 rounded-3`}>
+      <div className="card-body p-4 bg-white">
+        <div className="d-flex align-items-center justify-content-between mb-2">
           <div>
-            <h6 className="text-uppercase fw-bold text-muted mb-1 fs-11">{area}</h6>
-            <h5 className="mb-0 fw-semibold">{nivel}</h5>
+            <span className="text-uppercase fw-extrabold text-primary mb-1 fs-11" style={{ color: "#1e40af" }}>
+              {area}
+            </span>
+            <div className="mt-1">
+              <span className={`badge ${getBadgeStyle()} fs-12 px-3 py-1 fw-bold shadow-sm`}>
+                {nivel}
+              </span>
+            </div>
           </div>
           {tendencia && (
-            <span className="badge bg-dark-subtle text-body fs-12 fw-medium">
+            <span className="badge bg-secondary-subtle text-dark fs-12 fw-bold px-3 py-1" style={{ color: "#0f172a" }}>
               Tendencia {tendencia}
             </span>
           )}
         </div>
-        <p className="card-text mt-2 text-muted fs-13 mb-0">{mensaje}</p>
+        <p className="card-text mt-2 text-dark fs-14 fw-semibold mb-0" style={{ color: "#0f172a" }}>
+          {mensaje}
+        </p>
       </div>
     </div>
   );

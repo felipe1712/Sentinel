@@ -7,10 +7,10 @@ import SemaforoCard from "@/components/velzon/SemaforoCard";
 import SeverityBadge from "@/components/velzon/SeverityBadge";
 import api from "@/lib/api";
 
-// Dynamically import SituacionalMap to avoid SSR Leaflet window error
+// Dynamically import SituacionalMap
 const SituacionalMap = dynamic(
   () => import("@/components/velzon/SituacionalMap"),
-  { ssr: false, loading: () => <div className="p-4 text-center text-muted">Cargando Mapa de Querétaro...</div> }
+  { ssr: false, loading: () => <div className="p-4 text-center text-dark fw-bold fs-14">Cargando Mapa de Querétaro...</div> }
 );
 
 export default function SituacionPage() {
@@ -37,34 +37,41 @@ export default function SituacionPage() {
   }, []);
 
   return (
-    <div>
+    <div className="pb-5">
       {/* Header */}
-      <div className="d-flex align-items-center justify-content-between mb-4">
+      <div className="d-flex flex-column flex-md-row align-items-md-center justify-content-between mb-4 gap-3">
         <div>
-          <h4 className="fw-bold mb-1">Centro de Inteligencia Situacional</h4>
-          <p className="text-muted fs-13 mb-0">
+          <span className="badge bg-primary text-white text-uppercase px-3 py-1 fs-11 fw-bold mb-1 shadow-sm">
+            Estado de Querétaro · Soberana
+          </span>
+          <h4 className="fw-extrabold text-dark mb-1 fs-24" style={{ color: "#0f172a" }}>
+            Centro de Inteligencia Situacional
+          </h4>
+          <p className="text-dark fs-13 mb-0 fw-semibold" style={{ color: "#334155" }}>
             Vista general estratégica para la toma de decisiones · Estado de Querétaro
           </p>
         </div>
         <div className="d-flex gap-2">
-          <Link href="/situacion/ejecutiva" className="btn btn-outline-primary btn-sm">
+          <Link href="/situacion/ejecutiva" className="btn btn-outline-primary btn-sm fw-bold">
             <i className="ri-user-star-line me-1"></i> Vista Gobernador
           </Link>
-          <Link href="/briefing" className="btn btn-primary btn-sm">
+          <Link href="/briefing" className="btn btn-primary btn-sm fw-bold shadow-sm">
             <i className="ri-file-list-3-line me-1"></i> Briefing Matutino (05:30)
           </Link>
         </div>
       </div>
 
-      {/* Grid 4 Cuadrantes */}
+      {/* Grid 4 Cuadrantes Modo Claro */}
       <div className="row g-4">
         {/* Cuadrante 1: Semáforos por Área */}
         <div className="col-lg-6">
-          <div className="card h-100">
-            <div className="card-header border-bottom border-dark bg-body-tertiary">
-              <h6 className="card-title mb-0 fw-bold">1. Semáforos de Gobernabilidad y Seguridad</h6>
+          <div className="card bg-white border-0 shadow-sm h-100 rounded-3">
+            <div className="card-header bg-white border-bottom py-3">
+              <h6 className="card-title mb-0 fw-extrabold text-dark fs-15" style={{ color: "#0f172a" }}>
+                1. Semáforos de Gobernabilidad y Seguridad
+              </h6>
             </div>
-            <div className="card-body">
+            <div className="card-body p-4 bg-white">
               <SemaforoCard
                 area="Seguridad Pública & Movilidad ZMQ"
                 nivel="ALERTA PREVENTIVA"
@@ -90,34 +97,40 @@ export default function SituacionPage() {
           </div>
         </div>
 
-        {/* Cuadrante 2: Mapa Situacional Interactivo */}
+        {/* Cuadrante 2: Mapa Situacional Interactivo Claro */}
         <div className="col-lg-6">
-          <div className="card h-100 overflow-hidden shadow-sm">
-            <div className="card-header border-bottom border-dark bg-body-tertiary d-flex justify-content-between align-items-center">
-              <h6 className="card-title mb-0 fw-bold">2. Mapa de Calor Municipal (Querétaro)</h6>
-              <span className="badge bg-success-subtle text-success fs-11">CartoDB Dark · En Vivo</span>
+          <div className="card bg-white border-0 shadow-sm h-100 overflow-hidden rounded-3">
+            <div className="card-header bg-white border-bottom d-flex justify-content-between align-items-center py-3">
+              <h6 className="card-title mb-0 fw-extrabold text-dark fs-15" style={{ color: "#0f172a" }}>
+                2. Mapa de Calor Municipal (Querétaro)
+              </h6>
+              <span className="badge bg-primary text-white fs-11 fw-bold shadow-sm">
+                CartoDB Voyager (Claro) · En Vivo
+              </span>
             </div>
-            <div className="card-body p-0 position-relative">
+            <div className="card-body p-0 position-relative bg-white">
               <SituacionalMap />
             </div>
           </div>
         </div>
 
-        {/* Cuadrante 3: Alertas Prioritarias */}
+        {/* Cuadrante 3: Alertas Prioritarias Modo Claro */}
         <div className="col-lg-6">
-          <div className="card h-100">
-            <div className="card-header border-bottom border-dark bg-body-tertiary">
-              <h6 className="card-title mb-0 fw-bold">3. Alertas de Severidad Recientes</h6>
+          <div className="card bg-white border-0 shadow-sm h-100 rounded-3">
+            <div className="card-header bg-white border-bottom py-3">
+              <h6 className="card-title mb-0 fw-extrabold text-dark fs-15" style={{ color: "#0f172a" }}>
+                3. Alertas de Severidad Recientes
+              </h6>
             </div>
-            <div className="card-body p-0">
+            <div className="card-body p-0 bg-white">
               <div className="table-responsive">
                 <table className="table table-hover align-middle mb-0">
-                  <thead className="table-dark">
+                  <thead className="bg-light text-dark border-bottom">
                     <tr>
-                      <th>Severidad</th>
-                      <th>Incidente</th>
-                      <th>Municipio</th>
-                      <th>Relevancia</th>
+                      <th className="text-dark fw-bold">Severidad</th>
+                      <th className="text-dark fw-bold">Incidente</th>
+                      <th className="text-dark fw-bold">Municipio</th>
+                      <th className="text-dark fw-bold">Relevancia</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -125,10 +138,10 @@ export default function SituacionPage() {
                       events.map((ev) => (
                         <tr key={ev.id}>
                           <td><SeverityBadge severity={ev.severity} /></td>
-                          <td className="fw-medium fs-13">{ev.title}</td>
-                          <td className="fs-12 text-muted">{ev.municipio || "ZMQ"}</td>
+                          <td className="fw-bold fs-13 text-dark" style={{ color: "#0f172a" }}>{ev.title}</td>
+                          <td className="fs-12 text-dark fw-semibold" style={{ color: "#334155" }}>{ev.municipio || "ZMQ"}</td>
                           <td>
-                            <span className="badge bg-primary-subtle text-primary">
+                            <span className="badge bg-primary-subtle text-primary fw-bold">
                               {ev.political_relevance || 8}/10
                             </span>
                           </td>
@@ -136,8 +149,8 @@ export default function SituacionPage() {
                       ))
                     ) : (
                       <tr>
-                        <td colSpan={4} className="text-center py-3 text-muted">
-                          Cargando alertas más recientes...
+                        <td colSpan={4} className="text-center py-4 text-dark fw-bold fs-13">
+                          No hay alertas críticas en las últimas 24 horas. Operación normal en los 18 municipios.
                         </td>
                       </tr>
                     )}
@@ -148,34 +161,36 @@ export default function SituacionPage() {
           </div>
         </div>
 
-        {/* Cuadrante 4: Puntos del Briefing Matutino */}
+        {/* Cuadrante 4: Puntos del Briefing Matutino Modo Claro */}
         <div className="col-lg-6">
-          <div className="card h-100">
-            <div className="card-header border-bottom border-dark bg-body-tertiary d-flex justify-content-between align-items-center">
-              <h6 className="card-title mb-0 fw-bold">4. Puntos Clave del Briefing Matutino</h6>
-              <span className="badge bg-success">Generado 05:30 AM</span>
+          <div className="card bg-white border-0 shadow-sm h-100 rounded-3">
+            <div className="card-header bg-white border-bottom d-flex justify-content-between align-items-center py-3">
+              <h6 className="card-title mb-0 fw-extrabold text-dark fs-15" style={{ color: "#0f172a" }}>
+                4. Puntos Clave del Briefing Matutino
+              </h6>
+              <span className="badge bg-success text-white fw-bold shadow-sm">Generado 05:30 AM</span>
             </div>
-            <div className="card-body">
-              <div className="mb-3 p-3 bg-body-tertiary rounded border border-dark">
-                <div className="d-flex justify-content-between">
-                  <h6 className="fw-bold fs-13 text-primary mb-1">
+            <div className="card-body p-4 bg-white">
+              <div className="mb-3 p-3 bg-light rounded-3 border border-gray-200 shadow-sm">
+                <div className="d-flex justify-content-between align-items-center mb-1">
+                  <h6 className="fw-extrabold fs-14 text-primary mb-0" style={{ color: "#1e40af" }}>
                     Operativo de movilidad en Paseo 5 de Febrero
                   </h6>
-                  <span className="badge bg-danger-subtle text-danger">Atención Inmediata</span>
+                  <span className="badge bg-danger text-white fw-bold fs-10">Atención Inmediata</span>
                 </div>
-                <p className="fs-12 text-muted mb-0">
+                <p className="fs-13 text-dark fw-semibold mb-0" style={{ color: "#0f172a" }}>
                   Respuesta ágil de tránsito e infraestructura. Se sugiere reporte institucional antes de las 14:00 hrs.
                 </p>
               </div>
 
-              <div className="p-3 bg-body-tertiary rounded border border-dark">
-                <div className="d-flex justify-content-between">
-                  <h6 className="fw-bold fs-13 text-primary mb-1">
+              <div className="p-3 bg-light rounded-3 border border-gray-200 shadow-sm">
+                <div className="d-flex justify-content-between align-items-center mb-1">
+                  <h6 className="fw-extrabold fs-14 text-primary mb-0" style={{ color: "#1e40af" }}>
                     Gestión del proyecto hídrico Batán Agua para Todos
                   </h6>
-                  <span className="badge bg-info-subtle text-info">Atención Estratégica</span>
+                  <span className="badge bg-primary text-white fw-bold fs-10">Atención Estratégica</span>
                 </div>
-                <p className="fs-12 text-muted mb-0">
+                <p className="fs-13 text-dark fw-semibold mb-0" style={{ color: "#0f172a" }}>
                   Avances positivos con dependencias federales para la viabilidad de financiamiento.
                 </p>
               </div>
