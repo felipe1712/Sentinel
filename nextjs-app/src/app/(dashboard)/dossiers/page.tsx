@@ -50,6 +50,7 @@ export default function DossiersPage() {
 
   return (
     <div className="pb-5">
+      {/* Header */}
       <div className="d-flex flex-column flex-md-row align-items-md-center justify-content-between mb-4 gap-3">
         <div>
           <span className="badge bg-primary text-white text-uppercase px-3 py-1 fs-11 fw-bold mb-1 shadow-sm">
@@ -67,24 +68,38 @@ export default function DossiersPage() {
         </Link>
       </div>
 
+      {/* Grid de Dossiers */}
       <div className="row g-4">
         {dossiers.map((doc) => (
           <div key={doc.id} className="col-md-6 col-lg-4">
             <div className="card bg-white border-0 shadow-sm h-100 border-start border-4 border-primary rounded-3">
-              <div className="card-body p-4 bg-white">
-                <div className="d-flex justify-content-between align-items-center mb-2">
-                  <span className="badge bg-primary-subtle text-primary fw-bold text-uppercase fs-11">
-                    Dossier {doc.type}
-                  </span>
-                  <small className="text-dark fw-bold fs-11" style={{ color: "#334155" }}>{doc.date || "Reciente"}</small>
+              <div className="card-body p-4 bg-white d-flex flex-column justify-content-between">
+                <div>
+                  {/* Badge de Tipo */}
+                  <div className="mb-2">
+                    <span className="badge bg-primary-subtle text-primary fw-bold text-uppercase fs-11 px-3 py-1">
+                      Dossier {doc.type}
+                    </span>
+                  </div>
+
+                  {/* Fecha colocada justo abajo del recuadro azul */}
+                  <div className="text-muted fs-12 fw-bold mb-3" style={{ color: "#475569" }}>
+                    <i className="ri-calendar-line me-1 text-primary"></i> {doc.date || "Reciente"}
+                  </div>
+
+                  {/* Título del Dossier */}
+                  <h5 className="fw-extrabold text-dark fs-16 mb-3 lh-base" style={{ color: "#0f172a" }}>
+                    {doc.title}
+                  </h5>
+
+                  {/* BLUF / Resumen */}
+                  <p className="text-dark fs-13 lh-base mb-4 fw-medium" style={{ color: "#334155" }}>
+                    {doc.bluf}
+                  </p>
                 </div>
-                <h5 className="fw-extrabold text-dark fs-16 mb-2" style={{ color: "#0f172a" }}>
-                  {doc.title}
-                </h5>
-                <p className="text-dark fs-13 lh-base mb-4 fw-medium" style={{ color: "#334155" }}>
-                  {doc.bluf}
-                </p>
-                <div className="d-flex justify-content-between align-items-center pt-3 border-top border-gray-200">
+
+                {/* Footer de Tarjeta */}
+                <div className="d-flex justify-content-between align-items-center pt-3 border-top border-gray-200 mt-auto">
                   <span className="fs-12 text-primary fw-bold">Confianza: {doc.confidence || "Alta"}</span>
                   <Link href={`/dossiers/${doc.id}`} className="btn btn-outline-primary btn-sm fw-bold">
                     Ver Dossier <i className="ri-arrow-right-line ms-1"></i>

@@ -43,14 +43,19 @@ export default function SituacionalMap({ onSelectMunicipio }: SituacionalMapProp
 
       mapInstanceRef.current = map;
 
-      // Add CartoDB Voyager / Positron LIGHT tile layer (High Contrast, Ultra-Clear - FREE & NO API KEY REQUIRED)
+      // Add CartoDB Voyager / Positron LIGHT tile layer
       L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>',
         subdomains: "abcd",
         maxZoom: 19,
       }).addTo(map);
 
-      // Custom markers for Querétaro Municipalities (Bright, High-Contrast colors for Light Mode)
+      // Force map to fill parent container cleanly
+      setTimeout(() => {
+        map.invalidateSize();
+      }, 200);
+
+      // Custom markers for Querétaro Municipalities
       const municipalities = [
         {
           name: "Santiago de Querétaro",
@@ -96,7 +101,6 @@ export default function SituacionalMap({ onSelectMunicipio }: SituacionalMapProp
           fillOpacity: 0.85,
         }).addTo(map);
 
-        // Click handler on circle marker to trigger drilldown
         circle.on("click", () => {
           if (onSelectMunicipio) {
             onSelectMunicipio(m.name);
@@ -138,8 +142,8 @@ export default function SituacionalMap({ onSelectMunicipio }: SituacionalMapProp
   return (
     <div
       ref={mapRef}
-      className="w-100 rounded-bottom cursor-pointer shadow-inner"
-      style={{ height: "380px", minHeight: "380px", zIndex: 1 }}
+      className="w-100 bg-white"
+      style={{ height: "460px", minHeight: "460px", zIndex: 1 }}
     />
   );
 }

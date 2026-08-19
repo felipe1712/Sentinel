@@ -100,13 +100,10 @@ export default function SituacionPage() {
         {/* Cuadrante 2: Mapa Situacional Interactivo Claro */}
         <div className="col-lg-6">
           <div className="card bg-white border-0 shadow-sm h-100 overflow-hidden rounded-3">
-            <div className="card-header bg-white border-bottom d-flex justify-content-between align-items-center py-3">
+            <div className="card-header bg-white border-bottom py-3">
               <h6 className="card-title mb-0 fw-extrabold text-dark fs-15" style={{ color: "#0f172a" }}>
                 2. Mapa de Calor Municipal (Querétaro)
               </h6>
-              <span className="badge bg-primary text-white fs-11 fw-bold shadow-sm">
-                CartoDB Voyager (Claro) · En Vivo
-              </span>
             </div>
             <div className="card-body p-0 position-relative bg-white">
               <SituacionalMap />

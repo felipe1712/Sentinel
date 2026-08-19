@@ -9,7 +9,7 @@ import api from "@/lib/api";
 // Dynamically import SituacionalMap
 const SituacionalMap = dynamic(
   () => import("@/components/velzon/SituacionalMap"),
-  { ssr: false, loading: () => <div className="p-5 text-center text-dark fs-16 fw-bold">Cargando Mapa de Calor de Querétaro...</div> }
+  { ssr: false, loading: () => <div className="p-5 text-center text-dark fs-16 fw-bold">Cargando Mapa de Querétaro...</div> }
 );
 
 interface DrilldownItem {
@@ -216,21 +216,18 @@ export default function GabineteView() {
 
       {/* Layout 2 Columnas Proyector Modo Claro */}
       <div className="row g-4 mb-4">
-        {/* Izquierda (60%): Mapa Situacional Interactivo Claro */}
+        {/* Izquierda (60%): Mapa Situacional Interactivo Modo Claro */}
         <div className="col-lg-7">
-          <div className="card bg-white border-0 overflow-hidden shadow-sm h-100">
-            <div className="card-header bg-white border-bottom d-flex justify-content-between align-items-center py-3">
-              <h4 className="card-title mb-0 fw-extrabold fs-16 text-dark" style={{ color: "#0f172a" }}>
+          <div className="card bg-white border-0 overflow-hidden shadow-sm h-100 rounded-3">
+            <div className="card-header bg-white border-bottom py-3">
+              <h4 className="card-title mb-0 fw-extrabold text-dark fs-16" style={{ color: "#0f172a" }}>
                 <i className="ri-map-pin-2-fill text-danger me-2"></i> Mapa de Calor Querétaro
               </h4>
-              <span className="badge bg-primary text-white fs-11 fw-bold shadow-sm">
-                CartoDB Voyager (Claro) · Clic para Drilldown &darr;
-              </span>
             </div>
-            <div className="card-body p-0 position-relative">
+            <div className="card-body p-0 bg-white position-relative">
               <SituacionalMap onSelectMunicipio={handleSelectMunicipio} />
             </div>
-            <div className="card-footer bg-light border-top p-3 d-flex flex-wrap gap-2 justify-content-center">
+            <div className="card-footer bg-white border-top p-3 d-flex flex-wrap gap-2 justify-content-center">
               <button
                 className="btn btn-outline-danger btn-sm rounded-pill px-3 fw-bold"
                 onClick={() => handleSelectMunicipio("Santiago de Querétaro")}
@@ -261,12 +258,12 @@ export default function GabineteView() {
 
         {/* Derecha (40%): Semáforos Interactivos Modo Claro */}
         <div className="col-lg-5">
-          <div className="card bg-white border-0 h-100 shadow-sm">
+          <div className="card bg-white border-0 h-100 shadow-sm rounded-3">
             <div className="card-header bg-white border-bottom d-flex justify-content-between align-items-center py-3">
-              <h4 className="card-title mb-0 fw-extrabold fs-18 text-dark" style={{ color: "#0f172a" }}>Semáforos por Ramo</h4>
+              <h4 className="card-title mb-0 fw-extrabold text-dark fs-18" style={{ color: "#0f172a" }}>Semáforos por Ramo</h4>
               <span className="badge bg-primary text-white fs-10 fw-bold">Clic para seleccionar &darr;</span>
             </div>
-            <div className="card-body p-4 d-flex flex-column gap-3">
+            <div className="card-body p-4 bg-white d-flex flex-column gap-3">
               <div
                 className="cursor-pointer transition-all hover-shadow"
                 onClick={() =>
@@ -331,7 +328,7 @@ export default function GabineteView() {
         </div>
       </div>
 
-      {/* PANEL DE DETALLE & DRILLDOWN MODO CLARO CON ALTO CONTRASTE DE TEXTO */}
+      {/* PANEL DE DETALLE & DRILLDOWN MODO CLARO */}
       {selectedDetail && (
         <div ref={detailPanelRef} className="card bg-white border-primary shadow-lg rounded-4 overflow-hidden mb-5 border-2">
           <div className="card-header bg-primary text-white p-4 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2">
@@ -358,7 +355,7 @@ export default function GabineteView() {
 
           <div className="card-body p-4 p-md-5 bg-white">
             <div className="row g-4">
-              {/* Columna Izquierda: Diagnóstico Ejecutivo con Alto Contraste */}
+              {/* Columna Izquierda: Diagnóstico Ejecutivo */}
               <div className="col-lg-7">
                 <h5 className="fw-extrabold text-primary mb-3 fs-16" style={{ color: "#1e40af" }}>
                   <i className="ri-file-text-line me-2"></i> Diagnóstico de Inteligencia Procesada
@@ -382,7 +379,7 @@ export default function GabineteView() {
                 </ul>
               </div>
 
-              {/* Columna Derecha: Cronología con Alto Contraste */}
+              {/* Columna Derecha: Cronología */}
               <div className="col-lg-5">
                 <div className="bg-light p-4 rounded-3 border border-gray-300 h-100 shadow-sm">
                   <h5 className="fw-extrabold text-dark mb-3 fs-16" style={{ color: "#0f172a" }}>

@@ -4,16 +4,16 @@
   --tb-font-sans-serif: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --vz-font-sans-serif: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --vz-body-color: #0f172a;
-  --vz-body-bg: #f8fafc;
+  --vz-body-bg: #f3f3f9;
 }
 
-body {
+/* Force Whole Central Page Content Area to Pure Light (#f3f3f9) */
+body, #layout-wrapper, .main-content, .page-content, #page-content, .content-body {
+  background-color: #f3f3f9 !important;
+  color: #0f172a !important;
   font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
-  background-color: #f1f5f9 !important;
-  color: #0f172a !important; /* Deep Slate Black for Maximum Contrast */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  font-feature-settings: 'cv05', 'cv08', 'cv11';
 }
 
 /* Force High Contrast Text on Light Elements */
@@ -27,7 +27,7 @@ p, span:not(.badge), li, div:not(.badge), td, th {
 }
 
 .text-muted {
-  color: #334155 !important; /* Dark Slate Gray instead of light grey */
+  color: #475569 !important; /* Dark Slate Gray for readability */
   font-weight: 500 !important;
 }
 
@@ -35,18 +35,22 @@ p, span:not(.badge), li, div:not(.badge), td, th {
   color: #0f172a !important;
 }
 
-/* Diagnostic & Content Boxes */
-.bg-light, .bg-white, .bg-body, .bg-body-tertiary, .bg-gray-100 {
+/* Diagnostic & Card Containers */
+.card, .card-header, .card-body, .card-footer, .bg-light, .bg-white, .bg-body, .bg-body-tertiary {
   background-color: #ffffff !important;
   color: #0f172a !important;
 }
 
-/* Dark Background Containers (Blue Cards, Dark Badges, Dark Tables) -> Pure White Text */
-.bg-primary, .bg-dark, .bg-black, .bg-danger, .bg-success, .table-dark, .modal-header.bg-primary {
+.card-header {
+  border-bottom: 1px solid #e2e8f0 !important;
+}
+
+/* Dark Background Badges -> Pure White Text */
+.bg-primary, .bg-dark, .bg-black, .bg-danger, .bg-success, .table-dark {
   color: #ffffff !important;
 }
 
-.bg-primary *, .bg-dark *, .bg-black *, .table-dark *, .modal-header.bg-primary * {
+.bg-primary *, .bg-dark *, .bg-black *, .table-dark * {
   color: #ffffff !important;
 }
 
