@@ -3,31 +3,89 @@
 :root {
   --tb-font-sans-serif: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --vz-font-sans-serif: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --vz-body-color: #0f172a;
+  --vz-body-bg: #f8fafc;
 }
 
 body {
   font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
-  background-color: #f3f3f9 !important;
-  color: #212529 !important;
+  background-color: #f1f5f9 !important;
+  color: #0f172a !important; /* Deep Slate Black for Maximum Contrast */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   font-feature-settings: 'cv05', 'cv08', 'cv11';
 }
 
-h1, h2, h3, h4, h5, h6, .card-title, .nav-link, button, input, select, textarea, .badge, code {
+/* Force High Contrast Text on Light Elements */
+h1, h2, h3, h4, h5, h6, .card-title, .nav-link, button, input, select, textarea, label {
   font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+  color: #0f172a !important;
+}
+
+p, span:not(.badge), li, div:not(.badge), td, th {
+  color: #0f172a;
+}
+
+.text-muted {
+  color: #334155 !important; /* Dark Slate Gray instead of light grey */
+  font-weight: 500 !important;
+}
+
+.text-body {
+  color: #0f172a !important;
+}
+
+/* Diagnostic & Content Boxes */
+.bg-light, .bg-white, .bg-body, .bg-body-tertiary, .bg-gray-100 {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+}
+
+/* Dark Background Containers (Blue Cards, Dark Badges, Dark Tables) -> Pure White Text */
+.bg-primary, .bg-dark, .bg-black, .bg-danger, .bg-success, .table-dark, .modal-header.bg-primary {
+  color: #ffffff !important;
+}
+
+.bg-primary *, .bg-dark *, .bg-black *, .table-dark *, .modal-header.bg-primary * {
+  color: #ffffff !important;
+}
+
+/* High Contrast Badges */
+.badge.bg-primary-subtle {
+  background-color: #dbeafe !important;
+  color: #1e40af !important;
+  font-weight: 700 !important;
+}
+
+.badge.bg-warning-subtle {
+  background-color: #fef3c7 !important;
+  color: #92400e !important;
+  font-weight: 700 !important;
+}
+
+.badge.bg-danger-subtle {
+  background-color: #fee2e2 !important;
+  color: #991b1b !important;
+  font-weight: 700 !important;
+}
+
+.badge.bg-success-subtle {
+  background-color: #d1fae5 !important;
+  color: #065f46 !important;
+  font-weight: 700 !important;
+}
+
+.badge.bg-secondary-subtle {
+  background-color: #e2e8f0 !important;
+  color: #1e293b !important;
+  font-weight: 700 !important;
+}
+
+.card {
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08), 0 1px 2px rgba(15, 23, 42, 0.04) !important;
+  border: 1px solid #cbd5e1 !important;
 }
 
 .letter-spacing-1 {
   letter-spacing: 0.05em;
-}
-
-.card {
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03) !important;
-  border: 1px solid #e9ebec !important;
-}
-
-.table-dark {
-  --bs-table-bg: #1e2430 !important;
-  --bs-table-color: #ffffff !important;
 }

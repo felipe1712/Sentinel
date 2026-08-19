@@ -9,7 +9,7 @@ import api from "@/lib/api";
 // Dynamically import SituacionalMap
 const SituacionalMap = dynamic(
   () => import("@/components/velzon/SituacionalMap"),
-  { ssr: false, loading: () => <div className="p-5 text-center text-muted fs-16">Cargando Mapa de Calor de Querétaro...</div> }
+  { ssr: false, loading: () => <div className="p-5 text-center text-dark fs-16 fw-bold">Cargando Mapa de Calor de Querétaro...</div> }
 );
 
 interface DrilldownItem {
@@ -33,7 +33,7 @@ export default function GabineteView() {
     title: "Santiago de Querétaro",
     subtitle: "Zona Metropolitana de Querétaro (ZMQ)",
     badge: "ALERTA VIAL · 12 INCIDENTES",
-    badgeColor: "bg-danger",
+    badgeColor: "bg-danger text-white",
     eventsCount: 12,
     relevance: 9,
     description:
@@ -80,7 +80,7 @@ export default function GabineteView() {
         title: "Santiago de Querétaro",
         subtitle: "Zona Metropolitana de Querétaro (ZMQ) · Clave 22014",
         badge: "ALERTA VIAL · 12 INCIDENTES",
-        badgeColor: "bg-danger",
+        badgeColor: "bg-danger text-white",
         eventsCount: 12,
         relevance: 9,
         description:
@@ -101,7 +101,7 @@ export default function GabineteView() {
         title: "El Marqués",
         subtitle: "Zona Metropolitana de Querétaro · Clave 22011",
         badge: "VIGILANCIA PREVENTIVA · 7 INCIDENTES",
-        badgeColor: "bg-warning text-dark",
+        badgeColor: "bg-warning text-dark fw-bold",
         eventsCount: 7,
         relevance: 8,
         description:
@@ -121,7 +121,7 @@ export default function GabineteView() {
         title: "Corregidora",
         subtitle: "Zona Metropolitana de Querétaro · Clave 22006",
         badge: "OPERACIÓN NORMAL · 6 INCIDENTES",
-        badgeColor: "bg-primary",
+        badgeColor: "bg-primary text-white",
         eventsCount: 6,
         relevance: 7,
         description:
@@ -140,7 +140,7 @@ export default function GabineteView() {
         title: "San Juan del Río",
         subtitle: "Región Sur / Valles · Clave 22016",
         badge: "VIGILANCIA CARRETERA · 3 INCIDENTES",
-        badgeColor: "bg-success",
+        badgeColor: "bg-success text-white",
         eventsCount: 3,
         relevance: 7,
         description:
@@ -170,7 +170,7 @@ export default function GabineteView() {
       title: `Ramo: ${areaName}`,
       subtitle: `Evaluación de Gobernabilidad · Estado de Querétaro`,
       badge: nivel,
-      badgeColor: color === "danger" ? "bg-danger" : color === "warning" ? "bg-warning text-dark" : "bg-success",
+      badgeColor: color === "danger" ? "bg-danger text-white" : color === "warning" ? "bg-warning text-dark fw-bold" : "bg-success text-white",
       relevance: 9,
       description: mensaje,
       actions: [
@@ -199,16 +199,16 @@ export default function GabineteView() {
       {/* Header Proyector Modo Claro */}
       <div className="d-flex flex-column flex-md-row align-items-md-center justify-content-between mb-4 border-bottom border-gray-300 pb-4 gap-3">
         <div>
-          <span className="badge bg-primary px-3 py-2 fs-13 text-uppercase fw-bold mb-2 shadow-sm">
+          <span className="badge bg-primary text-white px-3 py-2 fs-13 text-uppercase fw-bold mb-2 shadow-sm">
             SALA DE GABINETE DE GOBIERNO · ESTADO DE QUERÉTARO
           </span>
-          <h2 className="fw-extrabold text-dark mb-0 fs-28">
+          <h2 className="fw-extrabold text-dark mb-0 fs-28" style={{ color: "#0f172a" }}>
             Monitoreo Estratégico en Tiempo Real
           </h2>
         </div>
         <div className="text-md-end pt-1">
-          <div className="fs-13 text-muted text-uppercase fw-semibold mb-1">Nivel de Alerta General</div>
-          <span className={`badge fs-16 px-4 py-2 shadow ${isCrisis ? "bg-danger text-white" : "bg-warning text-dark"}`}>
+          <div className="fs-13 text-dark text-uppercase fw-bold mb-1" style={{ color: "#0f172a" }}>Nivel de Alerta General</div>
+          <span className={`badge fs-16 px-4 py-2 shadow ${isCrisis ? "bg-danger text-white" : "bg-warning text-dark fw-bold"}`}>
             {isCrisis ? "CRISIS ACTIVA (CTRL+ALT+C)" : snapshot?.alert_level || "ALERTA PREVENTIVA"}
           </span>
         </div>
@@ -219,11 +219,11 @@ export default function GabineteView() {
         {/* Izquierda (60%): Mapa Situacional Interactivo Claro */}
         <div className="col-lg-7">
           <div className="card bg-white border-0 overflow-hidden shadow-sm h-100">
-            <div className="card-header bg-body-tertiary border-bottom d-flex justify-content-between align-items-center py-3">
-              <h4 className="card-title mb-0 fw-bold fs-16 text-dark">
+            <div className="card-header bg-white border-bottom d-flex justify-content-between align-items-center py-3">
+              <h4 className="card-title mb-0 fw-extrabold fs-16 text-dark" style={{ color: "#0f172a" }}>
                 <i className="ri-map-pin-2-fill text-danger me-2"></i> Mapa de Calor Querétaro
               </h4>
-              <span className="badge bg-primary-subtle text-primary fs-11">
+              <span className="badge bg-primary text-white fs-11 fw-bold shadow-sm">
                 CartoDB Voyager (Claro) · Clic para Drilldown &darr;
               </span>
             </div>
@@ -232,25 +232,25 @@ export default function GabineteView() {
             </div>
             <div className="card-footer bg-light border-top p-3 d-flex flex-wrap gap-2 justify-content-center">
               <button
-                className="btn btn-outline-danger btn-sm rounded-pill px-3 fw-semibold"
+                className="btn btn-outline-danger btn-sm rounded-pill px-3 fw-bold"
                 onClick={() => handleSelectMunicipio("Santiago de Querétaro")}
               >
                 🔴 Santiago de Querétaro (12 evt)
               </button>
               <button
-                className="btn btn-outline-warning btn-sm rounded-pill px-3 text-dark fw-semibold"
+                className="btn btn-outline-warning btn-sm rounded-pill px-3 text-dark fw-bold"
                 onClick={() => handleSelectMunicipio("El Marqués")}
               >
                 🟡 El Marqués (7 evt)
               </button>
               <button
-                className="btn btn-outline-primary btn-sm rounded-pill px-3 fw-semibold"
+                className="btn btn-outline-primary btn-sm rounded-pill px-3 fw-bold"
                 onClick={() => handleSelectMunicipio("Corregidora")}
               >
                 🔵 Corregidora (6 evt)
               </button>
               <button
-                className="btn btn-outline-success btn-sm rounded-pill px-3 fw-semibold"
+                className="btn btn-outline-success btn-sm rounded-pill px-3 fw-bold"
                 onClick={() => handleSelectMunicipio("San Juan del Río")}
               >
                 🟢 San Juan del Río (3 evt)
@@ -262,9 +262,9 @@ export default function GabineteView() {
         {/* Derecha (40%): Semáforos Interactivos Modo Claro */}
         <div className="col-lg-5">
           <div className="card bg-white border-0 h-100 shadow-sm">
-            <div className="card-header bg-body-tertiary border-bottom d-flex justify-content-between align-items-center py-3">
-              <h4 className="card-title mb-0 fw-bold fs-18 text-body">Semáforos por Ramo</h4>
-              <span className="badge bg-secondary fs-10">Clic para seleccionar &darr;</span>
+            <div className="card-header bg-white border-bottom d-flex justify-content-between align-items-center py-3">
+              <h4 className="card-title mb-0 fw-extrabold fs-18 text-dark" style={{ color: "#0f172a" }}>Semáforos por Ramo</h4>
+              <span className="badge bg-primary text-white fs-10 fw-bold">Clic para seleccionar &darr;</span>
             </div>
             <div className="card-body p-4 d-flex flex-column gap-3">
               <div
@@ -331,7 +331,7 @@ export default function GabineteView() {
         </div>
       </div>
 
-      {/* PANEL DE DETALLE & DRILLDOWN MODO CLARO */}
+      {/* PANEL DE DETALLE & DRILLDOWN MODO CLARO CON ALTO CONTRASTE DE TEXTO */}
       {selectedDetail && (
         <div ref={detailPanelRef} className="card bg-white border-primary shadow-lg rounded-4 overflow-hidden mb-5 border-2">
           <div className="card-header bg-primary text-white p-4 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2">
@@ -339,15 +339,15 @@ export default function GabineteView() {
               <span className="badge bg-white text-primary text-uppercase px-3 py-1 fs-11 fw-bold mb-1 shadow-sm">
                 Panel de Detalle & Drilldown de Gabinete
               </span>
-              <h3 className="fw-bold text-white mb-0 display-7">{selectedDetail.title}</h3>
-              <p className="text-white-50 fs-13 mb-0">{selectedDetail.subtitle}</p>
+              <h3 className="fw-extrabold text-white mb-0 display-7">{selectedDetail.title}</h3>
+              <p className="text-white fw-medium fs-13 mb-0" style={{ color: "#ffffff" }}>{selectedDetail.subtitle}</p>
             </div>
             <div className="d-flex align-items-center gap-2">
               <span className={`badge ${selectedDetail.badgeColor} fs-14 px-3 py-2 fw-bold shadow-sm`}>
                 {selectedDetail.badge}
               </span>
               <button
-                className="btn btn-outline-light btn-sm"
+                className="btn btn-outline-light btn-sm text-white"
                 onClick={() => setSelectedDetail(null)}
                 title="Cerrar panel"
               >
@@ -356,52 +356,54 @@ export default function GabineteView() {
             </div>
           </div>
 
-          <div className="card-body p-4 p-md-5">
+          <div className="card-body p-4 p-md-5 bg-white">
             <div className="row g-4">
-              {/* Columna Izquierda: Diagnóstico Ejecutivo Modo Claro */}
+              {/* Columna Izquierda: Diagnóstico Ejecutivo con Alto Contraste */}
               <div className="col-lg-7">
-                <h5 className="fw-bold text-primary mb-3">
+                <h5 className="fw-extrabold text-primary mb-3 fs-16" style={{ color: "#1e40af" }}>
                   <i className="ri-file-text-line me-2"></i> Diagnóstico de Inteligencia Procesada
                 </h5>
-                <p className="fs-15 lh-lg text-body mb-4 bg-light p-4 rounded-3 border border-gray-200">
-                  {selectedDetail.description}
-                </p>
+                <div className="p-4 rounded-3 border border-gray-300 bg-white mb-4 shadow-sm" style={{ borderLeft: "5px solid #2563eb" }}>
+                  <p className="fs-15 lh-lg text-dark fw-semibold mb-0" style={{ color: "#0f172a" }}>
+                    {selectedDetail.description}
+                  </p>
+                </div>
 
-                <h5 className="fw-bold text-primary mb-3">
+                <h5 className="fw-extrabold text-primary mb-3 fs-16" style={{ color: "#1e40af" }}>
                   <i className="ri-checkbox-circle-line me-2"></i> Acciones Sugeridas para la Mesa de Gabinete
                 </h5>
                 <ul className="list-group list-group-flush mb-4">
                   {selectedDetail.actions.map((act, idx) => (
-                    <li key={idx} className="list-group-item bg-transparent text-body fs-14 border-bottom py-2 px-0 d-flex align-items-start">
-                      <i className="ri-arrow-right-s-fill text-primary me-2 mt-1"></i>
-                      <span>{act}</span>
+                    <li key={idx} className="list-group-item bg-white text-dark fw-semibold fs-14 border-bottom py-3 px-0 d-flex align-items-start" style={{ color: "#0f172a" }}>
+                      <i className="ri-arrow-right-s-fill text-primary me-2 fs-18 mt-0"></i>
+                      <span style={{ color: "#0f172a" }}>{act}</span>
                     </li>
                   ))}
                 </ul>
               </div>
 
-              {/* Columna Derecha: Cronología & Expediente Modo Claro */}
+              {/* Columna Derecha: Cronología con Alto Contraste */}
               <div className="col-lg-5">
-                <div className="bg-light p-4 rounded-3 border border-gray-200 h-100">
-                  <h5 className="fw-bold text-body mb-3 fs-16">
+                <div className="bg-light p-4 rounded-3 border border-gray-300 h-100 shadow-sm">
+                  <h5 className="fw-extrabold text-dark mb-3 fs-16" style={{ color: "#0f172a" }}>
                     <i className="ri-history-line me-2 text-warning"></i> Cronología del Incidente (24h)
                   </h5>
 
                   <div className="timeline-widget mb-4">
                     {selectedDetail.timeline.map((item, idx) => (
                       <div key={idx} className="d-flex mb-3 align-items-start">
-                        <span className="badge bg-secondary-subtle text-body fs-11 me-3 py-1 px-2 font-monospace">
+                        <span className="badge bg-primary text-white fs-11 me-3 py-1 px-2 font-monospace shadow-sm">
                           {item.time}
                         </span>
-                        <div className="fs-13 text-muted">{item.text}</div>
+                        <div className="fs-13 text-dark fw-bold" style={{ color: "#0f172a" }}>{item.text}</div>
                       </div>
                     ))}
                   </div>
 
-                  <div className="pt-3 border-top d-flex gap-2">
+                  <div className="pt-3 border-top border-gray-300 d-flex gap-2">
                     <Link
                       href={`/dossiers/nuevo?municipio=${encodeURIComponent(selectedDetail.title)}`}
-                      className="btn btn-primary btn-sm w-100 fw-semibold"
+                      className="btn btn-primary btn-sm w-100 fw-bold py-2 shadow-sm"
                     >
                       <i className="ri-file-add-line me-1"></i> Solicitar Dossier de Gira
                     </Link>
