@@ -69,22 +69,22 @@ export default function NarrativasPage() {
   };
 
   return (
-    <div className="pb-5">
-      {/* Header */}
+    <div className="pb-5 pt-4 pt-md-5 mt-2">
+      {/* Header con Margen Generoso */}
       <div className="d-flex flex-column flex-md-row align-items-md-center justify-content-between mb-4 gap-3">
         <div>
-          <span className="badge bg-primary text-white text-uppercase px-3 py-1 fs-11 fw-bold mb-1 shadow-sm">
+          <span className="badge bg-primary text-white text-uppercase px-3 py-1 fs-11 fw-bold mb-2 shadow-sm">
             Inteligencia de Opinión Pública · Estado de Querétaro
           </span>
           <h4 className="fw-extrabold text-dark mb-1 fs-24" style={{ color: "#0f172a" }}>
             Tracking de Narrativas & Momentum Mediático
           </h4>
-          <p className="text-dark fs-13 mb-0 fw-semibold" style={{ color: "#334155" }}>
+          <p className="text-dark fs-14 mb-0 fw-bold" style={{ color: "#334155" }}>
             Detección de temas emergentes en medios digitales, redes sociales y opinión pública local.
           </p>
         </div>
         <div className="d-flex gap-2">
-          <Link href="/dossiers/nuevo" className="btn btn-primary btn-sm fw-bold shadow-sm">
+          <Link href="/dossiers/nuevo" className="btn btn-primary btn-sm fw-bold text-white shadow-sm">
             <i className="ri-file-add-line me-1"></i> Generar Dossier Personalizado
           </Link>
         </div>
@@ -148,7 +148,7 @@ export default function NarrativasPage() {
                     </td>
                     <td className="text-end pe-4">
                       <button
-                        className="btn btn-primary btn-sm fw-bold shadow-sm"
+                        className="btn btn-primary btn-sm fw-bold text-white shadow-sm"
                         onClick={() => handleGenerarDossier(n.title)}
                       >
                         <i className="ri-file-text-line me-1"></i> Generar Dossier

@@ -49,21 +49,21 @@ export default function DossiersPage() {
   }, []);
 
   return (
-    <div className="pb-5">
-      {/* Header */}
+    <div className="pb-5 pt-4 pt-md-5 mt-2">
+      {/* Header con Margen Generoso */}
       <div className="d-flex flex-column flex-md-row align-items-md-center justify-content-between mb-4 gap-3">
         <div>
-          <span className="badge bg-primary text-white text-uppercase px-3 py-1 fs-11 fw-bold mb-1 shadow-sm">
+          <span className="badge bg-primary text-white text-uppercase px-3 py-1 fs-11 fw-bold mb-2 shadow-sm">
             Gubernatura del Estado de Querétaro
           </span>
           <h4 className="fw-extrabold text-dark mb-1 fs-24" style={{ color: "#0f172a" }}>
             Dossiers Ejecutivos de Inteligencia
           </h4>
-          <p className="text-dark fs-13 mb-0 fw-semibold" style={{ color: "#334155" }}>
+          <p className="text-dark fs-14 mb-0 fw-bold" style={{ color: "#334155" }}>
             Documentos estructurados con análisis situacional, perfiles, municipios e incidentes clave.
           </p>
         </div>
-        <Link href="/dossiers/nuevo" className="btn btn-primary btn-sm fw-bold shadow-sm">
+        <Link href="/dossiers/nuevo" className="btn btn-primary btn-sm fw-bold text-white shadow-sm">
           <i className="ri-add-line me-1"></i> Generar Nuevo Dossier
         </Link>
       </div>
@@ -83,8 +83,8 @@ export default function DossiersPage() {
                   </div>
 
                   {/* Fecha colocada justo abajo del recuadro azul */}
-                  <div className="text-muted fs-12 fw-bold mb-3" style={{ color: "#475569" }}>
-                    <i className="ri-calendar-line me-1 text-primary"></i> {doc.date || "Reciente"}
+                  <div className="text-dark fs-12 fw-bold mb-3" style={{ color: "#475569" }}>
+                    <i className="ri-calendar-line me-1 text-primary"></i> {doc.date || "19 de Agosto, 2026"}
                   </div>
 
                   {/* Título del Dossier */}
@@ -101,7 +101,7 @@ export default function DossiersPage() {
                 {/* Footer de Tarjeta */}
                 <div className="d-flex justify-content-between align-items-center pt-3 border-top border-gray-200 mt-auto">
                   <span className="fs-12 text-primary fw-bold">Confianza: {doc.confidence || "Alta"}</span>
-                  <Link href={`/dossiers/${doc.id}`} className="btn btn-outline-primary btn-sm fw-bold">
+                  <Link href={`/dossiers/${doc.id}`} className="btn btn-primary btn-sm fw-bold text-white shadow-sm">
                     Ver Dossier <i className="ri-arrow-right-line ms-1"></i>
                   </Link>
                 </div>
