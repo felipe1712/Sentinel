@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef } from "react";
+import { getStateConfig } from "@/lib/stateConfig";
 
 interface SituacionalMapProps {
   onSelectMunicipio?: (nombre: string) => void;
@@ -12,6 +13,8 @@ export default function SituacionalMap({ onSelectMunicipio }: SituacionalMapProp
 
   useEffect(() => {
     if (typeof window === "undefined" || !mapRef.current) return;
+
+    const stateCfg = getStateConfig();
 
     // Inject Leaflet CSS dynamically if not present
     if (!document.getElementById("leaflet-css")) {
@@ -34,10 +37,10 @@ export default function SituacionalMap({ onSelectMunicipio }: SituacionalMapProp
         shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
       });
 
-      // Initialize map centered at Santiago de Querétaro
+      // Initialize map centered dynamically at current State capital/center
       const map = L.map(mapRef.current!, {
-        center: [20.5888, -100.3899],
-        zoom: 10,
+        center: stateCfg.center,
+        zoom: stateCfg.zoom,
         zoomControl: true,
       });
 
@@ -55,41 +58,15 @@ export default function SituacionalMap({ onSelectMunicipio }: SituacionalMapProp
         map.invalidateSize();
       }, 200);
 
-      // Custom markers for Querétaro Municipalities
-      const municipalities = [
-        {
-          name: "Santiago de Querétaro",
-          lat: 20.5888,
-          lng: -100.3899,
-          events: 12,
-          color: "#e63946", // Bright Red
-          status: "Alerta Vial Paseo 5 de Febrero",
-        },
-        {
-          name: "El Marqués",
-          lat: 20.6720,
-          lng: -100.2811,
-          events: 7,
-          color: "#d97706", // Amber
-          status: "Monitoreo Hidrológico Preventivo",
-        },
-        {
-          name: "Corregidora",
-          lat: 20.5367,
-          lng: -100.4439,
-          events: 6,
-          color: "#2563eb", // Vibrant Blue
-          status: "Operativo de Seguridad ZMQ",
-        },
-        {
-          name: "San Juan del Río",
-          lat: 20.3872,
-          lng: -99.9961,
-          events: 3,
-          color: "#059669", // Emerald Green
-          status: "Vigilancia Industrial & Carretera",
-        },
-      ];
+      // Custom markers for State Municipalities
+      const municipalities = stateCfg.municipios.slice(0, 5).map((m, idx) => ({
+        name: m.nombre,
+        lat: m.lat || (stateCfg.center[0] + (idx * 0.08 - 0.16)),
+        lng: m.lng || (stateCfg.center[1] + (idx * 0.08 - 0.16)),
+        events: m.eventos_24h,
+        color: idx === 0 ? "#e63946" : idx === 1 ? "#d97706" : idx === 2 ? "#2563eb" : "#059669",
+        status: `Estatus Operativo ${m.region}`,
+      }));
 
       municipalities.forEach((m) => {
         const circle = L.circleMarker([m.lat, m.lng], {

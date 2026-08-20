@@ -1,13 +1,19 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useRole } from "@/hooks/useRole";
+import { getStateConfig, StateConfig } from "@/lib/stateConfig";
 
 export const Sidebar: React.FC = () => {
   const pathname = usePathname();
   const { isGobernador, isAnalista, isJefeOficina } = useRole();
+  const [stateCfg, setStateCfg] = useState<StateConfig>(getStateConfig());
+
+  useEffect(() => {
+    setStateCfg(getStateConfig());
+  }, []);
 
   const isActive = (path: string) => pathname === path || pathname?.startsWith(path + "/");
 
@@ -20,7 +26,7 @@ export const Sidebar: React.FC = () => {
           </span>
         </Link>
         <div className="text-primary fw-bold fs-11 text-uppercase mt-1">
-          Inteligencia Ejecutiva · Querétaro
+          Inteligencia Ejecutiva · {stateCfg.shortName}
         </div>
       </div>
 

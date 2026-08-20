@@ -2,13 +2,16 @@
 
 import React, { useState, useEffect } from "react";
 import { useRole, getStoredUser } from "@/hooks/useRole";
+import { getStateConfig, StateConfig } from "@/lib/stateConfig";
 
 export const Topbar: React.FC = () => {
   const { role } = useRole();
   const [user, setUser] = useState<any>(null);
+  const [stateCfg, setStateCfg] = useState<StateConfig>(getStateConfig());
 
   useEffect(() => {
     setUser(getStoredUser() || { name: "Usuario Demo", cargo: "Despacho del Gobernador" });
+    setStateCfg(getStateConfig());
   }, []);
 
   return (
@@ -17,10 +20,10 @@ export const Topbar: React.FC = () => {
         <div className="navbar-header d-flex align-items-center justify-content-between">
           <div className="d-flex align-items-center">
             <span className="badge bg-primary text-white px-3 py-2 fs-12 fw-bold text-uppercase me-3 shadow-sm">
-              Querétaro · Soberana
+              {stateCfg.shortName} · Soberana
             </span>
             <h5 className="mb-0 fw-bold fs-15 text-dark d-none d-md-block" style={{ color: "#0f172a" }}>
-              Oficina del Gobernador Constitucional del Estado de Querétaro
+              {stateCfg.governorTitle}
             </h5>
           </div>
 

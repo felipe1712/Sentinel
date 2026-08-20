@@ -1,0 +1,85 @@
+version: '3.8'
+
+services:
+  # ---------------------------------------------------------------------------
+  # 1. PostgreSQL + PostGIS (Guanajuato Dedicated DB on Port 5434)
+  # ---------------------------------------------------------------------------
+  sentineliq-gto-postgres:
+    image: postgis/postgis:15-3.3
+    container_name: sentineliq_gto_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-sentineliq}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-sentineliq_pass_2026}
+      POSTGRES_DB: ${POSTGRES_DB:-sentineliq_gto}
+    ports:
+      - "127.0.0.1:5434:5432"
+    volumes:
+      - gto_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-sentineliq} -d ${POSTGRES_DB:-sentineliq_gto}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ---------------------------------------------------------------------------
+  # 2. Redis Cache & Job Broker (Guanajuato Dedicated Redis on Port 6381)
+  # ---------------------------------------------------------------------------
+  sentineliq-gto-redis:
+    image: redis:7-alpine
+    container_name: sentineliq_gto_redis
+    restart: always
+    command: redis-server --appendonly yes
+    ports:
+      - "127.0.0.1:6381:6379"
+    volumes:
+      - gto_redis_data:/data
+
+  # ---------------------------------------------------------------------------
+  # 3. Rust API Backend (Axum 0.7 - Guanajuato Instance on Port 8086)
+  # ---------------------------------------------------------------------------
+  sentineliq-gto-rust-api:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.rust
+    container_name: sentineliq_gto_rust_api
+    restart: always
+    ports:
+      - "127.0.0.1:8086:8080"
+    environment:
+      DATABASE_URL: "postgres://${POSTGRES_USER:-sentineliq}:${POSTGRES_PASSWORD:-sentineliq_pass_2026}@sentineliq-gto-postgres:5432/${POSTGRES_DB:-sentineliq_gto}"
+      REDIS_URL: "redis://sentineliq-gto-redis:6379"
+      STATE_KEY: "gto"
+      INEGI_STATE_CODE: "11"
+      STATE_NAME: "Estado de Guanajuato"
+      PORT: 8080
+      RUST_LOG: "info"
+    depends_on:
+      sentineliq-gto-postgres:
+        condition: service_healthy
+      sentineliq-gto-redis:
+        condition: service_started
+
+  # ---------------------------------------------------------------------------
+  # 4. Next.js Frontend Dashboard (Guanajuato Web App on Port 3005)
+  # ---------------------------------------------------------------------------
+  sentineliq-gto-nextjs:
+    build:
+      context: ./nextjs-app
+      dockerfile: ../docker/Dockerfile.nextjs
+    container_name: sentineliq_gto_nextjs
+    restart: always
+    ports:
+      - "127.0.0.1:3005:3000"
+    environment:
+      NODE_ENV: "production"
+      PORT: 3000
+      STATE_KEY: "gto"
+      NEXT_PUBLIC_STATE_KEY: "gto"
+      NEXT_PUBLIC_API_URL: "https://gto.sentineliq.com.mx/api"
+    depends_on:
+      - sentineliq-gto-rust-api
+
+volumes:
+  gto_postgres_data:
+  gto_redis_data:
