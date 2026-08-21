@@ -16,11 +16,6 @@ services:
       - "127.0.0.1:5434:5432"
     volumes:
       - gto_postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-sentineliq} -d ${POSTGRES_DB:-sentineliq_gto}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
 
   # ---------------------------------------------------------------------------
   # 2. Redis Cache & Job Broker (Guanajuato Dedicated Redis on Port 6381)
@@ -59,10 +54,8 @@ services:
       PORT: 8080
       RUST_LOG: "info"
     depends_on:
-      sentineliq-gto-postgres:
-        condition: service_healthy
-      sentineliq-gto-redis:
-        condition: service_started
+      - sentineliq-gto-postgres
+      - sentineliq-gto-redis
 
   # ---------------------------------------------------------------------------
   # 4. Next.js Frontend Dashboard (Guanajuato Web App on Port 3005)
