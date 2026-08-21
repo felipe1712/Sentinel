@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 from typing import List, Optional
 from fastapi import FastAPI, Header, HTTPException, Depends, Query
 from pydantic import BaseModel
+from connectors.social_connectors import fetch_twitter_real_posts, fetch_youtube_real_posts
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("argos_gateway")
@@ -13,7 +14,6 @@ app = FastAPI(title="ARGOS Social Media Ingestion Gateway", version="1.0.0")
 
 ARGOS_SERVICE_TOKEN = os.getenv("ARGOS_SERVICE_TOKEN", "sentineliq_argos_token_shared_sec_2026")
 
-# In-memory storage for monitors and captured posts feed
 MONITORS_DB = [
     {
         "id": "mon_01",
@@ -127,24 +127,34 @@ def get_health(token: str = Depends(verify_token)):
         "status": "online",
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "connectors": {
-            "telegram": {"status": "active", "queue_latency_ms": 12},
-            "twitter": {"status": "active", "queue_latency_ms": 45},
-            "instagram": {"status": "active", "queue_latency_ms": 80},
-            "tiktok": {"status": "active", "queue_latency_ms": 110},
-            "facebook": {"status": "active", "queue_latency_ms": 65},
-            "youtube": {"status": "active", "queue_latency_ms": 30}
+            "telegram": {"status": "active", "queue_latency_ms": 12, "mode": "real_api" if os.getenv("TELEGRAM_API_ID") else "simulation"},
+            "twitter": {"status": "active", "queue_latency_ms": 45, "mode": "real_api" if os.getenv("TWITTER_BEARER_TOKEN") else "simulation"},
+            "instagram": {"status": "active", "queue_latency_ms": 80, "mode": "simulation"},
+            "tiktok": {"status": "active", "queue_latency_ms": 110, "mode": "simulation"},
+            "facebook": {"status": "active", "queue_latency_ms": 65, "mode": "simulation"},
+            "youtube": {"status": "active", "queue_latency_ms": 30, "mode": "real_api" if os.getenv("YOUTUBE_API_KEY") else "simulation"}
         },
         "credits_available": 95400
     }
 
 @app.get("/feed")
-def get_feed(
+async def get_feed(
     state_id: Optional[str] = Query(None),
     since: Optional[str] = Query(None),
     limit: int = Query(100),
     token: str = Depends(verify_token)
 ):
-    results = FEED_POSTS
+    results = list(FEED_POSTS)
+
+    # Intentar llamadas a APIs reales si las credenciales existen
+    if os.getenv("TWITTER_BEARER_TOKEN"):
+        real_tweets = await fetch_twitter_real_posts("@FSPE_GtoOficial", ["seguridad", "vialidad"])
+        results.extend(real_tweets)
+
+    if os.getenv("YOUTUBE_API_KEY"):
+        real_videos = await fetch_youtube_real_posts("Guanajuato", ["seguridad", "FSPE"])
+        results.extend(real_videos)
+
     if state_id:
         results = [p for p in results if p["state_id"] == state_id or p["state_id"] == "11111111-1111-1111-1111-111111111111"]
     return results[:limit]
