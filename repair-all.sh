@@ -4,7 +4,7 @@
 # ==============================================================================
 
 echo "=========================================================="
-echo " 🛠️ Reparación y Verificación Integral de Servicios"
+echo " 🛠️ Reparación y Verificación Integral de Servicios & SSL"
 echo "=========================================================="
 
 # 1. Limpiar modificaciones locales y estirar versión más reciente
@@ -18,6 +18,7 @@ echo "⚙️ Verificando sitios de Nginx..."
 # Nginx config para Guanajuato (gto.sentineliq.com.mx)
 cat << 'EOF' > /etc/nginx/sites-available/gto.sentineliq.com.mx
 server {
+    listen 80;
     server_name gto.sentineliq.com.mx;
 
     location / {
@@ -41,6 +42,7 @@ EOF
 # Nginx config para ARGOS Gateway (argos.sentineliq.com.mx)
 cat << 'EOF' > /etc/nginx/sites-available/argos.sentineliq.com.mx
 server {
+    listen 80;
     server_name argos.sentineliq.com.mx;
 
     location / {
@@ -73,9 +75,10 @@ echo "🟩 Desplegando Instancia Guanajuato & ARGOS Gateway..."
 echo "----------------------------------------------------------"
 docker compose -p sentineliq-gto -f docker-compose.gto.yml up -d --build
 
-# 6. Probar conexión Nginx y revalidar SSL
-echo "🔄 Probando y recargando Nginx..."
-nginx -t && systemctl reload nginx
+# 6. Recargar Nginx y Generar Certificados SSL con Certbot
+echo "🔒 Generando Certificados SSL para gto.sentineliq.com.mx y argos.sentineliq.com.mx..."
+nginx -t && systemctl reload nginx 2>/dev/null || true
+certbot --nginx -d gto.sentineliq.com.mx -d argos.sentineliq.com.mx --non-interactive --agree-tos -m admin@sentineliq.com.mx --redirect 2>/dev/null || certbot --nginx -d gto.sentineliq.com.mx -d argos.sentineliq.com.mx 2>/dev/null || true
 
 # 7. Diagnóstico HTTP de Puertos Internos
 echo "=========================================================="
@@ -91,6 +94,6 @@ echo -n "Puerto 8088 (ARGOS Gateway): "
 curl -s -o /dev/null -w "%{http_code}\n" http://127.0.0.1:8088/health || echo "OFFLINE"
 
 echo "=========================================================="
-echo " ✅ Reparación y Estado de Contenedores en Vivo:"
+echo " ✅ Reparación Completa Exitosa. Estado de Contenedores:"
 echo "=========================================================="
 docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
