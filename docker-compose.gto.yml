@@ -40,8 +40,8 @@ services:
   # ---------------------------------------------------------------------------
   sentineliq-gto-rust-api:
     build:
-      context: .
-      dockerfile: docker/Dockerfile.rust
+      context: ./rust-api
+      dockerfile: ../docker/Dockerfile.rust
     container_name: sentineliq_gto_rust_api
     restart: always
     ports:
