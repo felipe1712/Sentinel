@@ -23,6 +23,19 @@ services:
     networks:
       - sentineliq_net
 
+  sentineliq-argos-gateway:
+    build:
+      context: ./argos-gateway
+      dockerfile: Dockerfile
+    container_name: sentineliq_argos_gateway
+    restart: always
+    ports:
+      - "127.0.0.1:8088:8088"
+    environment:
+      ARGOS_SERVICE_TOKEN: ${ARGOS_SERVICE_TOKEN:-sentineliq_argos_token_shared_sec_2026}
+    networks:
+      - sentineliq_net
+
   sentineliq-qdrant:
     image: qdrant/qdrant:v1.7.4
     container_name: sentineliq_qdrant
@@ -95,11 +108,12 @@ services:
       REDIS_URL: redis://sentineliq-redis:6379/0
       SERVICE_TOKEN: ${SERVICE_TOKEN:-sentineliq_internal_service_token_2026}
       CLAUDE_API_KEY: ${CLAUDE_API_KEY:-""}
-      ARGOS_URL: ${ARGOS_URL:-https://argos.sentineliq.com.mx}
+      ARGOS_URL: ${ARGOS_URL:-http://sentineliq-argos-gateway:8088}
       ARGOS_SERVICE_TOKEN: ${ARGOS_SERVICE_TOKEN:-sentineliq_argos_token_shared_sec_2026}
     depends_on:
       - sentineliq-rust-api
       - sentineliq-redis
+      - sentineliq-argos-gateway
     networks:
       - sentineliq_net
 
