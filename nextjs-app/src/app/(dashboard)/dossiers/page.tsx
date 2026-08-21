@@ -4,6 +4,12 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import api from "@/lib/api";
 
+const getFormattedDate = (daysOffset: number = 0) => {
+  const d = new Date();
+  d.setDate(d.getDate() - daysOffset);
+  return d.toLocaleDateString("es-MX", { day: "numeric", month: "long", year: "numeric" });
+};
+
 const DEFAULT_DOSSIERS = [
   {
     id: "dos_qro_01",
@@ -11,7 +17,7 @@ const DEFAULT_DOSSIERS = [
     type: "Gira Municipal",
     bluf: "Análisis situacional de la capital: avance de obras en Paseo 5 de Febrero, coordinación PoEs/C4 municipal y temas prioritarios de concertación vecinal.",
     confidence: "Alta (98%)",
-    date: "19 de Agosto, 2026",
+    date: getFormattedDate(0),
   },
   {
     id: "dos_batan_02",
@@ -19,7 +25,7 @@ const DEFAULT_DOSSIERS = [
     type: "Infraestructura",
     bluf: "Viabilidad financiera y ambiental del acuífero, estado del convenio federal con CONAGUA y estrategia de comunicación institucional.",
     confidence: "Muy Alta (99%)",
-    date: "18 de Agosto, 2026",
+    date: getFormattedDate(0),
   },
   {
     id: "dos_marques_03",
@@ -27,7 +33,7 @@ const DEFAULT_DOSSIERS = [
     type: "Desarrollo Económico",
     bluf: "Evaluación de parques industriales, demanda de energía eléctrica, infraestructura carretera y potencial de generación de empleo calificado.",
     confidence: "Alta (95%)",
-    date: "17 de Agosto, 2026",
+    date: getFormattedDate(1),
   },
 ];
 
@@ -42,7 +48,7 @@ export default function DossiersPage() {
           setDossiers(resp.data);
         }
       } catch (e) {
-        console.warn("Usando catálogo soberano de dossiers de Querétaro");
+        console.warn("Usando catálogo soberano de dossiers de Querétaro con fechas dinámicas");
       }
     }
     load();
@@ -50,7 +56,7 @@ export default function DossiersPage() {
 
   return (
     <div className="pb-5 pt-4 pt-md-5 mt-2">
-      {/* Header con Margen Generoso */}
+      {/* Header */}
       <div className="d-flex flex-column flex-md-row align-items-md-center justify-content-between mb-4 gap-3">
         <div>
           <span className="badge bg-primary text-white text-uppercase px-3 py-1 fs-11 fw-bold mb-2 shadow-sm">
@@ -60,7 +66,7 @@ export default function DossiersPage() {
             Dossiers Ejecutivos de Inteligencia
           </h4>
           <p className="text-dark fs-14 mb-0 fw-bold" style={{ color: "#334155" }}>
-            Documentos estructurados con análisis situacional, perfiles, municipios e incidentes clave.
+            Documentos estructurados con análisis situacional en tiempo real, perfiles, municipios e incidentes.
           </p>
         </div>
         <Link href="/dossiers/nuevo" className="btn btn-primary btn-sm fw-bold text-white shadow-sm">
@@ -75,30 +81,25 @@ export default function DossiersPage() {
             <div className="card bg-white border-0 shadow-sm h-100 border-start border-4 border-primary rounded-3">
               <div className="card-body p-4 bg-white d-flex flex-column justify-content-between">
                 <div>
-                  {/* Badge de Tipo */}
                   <div className="mb-2">
                     <span className="badge bg-primary-subtle text-primary fw-bold text-uppercase fs-11 px-3 py-1">
                       Dossier {doc.type}
                     </span>
                   </div>
 
-                  {/* Fecha colocada justo abajo del recuadro azul */}
                   <div className="text-dark fs-12 fw-bold mb-3" style={{ color: "#475569" }}>
-                    <i className="ri-calendar-line me-1 text-primary"></i> {doc.date || "19 de Agosto, 2026"}
+                    <i className="ri-calendar-line me-1 text-primary"></i> {doc.date || getFormattedDate(0)}
                   </div>
 
-                  {/* Título del Dossier */}
                   <h5 className="fw-extrabold text-dark fs-16 mb-3 lh-base" style={{ color: "#0f172a" }}>
                     {doc.title}
                   </h5>
 
-                  {/* BLUF / Resumen */}
                   <p className="text-dark fs-13 lh-base mb-4 fw-medium" style={{ color: "#334155" }}>
                     {doc.bluf}
                   </p>
                 </div>
 
-                {/* Footer de Tarjeta */}
                 <div className="d-flex justify-content-between align-items-center pt-3 border-top border-gray-200 mt-auto">
                   <span className="fs-12 text-primary fw-bold">Confianza: {doc.confidence || "Alta"}</span>
                   <Link href={`/dossiers/${doc.id}`} className="btn btn-primary btn-sm fw-bold text-white shadow-sm">

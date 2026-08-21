@@ -5,13 +5,19 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import api from "@/lib/api";
 
+const getFormattedDate = (daysOffset: number = 0) => {
+  const d = new Date();
+  d.setDate(d.getDate() - daysOffset);
+  return d.toLocaleDateString("es-MX", { day: "numeric", month: "long", year: "numeric" });
+};
+
 const DEFAULT_DOSSIER_MAP: Record<string, any> = {
   dos_qro_01: {
     id: "dos_qro_01",
     type: "Gira Municipal",
     title: "Dossier Estratégico · Gira de Trabajo Santiago de Querétaro",
     bluf: "Análisis situacional de la capital: avance de obras en Paseo 5 de Febrero, coordinación PoEs/C4 municipal y temas prioritarios de concertación vecinal.",
-    date: "19 de Agosto, 2026",
+    date: getFormattedDate(0),
     confidence: "Alta (98%)",
     content: {
       situacion_actual: "La capital de Querétaro registra un dinamismo económico sólido con aforo vehicular controlado en arterias principales como Paseo 5 de Febrero y Bernardo Quintana. Se mantiene presencia coordinada de la Policía Estatal (PoEs) y Seguridad Pública Municipal.",
@@ -38,7 +44,7 @@ const DEFAULT_DOSSIER_MAP: Record<string, any> = {
     type: "Infraestructura & Agua",
     title: "Dossier de Coyuntura · Proyecto Hídrico Batán Agua para Todos",
     bluf: "Viabilidad financiera y ambiental del acuífero, estado del convenio federal con CONAGUA y estrategia de comunicación institucional.",
-    date: "18 de Agosto, 2026",
+    date: getFormattedDate(0),
     confidence: "Muy Alta (99%)",
     content: {
       situacion_actual: "El proyecto hídrico Batán representa la solución estratégica de largo plazo para abastecer de agua potable a la Zona Metropolitana de Querétaro por los próximos 30 años. Se cuenta con aval técnico y seguimiento con la Comisión Nacional del Agua (CONAGUA).",
@@ -66,7 +72,7 @@ const DEFAULT_DOSSIER_MAP: Record<string, any> = {
     title: "Dossier Regional · Desarrollo Industrial y Data Centers El Marqués",
     type_label: "Desarrollo Económico",
     bluf: "Evaluación de parques industriales, demanda de energía eléctrica, infraestructura carretera y potencial de generación de empleo calificado.",
-    date: "17 de Agosto, 2026",
+    date: getFormattedDate(1),
     confidence: "Alta (95%)",
     content: {
       situacion_actual: "El Marqués se consolida como el hub de centros de datos y manufactura avanzada más importante de la región central del país, atrayendo más de $1,200 MDD en inversión extranjera directa.",
@@ -109,7 +115,6 @@ export default function DossierDetailPage() {
         console.warn("Usando catálogo soberano de dossiers de Querétaro");
       }
 
-      // Fallback object matching ID or default
       const key = String(id);
       const fallback = DEFAULT_DOSSIER_MAP[key] || DEFAULT_DOSSIER_MAP["dos_qro_01"];
       setDossier(fallback);
@@ -131,7 +136,6 @@ export default function DossierDetailPage() {
 
   return (
     <div className="pb-5 pt-4 pt-md-5 mt-2" style={{ maxWidth: "950px", margin: "0 auto" }}>
-      {/* Header con Margen Generoso */}
       <div className="d-flex align-items-center justify-content-between mb-4 gap-3">
         <div>
           <Link href="/dossiers" className="btn btn-outline-secondary btn-sm fw-bold mb-2">
@@ -146,7 +150,6 @@ export default function DossierDetailPage() {
         </button>
       </div>
 
-      {/* Tarjeta Principal del Dossier Modo Claro */}
       <div className="card bg-white border-0 shadow-lg rounded-4 overflow-hidden border-top border-5 border-primary mb-5">
         <div className="card-header bg-white border-bottom p-4 p-md-5">
           <div className="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
@@ -154,7 +157,7 @@ export default function DossierDetailPage() {
               Dossier {data.type || "Ejecutivo"}
             </span>
             <span className="text-dark fs-13 fw-bold" style={{ color: "#334155" }}>
-              <i className="ri-calendar-line me-1 text-primary"></i> {data.date || "19 de Agosto, 2026"}
+              <i className="ri-calendar-line me-1 text-primary"></i> {data.date || getFormattedDate(0)}
             </span>
           </div>
 
@@ -173,7 +176,6 @@ export default function DossierDetailPage() {
         </div>
 
         <div className="card-body p-4 p-md-5 bg-white">
-          {/* BLUF Box */}
           <div className="p-4 bg-light rounded-3 border-start border-5 border-primary mb-5 shadow-sm">
             <h6 className="fw-extrabold text-primary text-uppercase fs-12 mb-2" style={{ color: "#1e40af" }}>
               <i className="ri-shield-flash-line me-1"></i> BLUF (Bottom Line Up Front)
@@ -183,7 +185,6 @@ export default function DossierDetailPage() {
             </p>
           </div>
 
-          {/* 1. Situación Actual */}
           <div className="mb-5">
             <h5 className="fw-extrabold text-primary border-bottom border-gray-300 pb-3 mb-3 fs-18" style={{ color: "#1e40af" }}>
               1. Situación Actual & Diagnóstico Territorial
@@ -193,7 +194,6 @@ export default function DossierDetailPage() {
             </p>
           </div>
 
-          {/* 2. Actores Clave */}
           {data.content?.actores_clave && (
             <div className="mb-5">
               <h5 className="fw-extrabold text-primary border-bottom border-gray-300 pb-3 mb-3 fs-18" style={{ color: "#1e40af" }}>
@@ -212,7 +212,6 @@ export default function DossierDetailPage() {
             </div>
           )}
 
-          {/* 3. Escenarios Prospectivos */}
           {data.content?.escenarios && (
             <div className="mb-5">
               <h5 className="fw-extrabold text-primary border-bottom border-gray-300 pb-3 mb-3 fs-18" style={{ color: "#1e40af" }}>
@@ -253,7 +252,6 @@ export default function DossierDetailPage() {
             </div>
           )}
 
-          {/* 4. Recomendaciones */}
           {data.content?.recomendaciones && (
             <div>
               <h5 className="fw-extrabold text-primary border-bottom border-gray-300 pb-3 mb-3 fs-18" style={{ color: "#1e40af" }}>
