@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 from typing import List, Optional
 from fastapi import FastAPI, Header, HTTPException, Depends, Query
 from pydantic import BaseModel
-from connectors.social_connectors import fetch_twitter_real_posts, fetch_youtube_real_posts
+from connectors.social_connectors import fetch_telegram_real_posts, fetch_twitter_real_posts, fetch_youtube_real_posts
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("argos_gateway")
@@ -127,12 +127,12 @@ def get_health(token: str = Depends(verify_token)):
         "status": "online",
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "connectors": {
-            "telegram": {"status": "active", "queue_latency_ms": 12, "mode": "real_api" if os.getenv("TELEGRAM_API_ID") else "simulation"},
-            "twitter": {"status": "active", "queue_latency_ms": 45, "mode": "real_api" if os.getenv("TWITTER_BEARER_TOKEN") else "simulation"},
-            "instagram": {"status": "active", "queue_latency_ms": 80, "mode": "simulation"},
-            "tiktok": {"status": "active", "queue_latency_ms": 110, "mode": "simulation"},
-            "facebook": {"status": "active", "queue_latency_ms": 65, "mode": "simulation"},
-            "youtube": {"status": "active", "queue_latency_ms": 30, "mode": "real_api" if os.getenv("YOUTUBE_API_KEY") else "simulation"}
+            "telegram": {"status": "active", "mode": "live_scraper", "latency_ms": 12},
+            "twitter": {"status": "active", "mode": "real_api" if os.getenv("TWITTER_BEARER_TOKEN") else "simulation", "latency_ms": 45},
+            "instagram": {"status": "active", "mode": "simulation", "latency_ms": 80},
+            "tiktok": {"status": "active", "mode": "simulation", "latency_ms": 110},
+            "facebook": {"status": "active", "mode": "simulation", "latency_ms": 65},
+            "youtube": {"status": "active", "mode": "real_api" if os.getenv("YOUTUBE_API_KEY") else "simulation", "latency_ms": 30}
         },
         "credits_available": 95400
     }
@@ -146,7 +146,18 @@ async def get_feed(
 ):
     results = list(FEED_POSTS)
 
-    # Intentar llamadas a APIs reales si las credenciales existen
+    # Ingesta en tiempo real desde Telegram usando el Live Web Scraper (Sin credenciales necesarias)
+    tg_monitors = [m for m in MONITORS_DB if m["network"] == "telegram" and m["active"]]
+    for m in tg_monitors:
+        try:
+            tg_posts = await fetch_telegram_real_posts(m["channel_id"])
+            for p in tg_posts:
+                p["state_id"] = m["state_id"]
+                results.insert(0, p)
+        except Exception as e:
+            logger.warning(f"Error extrayendo Telegram real de {m['channel_id']}: {e}")
+
+    # Intentar llamadas a Twitter / YouTube en vivo si las llaves existen
     if os.getenv("TWITTER_BEARER_TOKEN"):
         real_tweets = await fetch_twitter_real_posts("@FSPE_GtoOficial", ["seguridad", "vialidad"])
         results.extend(real_tweets)
