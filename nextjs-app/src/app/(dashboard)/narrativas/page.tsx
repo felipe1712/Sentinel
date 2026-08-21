@@ -4,53 +4,18 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import api from "@/lib/api";
+import { getStateConfig, StateConfig, NarrativaItem } from "@/lib/stateConfig";
 
 export default function NarrativasPage() {
   const router = useRouter();
-  const [narratives, setNarratives] = useState<any[]>([
-    {
-      id: "n1",
-      title: "Movilidad e Intervención Vial Paseo 5 de Febrero",
-      summary: "Debate público y reportes sobre flujo vehicular, obras de conexión y operativos PoEs.",
-      category: "Infraestructura & Movilidad",
-      trend: "subiendo",
-      volume_24h: 342,
-      sentiment: "Neutral / Exigente",
-      region: "ZMQ",
-    },
-    {
-      id: "n2",
-      title: "Proyecto Hídrico Batán Agua para Todos",
-      summary: "Cobertura mediática sobre el acuerdo con CONAGUA y viabilidad de abastecimiento futuro.",
-      category: "Agua & Medio Ambiente",
-      trend: "estable",
-      volume_24h: 218,
-      sentiment: "Favorable",
-      region: "Estatal",
-    },
-    {
-      id: "n3",
-      title: "Seguridad y Monitoreo en Autopista México - Querétaro (57)",
-      summary: "Percepción ciudadana sobre patrullaje de la Guardia Nacional y tiempos de traslado.",
-      category: "Seguridad Pública",
-      trend: "subiendo",
-      volume_24h: 189,
-      sentiment: "Atención Requerida",
-      region: "San Juan del Río / Sur",
-    },
-    {
-      id: "n4",
-      title: "Atracción de Inversión y Data Centers en El Marqués y Colón",
-      summary: "Resonancia positiva sobre desarrollo tecnológico y generación de empleo especializado.",
-      category: "Desarrollo Económico",
-      trend: "subiendo",
-      volume_24h: 145,
-      sentiment: "Muy Favorable",
-      region: "El Marqués / Colón",
-    },
-  ]);
+  const [stateCfg, setStateCfg] = useState<StateConfig>(getStateConfig());
+  const [narratives, setNarratives] = useState<NarrativaItem[]>([]);
 
   useEffect(() => {
+    const cfg = getStateConfig();
+    setStateCfg(cfg);
+    setNarratives(cfg.narrativas);
+
     async function load() {
       try {
         const resp = await api.get("/narratives");
@@ -58,7 +23,7 @@ export default function NarrativasPage() {
           setNarratives(resp.data);
         }
       } catch (e) {
-        console.warn("Usando catálogo de narrativas soberanas de Querétaro");
+        console.warn(`Usando catálogo de narrativas soberanas de ${cfg.shortName}`);
       }
     }
     load();
@@ -74,7 +39,7 @@ export default function NarrativasPage() {
       <div className="d-flex flex-column flex-md-row align-items-md-center justify-content-between mb-4 gap-3">
         <div>
           <span className="badge bg-primary text-white text-uppercase px-3 py-1 fs-11 fw-bold mb-2 shadow-sm">
-            Inteligencia de Opinión Pública · Estado de Querétaro
+            Inteligencia de Opinión Pública · {stateCfg.name}
           </span>
           <h4 className="fw-extrabold text-dark mb-1 fs-24" style={{ color: "#0f172a" }}>
             Tracking de Narrativas & Momentum Mediático
@@ -94,7 +59,7 @@ export default function NarrativasPage() {
       <div className="card bg-white border-0 shadow-sm rounded-3 overflow-hidden">
         <div className="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
           <h6 className="card-title mb-0 fw-extrabold text-dark fs-15" style={{ color: "#0f172a" }}>
-            Narrativas Activas en el Estado de Querétaro
+            Narrativas Activas en el {stateCfg.name}
           </h6>
           <span className="badge bg-primary text-white fs-11 fw-bold shadow-sm">Monitoreo 24h</span>
         </div>
@@ -119,7 +84,7 @@ export default function NarrativasPage() {
                         {n.title}
                       </h6>
                       <small className="text-dark fs-12 fw-medium" style={{ color: "#334155" }}>
-                        {n.summary || n.description}
+                        {n.summary}
                       </small>
                     </td>
                     <td>
@@ -129,7 +94,7 @@ export default function NarrativasPage() {
                     </td>
                     <td>
                       <span className="badge bg-secondary-subtle text-dark fw-bold fs-11" style={{ color: "#0f172a" }}>
-                        {n.region || "Querétaro"}
+                        {n.region || stateCfg.shortName}
                       </span>
                     </td>
                     <td>
