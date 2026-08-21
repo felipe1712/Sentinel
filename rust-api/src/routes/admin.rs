@@ -100,6 +100,17 @@ pub struct AuditStatsDTO {
     pub alertas_alucinacion_hoy: i64,
 }
 
+#[derive(sqlx::FromRow)]
+struct RawAuditStats {
+    pub total_hoy: Option<i64>,
+    pub verificadas: Option<i64>,
+    pub con_advertencia: Option<i64>,
+    pub sin_fuente: Option<i64>,
+    pub confianza_promedio: Option<f64>,
+    pub tokens_totales: Option<i64>,
+    pub alertas_alucinacion: Option<i64>,
+}
+
 pub async fn create_query_audit(
     headers: HeaderMap,
     State(pool): State<PgPool>,
@@ -111,29 +122,29 @@ pub async fn create_query_audit(
         .unwrap_or("");
 
     if !service_token.contains("sentineliq_internal_service_token") && !service_token.contains("Bearer") {
-        return Err(AppError::Unauthorized);
+        return Err(AppError::Auth("Token de servicio no autorizado".to_string()));
     }
 
-    sqlx::query!(
+    sqlx::query(
         r#"
         INSERT INTO query_audit 
         (state_id, user_id, query_type, prompt_text, model, tools_used, sources, confidence_score, hallucination_flag, hallucination_note, tokens_used, latency_ms, result_summary)
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
-        "#,
-        payload.state_id,
-        payload.user_id,
-        payload.query_type,
-        payload.prompt_text,
-        payload.model.unwrap_or_else(|| "claude-sonnet-4-6".to_string()),
-        &payload.tools_used.unwrap_or_default()[..],
-        payload.sources,
-        payload.confidence_score.unwrap_or(0),
-        payload.hallucination_flag.unwrap_or(false),
-        payload.hallucination_note,
-        payload.tokens_used.unwrap_or(0),
-        payload.latency_ms.unwrap_or(0),
-        payload.result_summary
+        "#
     )
+    .bind(payload.state_id)
+    .bind(payload.user_id)
+    .bind(&payload.query_type)
+    .bind(&payload.prompt_text)
+    .bind(payload.model.as_deref().unwrap_or("claude-sonnet-4-6"))
+    .bind(&payload.tools_used.unwrap_or_default()[..])
+    .bind(&payload.sources)
+    .bind(payload.confidence_score.unwrap_or(0))
+    .bind(payload.hallucination_flag.unwrap_or(false))
+    .bind(&payload.hallucination_note)
+    .bind(payload.tokens_used.unwrap_or(0))
+    .bind(payload.latency_ms.unwrap_or(0))
+    .bind(&payload.result_summary)
     .execute(&pool)
     .await?;
 
@@ -179,21 +190,21 @@ pub async fn get_query_audit_stats(
 ) -> Result<Json<AuditStatsDTO>, AppError> {
     auth.require_role(&["jefe_oficina", "superadmin"])?;
 
-    let row = sqlx::query!(
+    let row = sqlx::query_as::<_, RawAuditStats>(
         r#"
         SELECT 
             COUNT(*) as total_hoy,
             COUNT(*) FILTER (WHERE confidence_score >= 75) as verificadas,
             COUNT(*) FILTER (WHERE confidence_score BETWEEN 50 AND 74) as con_advertencia,
             COUNT(*) FILTER (WHERE jsonb_array_length(sources) = 0) as sin_fuente,
-            COALESCE(AVG(confidence_score), 0) as confianza_promedio,
-            COALESCE(SUM(tokens_used), 0) as tokens_totales,
+            COALESCE(AVG(confidence_score), 0)::float8 as confianza_promedio,
+            COALESCE(SUM(tokens_used), 0)::int8 as tokens_totales,
             COUNT(*) FILTER (WHERE hallucination_flag = true) as alertas_alucinacion
         FROM query_audit
         WHERE state_id = $1 AND created_at >= NOW() - INTERVAL '24 hours'
-        "#,
-        auth.state_id
+        "#
     )
+    .bind(auth.state_id)
     .fetch_one(&pool)
     .await?;
 
