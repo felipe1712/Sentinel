@@ -8,7 +8,7 @@ import { getStateConfig, StateConfig } from "@/lib/stateConfig";
 
 export const Sidebar: React.FC = () => {
   const pathname = usePathname();
-  const { isGobernador, isAnalista, isJefeOficina } = useRole();
+  const { isGobernador, isJefeOficina } = useRole();
   const [stateCfg, setStateCfg] = useState<StateConfig>(getStateConfig());
 
   useEffect(() => {
@@ -88,14 +88,13 @@ export const Sidebar: React.FC = () => {
             </Link>
           </li>
 
-          {/* Opciones exclusivas para Operaciones/Analistas/Jefe Oficina */}
           {!isGobernador && (
             <>
               <li className="menu-title mt-3"><span data-key="t-pages" className="text-primary fw-bold">Operación & Fuentes</span></li>
 
               <li className="nav-item">
                 <Link href="/fuentes" className={`nav-link ${isActive("/fuentes") ? "active fw-bold text-primary" : "text-dark"}`}>
-                  <i className="ri-rss-line me-2"></i> <span>Source Manager</span>
+                  <i className="ri-rss-line me-2"></i> <span>Source Manager & ARGOS</span>
                 </Link>
               </li>
 
@@ -126,6 +125,14 @@ export const Sidebar: React.FC = () => {
               <li className="nav-item">
                 <Link href="/admin" className={`nav-link ${pathname === "/admin" ? "active fw-bold text-primary" : "text-dark"}`}>
                   <i className="ri-user-settings-line me-2"></i> <span>Usuarios & Roles</span>
+                </Link>
+              </li>
+
+              <li className="nav-item">
+                <Link href="/admin/auditoria" className={`nav-link ${isActive("/admin/auditoria") ? "active fw-bold text-primary" : "text-dark"}`}>
+                  <i className="ri-shield-flash-line me-2"></i> 
+                  <span>Auditoría de Consultas</span>
+                  <span className="badge bg-warning text-dark ms-auto fs-10 fw-bold">1 Alerta</span>
                 </Link>
               </li>
 

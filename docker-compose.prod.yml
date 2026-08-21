@@ -56,6 +56,10 @@ services:
       JWT_SECRET: ${JWT_SECRET:-sentineliq_secret_key_queretaro_production_min_256_bits_length}
       CLAUDE_API_KEY: ${CLAUDE_API_KEY:-""}
       SERVICE_TOKEN: ${SERVICE_TOKEN:-sentineliq_internal_service_token_2026}
+      ARGOS_URL: ${ARGOS_URL:-https://argos.sentineliq.com.mx}
+      ARGOS_SERVICE_TOKEN: ${ARGOS_SERVICE_TOKEN:-sentineliq_argos_token_shared_sec_2026}
+      NATIONAL_VIEW_ENABLED: "true"
+      PLATFORM_DOMAIN: "sentineliq.com.mx"
       PORT: 8080
       RUST_LOG: info,sentineliq_api=info
     depends_on:
@@ -73,6 +77,10 @@ services:
       - "127.0.0.1:3004:3000"
     environment:
       NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-https://qro.sentineliq.com.mx/api}
+      ARGOS_URL: ${ARGOS_URL:-https://argos.sentineliq.com.mx}
+      ARGOS_SERVICE_TOKEN: ${ARGOS_SERVICE_TOKEN:-sentineliq_argos_token_shared_sec_2026}
+      NATIONAL_VIEW_ENABLED: "true"
+      PLATFORM_DOMAIN: "sentineliq.com.mx"
     networks:
       - sentineliq_net
 
@@ -87,6 +95,8 @@ services:
       REDIS_URL: redis://sentineliq-redis:6379/0
       SERVICE_TOKEN: ${SERVICE_TOKEN:-sentineliq_internal_service_token_2026}
       CLAUDE_API_KEY: ${CLAUDE_API_KEY:-""}
+      ARGOS_URL: ${ARGOS_URL:-https://argos.sentineliq.com.mx}
+      ARGOS_SERVICE_TOKEN: ${ARGOS_SERVICE_TOKEN:-sentineliq_argos_token_shared_sec_2026}
     depends_on:
       - sentineliq-rust-api
       - sentineliq-redis

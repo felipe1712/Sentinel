@@ -52,6 +52,10 @@ services:
       STATE_KEY: "gto"
       INEGI_STATE_CODE: "11"
       STATE_NAME: "Estado de Guanajuato"
+      ARGOS_URL: ${ARGOS_URL:-https://argos.sentineliq.com.mx}
+      ARGOS_SERVICE_TOKEN: ${ARGOS_SERVICE_TOKEN:-sentineliq_argos_token_shared_sec_2026}
+      NATIONAL_VIEW_ENABLED: "true"
+      PLATFORM_DOMAIN: "sentineliq.com.mx"
       PORT: 8080
       RUST_LOG: "info"
     depends_on:
@@ -77,6 +81,10 @@ services:
       STATE_KEY: "gto"
       NEXT_PUBLIC_STATE_KEY: "gto"
       NEXT_PUBLIC_API_URL: "https://gto.sentineliq.com.mx/api"
+      ARGOS_URL: ${ARGOS_URL:-https://argos.sentineliq.com.mx}
+      ARGOS_SERVICE_TOKEN: ${ARGOS_SERVICE_TOKEN:-sentineliq_argos_token_shared_sec_2026}
+      NATIONAL_VIEW_ENABLED: "true"
+      PLATFORM_DOMAIN: "sentineliq.com.mx"
     depends_on:
       - sentineliq-gto-rust-api
 

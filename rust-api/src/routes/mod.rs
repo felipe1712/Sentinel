@@ -96,6 +96,10 @@ pub fn create_router(pool: PgPool) -> Router {
         .route("/cabinet/snapshot", get(cabinet::get_cabinet_snapshot))
         .route("/admin/states", get(admin::list_states))
         .route("/admin/users", get(admin::list_users))
+        // Query Audit Routes
+        .route("/admin/query-audit", get(admin::list_query_audits).post(admin::create_query_audit))
+        .route("/admin/query-audit/stats", get(admin::get_query_audit_stats))
+        .route("/admin/query-audit/:id", get(admin::get_query_audit_by_id))
         .layer(cors)
         .with_state(state)
 }
