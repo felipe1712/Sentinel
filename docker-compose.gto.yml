@@ -31,7 +31,21 @@ services:
       - gto_redis_data:/data
 
   # ---------------------------------------------------------------------------
-  # 3. Rust API Backend (Axum 0.7 - Guanajuato Instance on Port 8086)
+  # 3. ARGOS Social Media Ingestion Gateway (Port 8088)
+  # ---------------------------------------------------------------------------
+  sentineliq-argos-gateway:
+    build:
+      context: ./argos-gateway
+      dockerfile: Dockerfile
+    container_name: sentineliq_argos_gateway
+    restart: always
+    ports:
+      - "127.0.0.1:8088:8088"
+    environment:
+      ARGOS_SERVICE_TOKEN: ${ARGOS_SERVICE_TOKEN:-sentineliq_argos_token_shared_sec_2026}
+
+  # ---------------------------------------------------------------------------
+  # 4. Rust API Backend (Axum 0.7 - Guanajuato Instance on Port 8086)
   # ---------------------------------------------------------------------------
   sentineliq-gto-rust-api:
     build:
@@ -58,7 +72,7 @@ services:
       - sentineliq-gto-redis
 
   # ---------------------------------------------------------------------------
-  # 4. Next.js Frontend Dashboard (Guanajuato Web App on Port 3005)
+  # 5. Next.js Frontend Dashboard (Guanajuato Web App on Port 3005)
   # ---------------------------------------------------------------------------
   sentineliq-gto-nextjs:
     build:
@@ -78,8 +92,6 @@ services:
       ARGOS_SERVICE_TOKEN: ${ARGOS_SERVICE_TOKEN:-sentineliq_argos_token_shared_sec_2026}
       NATIONAL_VIEW_ENABLED: "true"
       PLATFORM_DOMAIN: "sentineliq.com.mx"
-    depends_on:
-      - sentineliq-gto-rust-api
 
 volumes:
   gto_postgres_data:
