@@ -15,13 +15,13 @@ git pull origin main
 echo "----------------------------------------------------------"
 echo "🟦 Actualizando Instancia Querétaro (qro.sentineliq.com.mx)..."
 echo "----------------------------------------------------------"
-docker compose -f docker-compose.prod.yml up -d --build
+docker compose -p sentineliq-qro -f docker-compose.prod.yml up -d --build
 
 # 3. Recompilar y levantar Guanajuato (gto.sentineliq.com.mx)
 echo "----------------------------------------------------------"
 echo "🟩 Actualizando Instancia Guanajuato (gto.sentineliq.com.mx)..."
 echo "----------------------------------------------------------"
-docker compose -f docker-compose.gto.yml up -d --build
+docker compose -p sentineliq-gto -f docker-compose.gto.yml up -d --build
 
 # 4. Estado Final de los Contenedores
 echo "=========================================================="
