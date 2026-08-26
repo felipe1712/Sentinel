@@ -18,9 +18,10 @@ interface WebGisMapProps {
   swingYears?: { year1: number; year2: number };
 }
 
+// Mapas base 100% abiertos y libres de costo (Sin necesidad de API Key)
 const TILE_URLS = {
-  osm: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-  carto: "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
+  osm: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+  carto: "https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png",
   satellite: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
 };
 
@@ -39,7 +40,6 @@ export const WebGisMap: React.FC<WebGisMapProps> = ({
   const mapInstanceRef = useRef<L.Map | null>(null);
   const tileLayerRef = useRef<L.TileLayer | null>(null);
   const geojsonLayerRef = useRef<L.GeoJSON | null>(null);
-  const eventsLayerRef = useRef<L.LayerGroup | null>(null);
 
   const [geoData, setGeoData] = useState<any>(null);
   const [loadingGeo, setLoadingGeo] = useState(true);
@@ -60,11 +60,11 @@ export const WebGisMap: React.FC<WebGisMapProps> = ({
     L.control.zoom({ position: "topright" }).addTo(map);
 
     const tileLayer = L.tileLayer(TILE_URLS[tileProvider], {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors',
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> | SentinelIQ WebGIS',
+      maxZoom: 19,
     }).addTo(map);
 
     tileLayerRef.current = tileLayer;
-    eventsLayerRef.current = L.layerGroup().addTo(map);
     mapInstanceRef.current = map;
 
     return () => {
@@ -73,7 +73,7 @@ export const WebGisMap: React.FC<WebGisMapProps> = ({
     };
   }, []);
 
-  // 2. Actualizar Tile Provider (OSM, Carto, Satélite)
+  // 2. Actualizar Tile Provider
   useEffect(() => {
     if (!mapInstanceRef.current || !tileLayerRef.current) return;
     tileLayerRef.current.setUrl(TILE_URLS[tileProvider]);
@@ -99,7 +99,7 @@ export const WebGisMap: React.FC<WebGisMapProps> = ({
       });
   }, [baseBoundary]);
 
-  // 4. Renderizar Polígonos y Estilos Choropleth
+  // 4. Renderizar Polígonos, Filtro de Municipio y Auto-Zoom (fitBounds)
   useEffect(() => {
     const map = mapInstanceRef.current;
     if (!map || !geoData) return;
@@ -113,17 +113,23 @@ export const WebGisMap: React.FC<WebGisMapProps> = ({
     const getFeatureStyle = (feature: any) => {
       const props = feature.properties || {};
       const seccionId = props.seccion || props.id;
+      const mpioId = props.municipio;
       const res = yearData[String(seccionId)];
 
-      let fillColor = "#cbd5e1"; // Gris neutro por defecto
-      let fillOpacity = 0.65;
+      // Si hay un municipio seleccionado y no coincide, atenuar o resaltar
+      const isSelectedMpio = selectedMunicipio === null || mpioId === selectedMunicipio;
+
+      let fillColor = "#cbd5e1";
+      let fillOpacity = isSelectedMpio ? 0.7 : 0.15;
+      let strokeColor = isSelectedMpio ? "#ffffff" : "#94a3b8";
+      let weight = isSelectedMpio ? (baseBoundary === "secciones" ? 0.9 : 2) : 0.3;
 
       if (baseBoundary === "secciones" && res) {
         if (choroplethMode === "ganador") {
           fillColor = getPartyColor(res.ganador_partido);
         } else if (choroplethMode === "porcentaje_ganador") {
           fillColor = getPartyColor(res.ganador_partido);
-          fillOpacity = Math.max(0.3, Math.min(0.9, res.ganador_pct / 100));
+          fillOpacity = isSelectedMpio ? Math.max(0.3, Math.min(0.9, res.ganador_pct / 100)) : 0.15;
         } else if (choroplethMode === "participacion") {
           fillColor = getParticipationColor(res.participacion_pct);
         } else if (choroplethMode === "margen_victoria") {
@@ -138,35 +144,42 @@ export const WebGisMap: React.FC<WebGisMapProps> = ({
           }
         }
       } else if (baseBoundary === "municipios") {
-        fillColor = "#3b82f6";
-        fillOpacity = 0.2;
+        fillColor = isSelectedMpio ? "#2563eb" : "#94a3b8";
+        fillOpacity = isSelectedMpio ? (selectedMunicipio ? 0.45 : 0.25) : 0.08;
+        strokeColor = isSelectedMpio ? "#1d4ed8" : "#cbd5e1";
+        weight = isSelectedMpio ? 2.5 : 1;
       }
 
       return {
         fillColor,
-        weight: baseBoundary === "secciones" ? 0.8 : 2,
-        opacity: 1,
-        color: "#ffffff",
+        weight,
+        opacity: isSelectedMpio ? 1 : 0.4,
+        color: strokeColor,
         fillOpacity,
       };
     };
 
+    // Función de filtrado: si hay un municipio seleccionado, solo mostramos/enfocamos sus polígonos
     const geoLayer = L.geoJSON(geoData, {
+      filter: (feature) => {
+        if (!selectedMunicipio) return true;
+        const mpioId = feature.properties?.municipio;
+        return mpioId === selectedMunicipio;
+      },
       style: getFeatureStyle,
       onEachFeature: (feature, layer) => {
         const props = feature.properties || {};
         const seccionId = props.seccion || props.id;
         const res = yearData[String(seccionId)];
 
-        // Popup interactivo al hacer hover/click
         const tooltipContent = `
-          <div style="font-family: sans-serif; min-width: 160px;">
+          <div style="font-family: sans-serif; min-width: 170px;">
             <strong style="font-size: 13px; color: #0f172a;">
-              ${baseBoundary === "municipios" ? props.nombre || `Mpio ${props.municipio}` : `Sección ${seccionId}`}
+              ${baseBoundary === "municipios" ? props.nombre || `Municipio ${props.municipio}` : `Sección Electoral ${seccionId}`}
             </strong>
             <br/>
             <span style="font-size: 11px; color: #64748b;">
-              Mpio: ${props.municipio} · Dtto L: ${props.distrito_l || "N/D"}
+              Municipio: ${props.municipio} · Dtto Local: ${props.distrito_l || "N/D"}
             </span>
             ${
               res
@@ -177,7 +190,7 @@ export const WebGisMap: React.FC<WebGisMapProps> = ({
                 </span>
                 <br/>
                 <span style="font-size: 11px; color: #059669;">
-                  🗳️ Participación: ${res.participacion_pct}%
+                  🗳️ Participación: ${res.participacion_pct}% (${res.total_votos?.toLocaleString()} votos)
                 </span>
               `
                 : ""
@@ -193,7 +206,7 @@ export const WebGisMap: React.FC<WebGisMapProps> = ({
           },
           mouseover: (e) => {
             const l = e.target;
-            l.setStyle({ weight: 2.5, color: "#0f172a", fillOpacity: 0.85 });
+            l.setStyle({ weight: 3, color: "#0f172a", fillOpacity: 0.9 });
           },
           mouseout: (e) => {
             geoLayer.resetStyle(e.target);
@@ -204,9 +217,15 @@ export const WebGisMap: React.FC<WebGisMapProps> = ({
 
     geojsonLayerRef.current = geoLayer;
 
-    // Zoom a municipio si está seleccionado
-    if (selectedMunicipio) {
-      // Filtrar bounds
+    // AUTO-ZOOM (fitBounds): Ajustar la vista automáticamente al municipio seleccionado
+    if (selectedMunicipio && geoLayer.getLayers().length > 0) {
+      const bounds = geoLayer.getBounds();
+      if (bounds.isValid()) {
+        map.fitBounds(bounds, { padding: [35, 35], maxZoom: 13, animate: true });
+      }
+    } else if (!selectedMunicipio) {
+      // Regresar al estado completo
+      map.setView([21.019, -101.2574], 9, { animate: true });
     }
   }, [geoData, choroplethMode, selectedYear, baseBoundary, electoralCache, selectedMunicipio, swingYears]);
 

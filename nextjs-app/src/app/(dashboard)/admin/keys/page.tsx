@@ -17,13 +17,15 @@ interface ApiKeyItem {
 
 export default function AdminKeysPage() {
   const [stateCfg, setStateCfg] = useState<StateConfig>(getStateConfig());
-  const [activeTab, setActiveTab] = useState<"all" | "telegram" | "twitter" | "claude" | "argos">("telegram");
+  const [activeTab, setActiveTab] = useState<"all" | "telegram" | "twitter" | "claude" | "maps" | "argos">("maps");
 
   // Form states with LocalStorage persistence
   const [tgApiId, setTgApiId] = useState("");
   const [tgApiHash, setTgApiHash] = useState("");
   const [twBearerToken, setTwBearerToken] = useState("");
   const [claudeKey, setClaudeKey] = useState("");
+  const [maptilerKey, setMaptilerKey] = useState("");
+  const [mapboxToken, setMapboxToken] = useState("");
   const [argosToken, setArgosToken] = useState("sentineliq_argos_token_shared_sec_2026");
 
   // Test & Status states
@@ -42,12 +44,16 @@ export default function AdminKeysPage() {
     const storedTgHash = localStorage.getItem(`sentineliq_${cfg.key}_tg_api_hash`) || localStorage.getItem("sentineliq_tg_api_hash") || "";
     const storedTwToken = localStorage.getItem(`sentineliq_${cfg.key}_tw_bearer`) || localStorage.getItem("sentineliq_tw_bearer") || "";
     const storedClaudeKey = localStorage.getItem("sentineliq_claude_key") || "";
+    const storedMaptilerKey = localStorage.getItem("sentineliq_maptiler_key") || "";
+    const storedMapboxToken = localStorage.getItem("sentineliq_mapbox_token") || "";
     const storedArgosToken = localStorage.getItem("sentineliq_argos_token") || "sentineliq_argos_token_shared_sec_2026";
 
     if (storedTgId) setTgApiId(storedTgId);
     if (storedTgHash) setTgApiHash(storedTgHash);
     if (storedTwToken) setTwBearerToken(storedTwToken);
     if (storedClaudeKey) setClaudeKey(storedClaudeKey);
+    if (storedMaptilerKey) setMaptilerKey(storedMaptilerKey);
+    if (storedMapboxToken) setMapboxToken(storedMapboxToken);
     if (storedArgosToken) setArgosToken(storedArgosToken);
 
     setKeys([
@@ -80,21 +86,21 @@ export default function AdminKeysPage() {
       },
       {
         id: "k4",
+        name: "WebGIS Tile Provider (OpenStreetMap / Carto)",
+        service: "WebGIS Electoral Engine",
+        maskedKey: "OSM_CARTO_OPEN_SOURCE_FREE",
+        status: "active",
+        lastUsed: "En vivo (3,357 Secciones)",
+        description: "Mapas base libres y sin costo para el visor de análisis político-electoral.",
+      },
+      {
+        id: "k5",
         name: "ARGOS Gateway Service Token",
         service: "ARGOS OSINT Ingestor",
         maskedKey: "sentineliq_argos_token_••••",
         status: "active",
         lastUsed: "Hace 1 min (Puerto 8088)",
         description: "Token de enlace con el microservicio de redes sociales ARGOS.",
-      },
-      {
-        id: "k5",
-        name: `Conector Soberano ${cfg.shortName} (CENAPRED / C4)`,
-        service: "Conectores Federales & Locales",
-        maskedKey: `auth_${cfg.key}_sec_••••••••••••`,
-        status: "active",
-        lastUsed: "Hace 12 min",
-        description: "Alertas sísmicas, monitoreo hidrológico y reportes C4.",
       },
     ]);
   }, []);
@@ -108,7 +114,7 @@ export default function AdminKeysPage() {
     localStorage.setItem("sentineliq_tg_api_id", tgApiId);
     localStorage.setItem("sentineliq_tg_api_hash", tgApiHash);
 
-    setSavedSuccess(`Credenciales de Telegram MTProto (${tgApiId}) guardadas correctamente y persistidas.`);
+    setSavedSuccess(`Credenciales de Telegram MTProto (${tgApiId}) guardadas correctamente.`);
     setTimeout(() => setSavedSuccess(null), 5000);
   };
 
@@ -119,7 +125,15 @@ export default function AdminKeysPage() {
     localStorage.setItem(`sentineliq_${stateCfg.key}_tw_bearer`, twBearerToken);
     localStorage.setItem("sentineliq_tw_bearer", twBearerToken);
 
-    setSavedSuccess("Bearer Token de X / Twitter guardado y sincronizado exitosamente.");
+    setSavedSuccess("Bearer Token de X / Twitter guardado exitosamente.");
+    setTimeout(() => setSavedSuccess(null), 5000);
+  };
+
+  const handleSaveMaps = (e: React.FormEvent) => {
+    e.preventDefault();
+    localStorage.setItem("sentineliq_maptiler_key", maptilerKey);
+    localStorage.setItem("sentineliq_mapbox_token", mapboxToken);
+    setSavedSuccess("Configuración de Proveedores de Mapas y WebGIS guardada exitosamente.");
     setTimeout(() => setSavedSuccess(null), 5000);
   };
 
@@ -127,7 +141,6 @@ export default function AdminKeysPage() {
     setTestingTg(true);
     setTestTgResult(null);
     try {
-      // Simular/probar consulta en vivo vía API
       const resp = await api.post("/sources/telegram/search", {
         query: stateCfg.key === "gto" ? "Celaya" : "Querétaro",
         state_key: stateCfg.key,
@@ -166,7 +179,7 @@ export default function AdminKeysPage() {
             Administración de Llaves API & Secretos
           </h4>
           <p className="text-dark fs-14 mb-0 fw-bold" style={{ color: "#334155" }}>
-            Control centralizado de API Keys de Telegram MTProto, X / Twitter v2, Claude AI y ARGOS Gateway para {stateCfg.shortName}.
+            Control centralizado de API Keys de Telegram MTProto, X / Twitter v2, Mapas WebGIS, Claude AI y ARGOS Gateway.
           </p>
         </div>
       </div>
@@ -204,7 +217,7 @@ export default function AdminKeysPage() {
         <div className="alert alert-success d-flex align-items-center mb-4 rounded-3 shadow-sm border-start border-4 border-success" role="alert">
           <i className="ri-checkbox-circle-fill fs-24 me-3 text-success"></i>
           <div>
-            <strong className="d-block fs-14">¡Credenciales Guardadas!</strong>
+            <strong className="d-block fs-14">¡Configuración Guardada!</strong>
             <span className="fs-13">{savedSuccess}</span>
           </div>
         </div>
@@ -212,6 +225,12 @@ export default function AdminKeysPage() {
 
       {/* Pestañas de Proveedores de Credenciales */}
       <div className="d-flex flex-wrap gap-2 mb-4">
+        <button
+          className={`btn btn-sm fw-bold ${activeTab === "maps" ? "btn-primary text-white shadow-sm" : "btn-outline-primary"}`}
+          onClick={() => setActiveTab("maps")}
+        >
+          <i className="ri-map-2-line me-1"></i> Mapas & WebGIS
+        </button>
         <button
           className={`btn btn-sm fw-bold ${activeTab === "telegram" ? "btn-primary text-white shadow-sm" : "btn-outline-primary"}`}
           onClick={() => setActiveTab("telegram")}
@@ -243,6 +262,88 @@ export default function AdminKeysPage() {
           <i className="ri-file-list-3-line me-1"></i> Inventario de Credenciales
         </button>
       </div>
+
+      {/* TAB 0: MAPAS & WEBGIS */}
+      {activeTab === "maps" && (
+        <div className="card bg-white border-0 shadow-sm rounded-3 border-start border-4 border-primary mb-4">
+          <div className="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+            <div className="d-flex align-items-center">
+              <div className="avatar-sm bg-primary-subtle text-primary rounded-circle p-2 me-3 text-center fs-20">
+                <i className="ri-map-pin-2-fill"></i>
+              </div>
+              <div>
+                <h5 className="card-title mb-0 fw-extrabold text-dark fs-16" style={{ color: "#0f172a" }}>
+                  Proveedores de Mapas & Tiles para WebGIS
+                </h5>
+                <small className="text-dark fw-semibold" style={{ color: "#334155" }}>
+                  Configuración de capas base para el visor geográfico electoral de {stateCfg.name}.
+                </small>
+              </div>
+            </div>
+            <span className="badge bg-success text-white fw-bold shadow-sm">
+              <i className="ri-shield-check-line me-1"></i> Mapas Libres Activos (Sin Costo)
+            </span>
+          </div>
+
+          <div className="card-body p-4 bg-white">
+            {/* Explicación de los mapas libres activos */}
+            <div className="alert alert-info border-0 rounded-3 mb-4 p-3 shadow-sm">
+              <div className="d-flex align-items-center mb-1">
+                <i className="ri-information-fill fs-20 text-primary me-2"></i>
+                <strong className="text-dark fs-14">¿Se necesita pagar o solicitar una API Key de mapas?</strong>
+              </div>
+              <p className="text-dark fs-13 mb-0" style={{ color: "#1e293b" }}>
+                <strong>No es obligatorio.</strong> SentinelIQ utiliza por defecto teselas abiertas de <strong>OpenStreetMap</strong> y <strong>Carto Positron</strong> que son 100% gratuitas, sin límite de consultas y sin necesidad de ninguna API Key. Si deseas activar mapas vectoriales 3D o imágenes satelitales ultra HD privadas, puedes ingresar tu llave de MapTiler o Mapbox a continuación.
+              </p>
+            </div>
+
+            <form onSubmit={handleSaveMaps}>
+              <div className="row g-4 mb-4">
+                <div className="col-md-6">
+                  <label className="form-label text-dark fw-bold fs-13">
+                    MapTiler API Key <span className="text-muted fs-11 fw-normal">(Opcional para Vector Tiles 3D)</span>
+                  </label>
+                  <input
+                    type="text"
+                    className="form-control form-control-lg bg-white text-dark fw-bold border-gray-300 fs-14"
+                    placeholder="Ej. wK8bY293d..."
+                    value={maptilerKey}
+                    onChange={(e) => setMaptilerKey(e.target.value)}
+                  />
+                  <small className="text-muted fs-11 mt-1 d-block">
+                    Se obtiene gratis en <a href="https://cloud.maptiler.com" target="_blank" rel="noreferrer" className="text-primary fw-bold">cloud.maptiler.com</a> con hasta 100,000 cargas mensuales gratuitas.
+                  </small>
+                </div>
+
+                <div className="col-md-6">
+                  <label className="form-label text-dark fw-bold fs-13">
+                    Mapbox Access Token <span className="text-muted fs-11 fw-normal">(Opcional para Mapbox Satellite HD)</span>
+                  </label>
+                  <input
+                    type="password"
+                    className="form-control form-control-lg bg-white text-dark fw-bold border-gray-300 fs-14"
+                    placeholder="pk.eyJ1Ijoi..."
+                    value={mapboxToken}
+                    onChange={(e) => setMapboxToken(e.target.value)}
+                  />
+                  <small className="text-muted fs-11 mt-1 d-block">
+                    Se genera en <a href="https://account.mapbox.com" target="_blank" rel="noreferrer" className="text-primary fw-bold">account.mapbox.com</a> en la sección de tokens.
+                  </small>
+                </div>
+              </div>
+
+              <div className="d-flex justify-content-between align-items-center">
+                <Link href="/gis-electoral" className="btn btn-outline-primary btn-sm fw-bold">
+                  <i className="ri-map-2-line me-1"></i> Ir al WebGIS Electoral
+                </Link>
+                <button type="submit" className="btn btn-primary btn-md fw-bold text-white shadow-sm px-4">
+                  <i className="ri-save-line me-1"></i> Guardar Configuración de Mapas
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* TAB 1: TELEGRAM MTPROTO */}
       {activeTab === "telegram" && (
@@ -316,15 +417,6 @@ export default function AdminKeysPage() {
                   <span className="fw-bold fs-13">{testTgResult.message}</span>
                 </div>
               )}
-
-              <div className="p-3 bg-light rounded-3 mb-4 border border-gray-200">
-                <h6 className="fw-bold text-dark fs-13 mb-1">
-                  <i className="ri-information-line text-primary me-1"></i> Estado del Servicio Telethon:
-                </h6>
-                <p className="text-dark fs-12 mb-0" style={{ color: "#334155" }}>
-                  Tus credenciales se almacenan cifradas en tu sesión y quedan listas para el motor de búsqueda en vivo. Puedes probar la conexión de inmediato con el botón de prueba.
-                </p>
-              </div>
 
               <div className="d-flex flex-wrap justify-content-between align-items-center gap-2">
                 <div className="d-flex gap-2">

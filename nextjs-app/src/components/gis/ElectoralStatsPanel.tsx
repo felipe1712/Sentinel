@@ -10,6 +10,9 @@ interface StatsPanelProps {
   associatedEvents: GisEventItem[];
   selectedYear: number;
   totalSectionsCount: number;
+  selectedMunicipio: number | null;
+  municipiosList: { id: number; nombre: string }[];
+  electoralCache: Record<string, Record<string, ElectoralResult>>;
   onClearSelection: () => void;
 }
 
@@ -19,8 +22,38 @@ export const ElectoralStatsPanel: React.FC<StatsPanelProps> = ({
   associatedEvents,
   selectedYear,
   totalSectionsCount,
+  selectedMunicipio,
+  municipiosList,
+  electoralCache,
   onClearSelection,
 }) => {
+  const currentMpioObj = municipiosList.find((m) => m.id === selectedMunicipio);
+
+  // Calcular agregados si hay un municipio seleccionado
+  let mpioTotalVotos = 0;
+  let mpioTotalLista = 0;
+  let mpioSectionsCount = 0;
+  const mpioPartyVotes: Record<string, number> = {};
+
+  if (selectedMunicipio) {
+    const yearData = electoralCache[String(selectedYear)] || {};
+    Object.values(yearData).forEach((r) => {
+      if (r.clave_municipio === selectedMunicipio) {
+        mpioSectionsCount++;
+        mpioTotalVotos += r.total_votos || 0;
+        mpioTotalLista += r.lista_nominal || 0;
+        Object.entries(r.votos_partidos || {}).forEach(([p, v]) => {
+          mpioPartyVotes[p] = (mpioPartyVotes[p] || 0) + Number(v);
+        });
+      }
+    });
+  }
+
+  const mpioSortedParties = Object.entries(mpioPartyVotes).sort(([, a], [, b]) => b - a);
+  const mpioGanador = mpioSortedParties[0]?.[0] || null;
+  const mpioGanadorVotos = mpioSortedParties[0]?.[1] || 0;
+  const mpioParticipacion = mpioTotalLista > 0 ? ((mpioTotalVotos / mpioTotalLista) * 100).toFixed(1) : "0";
+
   return (
     <div className="card bg-white border-0 shadow-sm rounded-3 h-100 overflow-hidden d-flex flex-column">
       {/* Header del Panel */}
@@ -32,14 +65,17 @@ export const ElectoralStatsPanel: React.FC<StatsPanelProps> = ({
           <h6 className="card-title mb-0 fw-extrabold text-dark fs-15" style={{ color: "#0f172a" }}>
             {selectedSection
               ? `Sección ${selectedSection.seccion || selectedSection.id}`
+              : selectedMunicipio
+              ? `Municipio: ${currentMpioObj?.nombre || selectedMunicipio}`
               : "Resumen Estatal Guanajuato"}
           </h6>
         </div>
-        {selectedSection && (
+        {(selectedSection || selectedMunicipio) && (
           <button
             type="button"
             className="btn btn-sm btn-outline-secondary fw-bold"
             onClick={onClearSelection}
+            title="Limpiar selección"
           >
             <i className="ri-close-line"></i>
           </button>
@@ -48,7 +84,7 @@ export const ElectoralStatsPanel: React.FC<StatsPanelProps> = ({
 
       <div className="card-body p-3 bg-white overflow-auto flex-grow-1">
         {selectedSection ? (
-          /* VISTA DETALLADA DE LA SECCIÓN SELECCIONADA */
+          /* 1. VISTA DETALLADA DE LA SECCIÓN SELECCIONADA */
           <div>
             {/* Ficha Territorial INE */}
             <div className="p-3 bg-light rounded-3 mb-3 border border-gray-200">
@@ -190,8 +226,88 @@ export const ElectoralStatsPanel: React.FC<StatsPanelProps> = ({
               )}
             </div>
           </div>
+        ) : selectedMunicipio ? (
+          /* 2. VISTA AGREGADA MUNICIPAL */
+          <div>
+            <div className="p-3 bg-light rounded-3 mb-3 border border-primary-subtle">
+              <span className="fs-11 text-primary fw-bold text-uppercase d-block mb-1">
+                Municipio Enfocado · Clave {selectedMunicipio}
+              </span>
+              <h5 className="fw-extrabold text-dark mb-1">{currentMpioObj?.nombre}</h5>
+              <div className="d-flex justify-content-between fs-12 text-muted fw-bold">
+                <span>Estado de Guanajuato</span>
+                <span className="badge bg-primary text-white">Zoom Activo</span>
+              </div>
+            </div>
+
+            {mpioGanador ? (
+              <div className="mb-4">
+                <div
+                  className="p-3 rounded-3 mb-3 text-white shadow-sm"
+                  style={{ backgroundColor: getPartyColor(mpioGanador) }}
+                >
+                  <span className="fs-11 text-uppercase text-white-50 fw-bold d-block">
+                    Ganador en {currentMpioObj?.nombre} ({selectedYear})
+                  </span>
+                  <h4 className="fw-extrabold mb-1 text-white">{mpioGanador}</h4>
+                  <div className="d-flex justify-content-between fs-12 text-white fw-bold">
+                    <span>{mpioGanadorVotos.toLocaleString()} votos</span>
+                    <span>{mpioParticipacion}% participación</span>
+                  </div>
+                </div>
+
+                <div className="row g-2 mb-3">
+                  <div className="col-6">
+                    <div className="p-2 bg-light rounded-2 border text-center">
+                      <span className="fs-10 text-muted fw-bold text-uppercase d-block">Total Votos</span>
+                      <strong className="fs-14 text-dark">{mpioTotalVotos.toLocaleString()}</strong>
+                    </div>
+                  </div>
+                  <div className="col-6">
+                    <div className="p-2 bg-light rounded-2 border text-center">
+                      <span className="fs-10 text-muted fw-bold text-uppercase d-block">Lista Nominal</span>
+                      <strong className="fs-14 text-dark">{mpioTotalLista.toLocaleString()}</strong>
+                    </div>
+                  </div>
+                </div>
+
+                <span className="fs-11 text-muted fw-bold text-uppercase d-block mb-2">
+                  Votos Agregados por Partido
+                </span>
+                <div className="d-flex flex-column gap-2 mb-3">
+                  {mpioSortedParties.map(([partido, votos]) => {
+                    const pct = mpioTotalVotos ? Math.round((votos / mpioTotalVotos) * 100) : 0;
+                    return (
+                      <div key={partido}>
+                        <div className="d-flex justify-content-between fs-12 fw-bold mb-1">
+                          <span style={{ color: getPartyColor(partido) }}>{partido}</span>
+                          <span className="text-dark">
+                            {votos.toLocaleString()} ({pct}%)
+                          </span>
+                        </div>
+                        <div className="progress" style={{ height: "6px" }}>
+                          <div
+                            className="progress-bar"
+                            style={{ width: `${pct}%`, backgroundColor: getPartyColor(partido) }}
+                          ></div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : (
+              <div className="p-3 bg-secondary-subtle rounded-3 mb-4 text-center">
+                <i className="ri-file-chart-line fs-24 text-muted d-block mb-1"></i>
+                <span className="fs-13 text-dark fw-bold d-block">Sin datos agregados cargados para este municipio</span>
+                <small className="text-muted fs-11">
+                  Usa el botón <strong>Cargar Resultados CSV</strong> para subir las actas de {currentMpioObj?.nombre}.
+                </small>
+              </div>
+            )}
+          </div>
         ) : (
-          /* VISTA AGREGADA ESTATAL */
+          /* 3. VISTA AGREGADA ESTATAL GENERAL */
           <div>
             <div className="p-3 bg-light rounded-3 mb-4 border border-gray-200">
               <span className="fs-11 text-muted fw-bold text-uppercase d-block mb-1">
@@ -210,13 +326,13 @@ export const ElectoralStatsPanel: React.FC<StatsPanelProps> = ({
               </span>
               <ul className="fs-13 text-dark ps-3 mb-0 lh-base">
                 <li className="mb-2">
+                  <strong>Selecciona un municipio</strong> en el combobox superior para hacer zoom y ver exclusivamente su territorio.
+                </li>
+                <li className="mb-2">
                   <strong>Haz clic en cualquier sección</strong> para ver su ficha técnica, historial de votación e incidentes en tiempo real.
                 </li>
                 <li className="mb-2">
-                  <strong>Cambia el modo de visualización</strong> en la barra superior (Ganador, Participación, Margen de Victoria o Swing).
-                </li>
-                <li>
-                  <strong>Activa o desactiva capas</strong> de eventos de seguridad y protección civil desde el gestor lateral.
+                  <strong>Cambia el modo de visualización</strong> (Ganador, Participación, Margen de Victoria o Swing).
                 </li>
               </ul>
             </div>

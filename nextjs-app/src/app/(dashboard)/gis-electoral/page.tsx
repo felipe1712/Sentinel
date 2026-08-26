@@ -14,26 +14,61 @@ import SwingAnalysisModal from "@/components/gis/SwingAnalysisModal";
 const WebGisMap = dynamic(() => import("@/components/gis/WebGisMap"), {
   ssr: false,
   loading: () => (
-    <div className="p-5 text-center bg-white rounded-3 shadow-sm border">
-      <div className="spinner-border text-primary mb-2" role="status"></div>
+    <div className="p-5 text-center bg-white rounded-3 shadow-sm border" style={{ minHeight: "580px" }}>
+      <div className="spinner-border text-primary mb-2 mt-5" role="status"></div>
       <p className="fw-bold text-dark fs-14">Cargando Visor WebGIS Electoral...</p>
     </div>
   ),
 });
 
+// Los 46 Municipios Oficiales de Guanajuato con Clave INEGI / INE
 const MUNICIPIOS_GTO = [
   { id: 1, nombre: "Abasolo" },
   { id: 2, nombre: "Acámbaro" },
-  { id: 3, nombre: "San Miguel de Allende" },
   { id: 4, nombre: "Apaseo el Alto" },
   { id: 5, nombre: "Apaseo el Grande" },
+  { id: 6, nombre: "Atarjea" },
   { id: 7, nombre: "Celaya" },
+  { id: 9, nombre: "Comonfort" },
+  { id: 10, nombre: "Coroneo" },
+  { id: 11, nombre: "Cortazar" },
+  { id: 12, nombre: "Cuerámaro" },
+  { id: 13, nombre: "Doctor Mora" },
+  { id: 14, nombre: "Dolores Hidalgo C.I.N." },
   { id: 15, nombre: "Guanajuato (Capital)" },
+  { id: 16, nombre: "Huanímaro" },
   { id: 17, nombre: "Irapuato" },
+  { id: 18, nombre: "Jaral del Progreso" },
+  { id: 19, nombre: "Jerécuaro" },
   { id: 20, nombre: "León" },
+  { id: 8, nombre: "Manuel Doblado" },
+  { id: 21, nombre: "Moroleón" },
+  { id: 22, nombre: "Ocampo" },
+  { id: 23, nombre: "Pénjamo" },
+  { id: 24, nombre: "Pueblo Nuevo" },
+  { id: 25, nombre: "Purísima del Rincón" },
+  { id: 26, nombre: "Romita" },
   { id: 27, nombre: "Salamanca" },
+  { id: 28, nombre: "Salvatierra" },
+  { id: 29, nombre: "San Diego de la Unión" },
+  { id: 30, nombre: "San Felipe" },
   { id: 31, nombre: "San Francisco del Rincón" },
+  { id: 32, nombre: "San José Iturbide" },
+  { id: 33, nombre: "San Luis de la Paz" },
+  { id: 3, nombre: "San Miguel de Allende" },
+  { id: 34, nombre: "Santa Catarina" },
+  { id: 35, nombre: "Santa Cruz de Juventino Rosas" },
+  { id: 36, nombre: "Santiago Maravatío" },
   { id: 37, nombre: "Silao de la Victoria" },
+  { id: 38, nombre: "Tarandacuao" },
+  { id: 39, nombre: "Tarimoro" },
+  { id: 40, nombre: "Tierra Blanca" },
+  { id: 41, nombre: "Uriangato" },
+  { id: 42, nombre: "Valle de Santiago" },
+  { id: 43, nombre: "Victoria" },
+  { id: 44, nombre: "Villagrán" },
+  { id: 45, nombre: "Xichú" },
+  { id: 46, nombre: "Yuriria" },
 ];
 
 export default function GisElectoralPage() {
@@ -111,7 +146,7 @@ export default function GisElectoralPage() {
             Visor Geográfico Electoral de Guanajuato (gis-electoral)
           </h4>
           <p className="text-dark fs-14 mb-0 fw-bold" style={{ color: "#334155" }}>
-            Cruce multidimensional de 3,357 secciones electorales, resultados históricos (2018-2024) y eventos en tiempo real.
+            Cruce multidimensional de 3,357 secciones electorales, 46 municipios, resultados históricos y eventos en tiempo real.
           </p>
         </div>
       </div>
@@ -166,9 +201,13 @@ export default function GisElectoralPage() {
             associatedEvents={[]}
             selectedYear={selectedYear}
             totalSectionsCount={3357}
+            selectedMunicipio={selectedMunicipio}
+            municipiosList={MUNICIPIOS_GTO}
+            electoralCache={electoralCache}
             onClearSelection={() => {
               setSelectedSection(null);
               setSelectedSectionResult(null);
+              setSelectedMunicipio(null);
             }}
           />
         </div>
