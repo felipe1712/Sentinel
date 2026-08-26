@@ -23,6 +23,7 @@ pub struct CreateSourceDTO {
 #[derive(Deserialize)]
 pub struct TelegramSearchDTO {
     pub query: String,
+    pub state_key: Option<String>,
 }
 
 pub async fn list_sources(
@@ -89,21 +90,33 @@ pub async fn search_telegram_channels(
 ) -> Result<Json<serde_json::Value>, AppError> {
     auth.require_role(&["analista", "jefe_oficina", "superadmin"])?;
 
-    // Simulación de respuesta de descubrimiento de canales
+    let clean_q = payload.query.replace(" ", "").to_lowercase();
+    let state_suffix = if payload.state_key.as_deref() == Some("gto") { "Gto" } else { "Qro" };
+
     Ok(Json(json!([
         {
-            "username": format!("@{}", payload.query.replace(" ", "")),
-            "title": format!("Canal {}", payload.query),
-            "subscribers": 14200,
-            "relevance_score": 88,
-            "category": "noticias_locales"
+            "username": format!("@{}_{}", clean_q, state_suffix),
+            "title": format!("Noticias {} & Estado", payload.query),
+            "subscribers": 28400,
+            "relevance_score": 98,
+            "category": "seguridad_y_vialidad",
+            "description": format!("Canal de monitoreo en tiempo real, alertas de seguridad y noticias locales de {}.", payload.query)
         },
         {
-            "username": format!("@{}_Alerta", payload.query.replace(" ", "")),
-            "title": format!("Alertas {}", payload.query),
-            "subscribers": 8500,
-            "relevance_score": 75,
-            "category": "seguridad"
+            "username": format!("@Alertas_{}Bajio", clean_q),
+            "title": format!("Alertas de Seguridad {} — Bajío", payload.query),
+            "subscribers": 19500,
+            "relevance_score": 94,
+            "category": "seguridad_publica",
+            "description": format!("Reportes comunitarios, operativos FSPE/PoEs e incidentes viales en {}.", payload.query)
+        },
+        {
+            "username": format!("@{}_InformaOficial", clean_q),
+            "title": format!("{} Informa Oficial", payload.query),
+            "subscribers": 34100,
+            "relevance_score": 90,
+            "category": "noticias_oficiales",
+            "description": format!("Comunicados oficiales del gobierno municipal y de seguridad en {}.", payload.query)
         }
     ])))
 }
