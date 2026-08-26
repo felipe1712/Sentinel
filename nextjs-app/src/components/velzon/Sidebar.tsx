@@ -40,6 +40,15 @@ export const Sidebar: React.FC = () => {
             </Link>
           </li>
 
+          {/* WebGIS Político-Electoral */}
+          <li className="nav-item">
+            <Link href="/gis-electoral" className={`nav-link ${isActive("/gis-electoral") ? "active fw-bold text-primary" : "text-dark"}`}>
+              <i className="ri-map-2-line me-2 text-primary"></i> 
+              <span>WebGIS Electoral</span>
+              <span className="badge bg-primary text-white ms-auto fs-10 fw-bold">INE GIS</span>
+            </Link>
+          </li>
+
           {isGobernador && (
             <li className="nav-item">
               <Link href="/situacion/ejecutiva" className={`nav-link ${isActive("/situacion/ejecutiva") ? "active fw-bold text-primary" : "text-dark"}`}>

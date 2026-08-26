@@ -4,6 +4,7 @@ pub mod briefings;
 pub mod cabinet;
 pub mod dossiers;
 pub mod events;
+pub mod gis;
 pub mod intel;
 pub mod municipios;
 pub mod narratives;
@@ -63,6 +64,10 @@ pub fn create_router(pool: PgPool) -> Router {
         .route("/events", get(events::list_events).post(events::create_event))
         .route("/events/stream", get(events::sse_events_stream))
         .route("/events/:id", get(events::get_event))
+        // WebGIS Electoral Routes
+        .route("/gis/results", get(gis::list_electoral_results))
+        .route("/gis/comparison", get(gis::get_swing_comparison))
+        .route("/gis/events", get(gis::list_gis_events).post(gis::create_gis_event))
         // Dossiers
         .route("/dossiers", get(dossiers::list_dossiers).post(dossiers::create_dossier))
         .route("/dossiers/:id", get(dossiers::get_dossier))

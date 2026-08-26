@@ -1,0 +1,116 @@
+{
+  "2024": {
+    "1": {
+      "election_year": 2024,
+      "election_type": "Gobernador",
+      "clave_seccion": 1,
+      "clave_municipio": 1,
+      "lista_nominal": 2150,
+      "total_votos": 1380,
+      "participacion_pct": 64.19,
+      "ganador_partido": "PAN",
+      "ganador_votos": 680,
+      "ganador_pct": 49.28,
+      "segundo_partido": "MORENA",
+      "segundo_votos": 450,
+      "segundo_pct": 32.61,
+      "margen_victoria_pct": 16.67,
+      "votos_partidos": {
+        "PAN": 680,
+        "MORENA": 450,
+        "PRI": 110,
+        "MC": 40,
+        "PVEM": 30,
+        "PT": 20,
+        "PRD": 10,
+        "OTROS": 15,
+        "NULOS": 25
+      }
+    },
+    "2": {
+      "election_year": 2024,
+      "election_type": "Gobernador",
+      "clave_seccion": 2,
+      "clave_municipio": 1,
+      "lista_nominal": 1980,
+      "total_votos": 1210,
+      "participacion_pct": 61.11,
+      "ganador_partido": "PAN",
+      "ganador_votos": 590,
+      "ganador_pct": 48.76,
+      "segundo_partido": "MORENA",
+      "segundo_votos": 410,
+      "segundo_pct": 33.88,
+      "margen_victoria_pct": 14.88,
+      "votos_partidos": {
+        "PAN": 590,
+        "MORENA": 410,
+        "PRI": 95,
+        "MC": 35,
+        "PVEM": 25,
+        "PT": 18,
+        "PRD": 8,
+        "OTROS": 12,
+        "NULOS": 17
+      }
+    }
+  },
+  "2021": {
+    "1": {
+      "election_year": 2021,
+      "election_type": "Alcaldia",
+      "clave_seccion": 1,
+      "clave_municipio": 1,
+      "lista_nominal": 2050,
+      "total_votos": 1150,
+      "participacion_pct": 56.1,
+      "ganador_partido": "PAN",
+      "ganador_votos": 580,
+      "ganador_pct": 50.43,
+      "segundo_partido": "MORENA",
+      "segundo_votos": 360,
+      "segundo_pct": 31.3,
+      "margen_victoria_pct": 19.13,
+      "votos_partidos": {
+        "PAN": 580,
+        "MORENA": 360,
+        "PRI": 120,
+        "MC": 25,
+        "PVEM": 20,
+        "PT": 15,
+        "PRD": 10,
+        "OTROS": 10,
+        "NULOS": 10
+      }
+    }
+  },
+  "2018": {
+    "1": {
+      "election_year": 2018,
+      "election_type": "Gobernador",
+      "clave_seccion": 1,
+      "clave_municipio": 1,
+      "lista_nominal": 1920,
+      "total_votos": 1240,
+      "participacion_pct": 64.58,
+      "ganador_partido": "PAN",
+      "ganador_votos": 620,
+      "ganador_pct": 50.0,
+      "segundo_partido": "MORENA",
+      "segundo_votos": 280,
+      "segundo_pct": 22.58,
+      "margen_victoria_pct": 27.42,
+      "votos_partidos": {
+        "PAN": 620,
+        "MORENA": 280,
+        "PRI": 210,
+        "MC": 15,
+        "PVEM": 35,
+        "PT": 20,
+        "PRD": 15,
+        "OTROS": 20,
+        "NULOS": 25
+      }
+    }
+  }
+}

@@ -16,6 +16,9 @@ workers/venv/
 workers/*.egg-info/
 workers/sample_report.pdf
 
+# Large Raw GIS Shapefiles (Raw INE layers > 100MB; GeoJSONs live in nextjs-app/public/data)
+Sf-gto/
+
 # Environment & Credentials
 .env
 *.pem
