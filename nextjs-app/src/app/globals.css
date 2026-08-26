@@ -7,6 +7,38 @@
   --vz-body-bg: #f3f3f9;
 }
 
+/* Force Fixed Topbar Header & Clear Top Margin for ALL Dashboard Pages */
+#page-topbar {
+  position: fixed !important;
+  top: 0 !important;
+  right: 0 !important;
+  height: 70px !important;
+  z-index: 1000 !important;
+  background-color: #ffffff !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08) !important;
+}
+
+@media (min-width: 992px) {
+  #page-topbar {
+    left: 250px !important;
+  }
+}
+
+@media (max-width: 991.98px) {
+  #page-topbar {
+    left: 0 !important;
+  }
+}
+
+/* Ensures generous 95px space so page titles are NEVER cut off under the fixed header */
+.page-content {
+  padding-top: 95px !important;
+  padding-left: 1.5rem !important;
+  padding-right: 1.5rem !important;
+  padding-bottom: 3rem !important;
+}
+
 /* Force Whole Central Page Content Area to Pure Light (#f3f3f9) */
 body, #layout-wrapper, .main-content, .page-content, #page-content, .content-body {
   background-color: #f3f3f9 !important;

@@ -65,7 +65,6 @@ export default function TwitterSearchPage() {
         },
         {
           handle: isGuanajuato ? "@AlertasVialesGto" : "@ProteccionCivilQRO",
-          handle: isGuanajuato ? "@AlertasVialesGto" : "@ProteccionCivilQRO",
           name: isGuanajuato ? "Alertas Viales Bajío & GTO" : "Protección Civil Estatal",
           followers: 78000,
           relevance_score: 93,
@@ -100,7 +99,7 @@ export default function TwitterSearchPage() {
     : ["@PoliciaEstatalQRO", "Paseo 5 de Febrero", "Querétaro", "El Marqués", "San Juan del Río"];
 
   return (
-    <div className="pb-5 pt-4 pt-md-5 mt-2">
+    <div className="pb-5">
       {/* Header */}
       <div className="d-flex flex-column flex-md-row align-items-md-center justify-content-between mb-4 gap-3">
         <div>

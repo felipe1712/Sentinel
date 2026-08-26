@@ -24,8 +24,6 @@ export default function TelegramSearchPage() {
 
   const isGuanajuato = stateCfg.key === "gto";
 
-  const defaultSearch = isGuanajuato ? "Celaya" : "Querétaro";
-
   useEffect(() => {
     const cfg = getStateConfig();
     setStateCfg(cfg);
@@ -45,7 +43,6 @@ export default function TelegramSearchPage() {
       }
     } catch (err) {
       console.warn("Usando catálogo soberano de búsqueda de canales de Telegram");
-      // Dynamic fallback based on state
       setChannels([
         {
           username: isGuanajuato ? "@AlertasCelayaBajio" : "@NoticiasQRO",
@@ -87,7 +84,7 @@ export default function TelegramSearchPage() {
     : ["Santiago de Querétaro", "Paseo 5 de Febrero", "El Marqués", "San Juan del Río", "Corregidora", "Tequisquiapan"];
 
   return (
-    <div className="pb-5 pt-4 pt-md-5 mt-2">
+    <div className="pb-5">
       {/* Header */}
       <div className="d-flex flex-column flex-md-row align-items-md-center justify-content-between mb-4 gap-3">
         <div>

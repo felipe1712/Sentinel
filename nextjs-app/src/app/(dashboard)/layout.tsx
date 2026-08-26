@@ -10,8 +10,8 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   useEffect(() => {
-    // Forzar modo oscuro por defecto para gabinete y vistas operativas
-    document.documentElement.setAttribute("data-bs-theme", "dark");
+    // Modo claro por defecto para gabinete y vistas operativas
+    document.documentElement.setAttribute("data-bs-theme", "light");
     document.documentElement.setAttribute("data-layout", "vertical");
   }, []);
 
@@ -20,7 +20,7 @@ export default function DashboardLayout({
       <Sidebar />
       <div className="main-content flex-grow-1 min-vh-100 bg-body-tertiary">
         <Topbar />
-        <div className="page-content p-4">{children}</div>
+        <div className="page-content">{children}</div>
       </div>
     </div>
   );

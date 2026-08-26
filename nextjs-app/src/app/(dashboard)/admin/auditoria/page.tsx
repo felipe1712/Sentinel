@@ -129,7 +129,7 @@ export default function QueryAuditPage() {
   });
 
   return (
-    <div className="pb-5 pt-4 pt-md-5 mt-2">
+    <div className="pb-5">
       {/* Header */}
       <div className="d-flex flex-column flex-md-row align-items-md-center justify-content-between mb-4 gap-3">
         <div>
