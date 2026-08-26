@@ -93,7 +93,7 @@ export const Sidebar: React.FC = () => {
               <li className="menu-title mt-3"><span data-key="t-pages" className="text-primary fw-bold">Operación & Fuentes</span></li>
 
               <li className="nav-item">
-                <Link href="/fuentes" className={`nav-link ${isActive("/fuentes") ? "active fw-bold text-primary" : "text-dark"}`}>
+                <Link href="/fuentes" className={`nav-link ${isActive("/fuentes") && !pathname?.includes("/telegram") && !pathname?.includes("/twitter") ? "active fw-bold text-primary" : "text-dark"}`}>
                   <i className="ri-rss-line me-2"></i> <span>Source Manager & ARGOS</span>
                 </Link>
               </li>
@@ -101,6 +101,12 @@ export const Sidebar: React.FC = () => {
               <li className="nav-item">
                 <Link href="/fuentes/telegram" className={`nav-link ${isActive("/fuentes/telegram") ? "active fw-bold text-primary" : "text-dark"}`}>
                   <i className="ri-telegram-line me-2"></i> <span>Canales Telegram</span>
+                </Link>
+              </li>
+
+              <li className="nav-item">
+                <Link href="/fuentes/twitter" className={`nav-link ${isActive("/fuentes/twitter") ? "active fw-bold text-primary" : "text-dark"}`}>
+                  <i className="ri-twitter-x-line me-2"></i> <span>Monitor X / Twitter</span>
                 </Link>
               </li>
 

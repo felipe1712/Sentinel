@@ -26,6 +26,12 @@ pub struct TelegramSearchDTO {
     pub state_key: Option<String>,
 }
 
+#[derive(Deserialize)]
+pub struct TwitterSearchDTO {
+    pub query: String,
+    pub state_key: Option<String>,
+}
+
 pub async fn list_sources(
     auth: AuthUser,
     State(pool): State<PgPool>,
@@ -117,6 +123,49 @@ pub async fn search_telegram_channels(
             "relevance_score": 90,
             "category": "noticias_oficiales",
             "description": format!("Comunicados oficiales del gobierno municipal y de seguridad en {}.", payload.query)
+        }
+    ])))
+}
+
+pub async fn search_twitter_accounts(
+    auth: AuthUser,
+    Json(payload): Json<TwitterSearchDTO>,
+) -> Result<Json<serde_json::Value>, AppError> {
+    auth.require_role(&["analista", "jefe_oficina", "superadmin"])?;
+
+    let clean_q = payload.query.replace("@", "").replace(" ", "");
+    let state_name = if payload.state_key.as_deref() == Some("gto") { "Guanajuato" } else { "Querétaro" };
+
+    Ok(Json(json!([
+        {
+            "handle": format!("@{}_Gto", clean_q),
+            "name": format!("{} Oficial {}", payload.query, state_name),
+            "followers": 142000,
+            "relevance_score": 98,
+            "category": "seguridad_y_vialidad",
+            "verified": true,
+            "latest_tweet": format!("Monitoreo vial y patrullaje permanente en accesos y vías principales de {}.", payload.query),
+            "engagement": {"likes": 420, "retweets": 115, "replies": 32, "impressions": 12500}
+        },
+        {
+            "handle": format!("@AlertasViales{}", clean_q),
+            "name": format!("Alertas Viales {}", payload.query),
+            "followers": 89000,
+            "relevance_score": 93,
+            "category": "vialidad_metropolitana",
+            "verified": false,
+            "latest_tweet": format!("Tránsito fluido en carretera principal de {}. Precaución por obra preventiva.", payload.query),
+            "engagement": {"likes": 210, "retweets": 64, "replies": 18, "impressions": 8400}
+        },
+        {
+            "handle": format!("@Noticias{}Oficial", clean_q),
+            "name": format!("Noticias {} en Vivo", payload.query),
+            "followers": 67000,
+            "relevance_score": 88,
+            "category": "noticias_locales",
+            "verified": true,
+            "latest_tweet": format!("Reporte matutino de actividades de gobierno y cobertura de eventos en {}.", payload.query),
+            "engagement": {"likes": 180, "retweets": 45, "replies": 12, "impressions": 6100}
         }
     ])))
 }

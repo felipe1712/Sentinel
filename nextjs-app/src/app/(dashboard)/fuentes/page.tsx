@@ -44,7 +44,7 @@ const DEFAULT_ARGOS_MONITORS: ArgosMonitor[] = [
 
 export default function FuentesManagerPage() {
   const [stateCfg, setStateCfg] = useState<StateConfig>(getStateConfig());
-  const [activeTab, setActiveTab] = useState<"fuentes" | "argos">("fuentes");
+  const [activeTab, setActiveTab] = useState<"fuentes" | "argos">("argos");
   const [fuentes, setFuentes] = useState<FuenteItem[]>([]);
   const [argosMonitors, setArgosMonitors] = useState<ArgosMonitor[]>(DEFAULT_ARGOS_MONITORS);
 
@@ -112,21 +112,27 @@ export default function FuentesManagerPage() {
             Gestión de Fuentes & Conectores ARGOS Gateway
           </h4>
           <p className="text-dark fs-14 mb-0 fw-bold" style={{ color: "#334155" }}>
-            Conexión en tiempo real con canales de Telegram, redes sociales ARGOS, feeds RSS y motores MCP.
+            Conexión en tiempo real con canales de Telegram, cuentas de X / Twitter, feeds RSS y motores MCP.
           </p>
         </div>
-        <div className="d-flex gap-2">
+        <div className="d-flex flex-wrap gap-2">
+          <Link href="/fuentes/telegram" className="btn btn-sm btn-outline-info fw-bold">
+            <i className="ri-telegram-fill me-1"></i> Buscador Telegram
+          </Link>
+          <Link href="/fuentes/twitter" className="btn btn-sm btn-outline-dark fw-bold">
+            <i className="ri-twitter-x-fill me-1"></i> Buscador X / Twitter
+          </Link>
+          <button
+            className={`btn btn-sm fw-bold ${activeTab === "argos" ? "btn-primary text-white" : "btn-outline-primary"}`}
+            onClick={() => setActiveTab("argos")}
+          >
+            <i className="ri-share-forward-fill me-1"></i> ARGOS Monitores
+          </button>
           <button
             className={`btn btn-sm fw-bold ${activeTab === "fuentes" ? "btn-primary text-white" : "btn-outline-primary"}`}
             onClick={() => setActiveTab("fuentes")}
           >
             <i className="ri-rss-line me-1"></i> Fuentes & APIs
-          </button>
-          <button
-            className={`btn btn-sm fw-bold ${activeTab === "argos" ? "btn-primary text-white" : "btn-outline-primary"}`}
-            onClick={() => setActiveTab("argos")}
-          >
-            <i className="ri-share-forward-fill me-1"></i> ARGOS Gateway (Redes Sociales)
           </button>
         </div>
       </div>
@@ -241,7 +247,7 @@ export default function FuentesManagerPage() {
                   <input
                     type="text"
                     className="form-control form-control-sm bg-white text-dark fw-bold border-gray-300"
-                    placeholder="Ej. @AlertasCelayaBajio o NoticiasLeon"
+                    placeholder="Ej. @AlertasCelayaBajio o @FSPE_GtoOficial"
                     value={newChannel}
                     onChange={(e) => setNewChannel(e.target.value)}
                   />

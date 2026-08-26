@@ -80,6 +80,7 @@ pub fn create_router(pool: PgPool) -> Router {
         .route("/sources", get(sources::list_sources).post(sources::create_source))
         .route("/sources/:id/toggle", patch(sources::toggle_source))
         .route("/sources/telegram/search", post(sources::search_telegram_channels))
+        .route("/sources/twitter/search", post(sources::search_twitter_accounts))
         // Municipios
         .route("/municipios", get(municipios::list_municipios))
         .route("/municipios/:clave", get(municipios::get_municipio_detail))
