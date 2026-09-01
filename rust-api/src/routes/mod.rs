@@ -98,6 +98,7 @@ pub fn create_router(pool: PgPool) -> Router {
         .route("/admin/users", get(admin::list_users))
         .route("/admin/ocr-prompts/:state_id", get(admin::list_ocr_prompts))
         .route("/admin/ocr-prompts", post(admin::save_ocr_prompt))
+        .route("/admin/ocr-audit/:state_id/:fecha", get(admin::get_ocr_audit_dump))
         // Query Audit Routes
         .route("/admin/query-audit", get(admin::list_query_audits).post(admin::create_query_audit))
         .route("/admin/query-audit/stats", get(admin::get_query_audit_stats))

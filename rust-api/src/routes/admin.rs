@@ -337,3 +337,109 @@ pub async fn get_query_audit_by_id(
 
     Ok(Json(record))
 }
+
+// -----------------------------------------------------------------------------
+// AUDITORÍA INTEGRAL DE TABLAS OCR, PROMPTS Y MCP
+// -----------------------------------------------------------------------------
+
+pub async fn get_ocr_audit_dump(
+    State(pool): State<PgPool>,
+    Path((state_param, fecha_str)): Path<(String, String)>,
+) -> Result<Json<serde_json::Value>, AppError> {
+    let state_id = resolve_state_uuid(&state_param);
+    let parsed_date = chrono::NaiveDate::parse_from_str(&fecha_str, "%Y-%m-%d")
+        .unwrap_or_else(|_| chrono::Utc::now().date_naive());
+
+    let documents: Vec<serde_json::Value> = sqlx::query_as::<_, (serde_json::Value,)>(
+        "SELECT row_to_json(d) FROM diario_documents d WHERE (state_id = $1 OR state_id = '00000000-0000-0000-0000-000000000011') AND fecha = $2 ORDER BY document_type ASC"
+    )
+    .bind(state_id)
+    .bind(parsed_date)
+    .fetch_all(&pool)
+    .await
+    .map(|rows| rows.into_iter().map(|(j,)| j).collect())
+    .unwrap_or_default();
+
+    let ocr_results: Vec<serde_json::Value> = sqlx::query_as::<_, (serde_json::Value,)>(
+        r#"
+        SELECT row_to_json(o) FROM (
+            SELECT r.*, d.document_type, d.fecha 
+            FROM diario_ocr_results r
+            JOIN diario_documents d ON d.id = r.document_id
+            WHERE (d.state_id = $1 OR d.state_id = '00000000-0000-0000-0000-000000000011') AND d.fecha = $2
+            ORDER BY d.document_type ASC, r.page_number ASC
+        ) o
+        "#
+    )
+    .bind(state_id)
+    .bind(parsed_date)
+    .fetch_all(&pool)
+    .await
+    .map(|rows| rows.into_iter().map(|(j,)| j).collect())
+    .unwrap_or_default();
+
+    let items: Vec<serde_json::Value> = sqlx::query_as::<_, (serde_json::Value,)>(
+        r#"
+        SELECT row_to_json(i) FROM (
+            SELECT it.*, d.document_type
+            FROM diario_items it
+            JOIN diario_documents d ON d.id = it.document_id
+            WHERE (d.state_id = $1 OR d.state_id = '00000000-0000-0000-0000-000000000011') AND d.fecha = $2
+            ORDER BY it.relevancia DESC
+        ) i
+        "#
+    )
+    .bind(state_id)
+    .bind(parsed_date)
+    .fetch_all(&pool)
+    .await
+    .map(|rows| rows.into_iter().map(|(j,)| j).collect())
+    .unwrap_or_default();
+
+    let resumenes: Vec<serde_json::Value> = sqlx::query_as::<_, (serde_json::Value,)>(
+        "SELECT row_to_json(r) FROM diario_resumenes r WHERE (state_id = $1 OR state_id = '00000000-0000-0000-0000-000000000011') AND fecha = $2 ORDER BY document_type ASC"
+    )
+    .bind(state_id)
+    .bind(parsed_date)
+    .fetch_all(&pool)
+    .await
+    .map(|rows| rows.into_iter().map(|(j,)| j).collect())
+    .unwrap_or_default();
+
+    let prompts: Vec<serde_json::Value> = sqlx::query_as::<_, (serde_json::Value,)>(
+        "SELECT row_to_json(p) FROM diario_prompts p WHERE state_id = $1 OR state_id = '00000000-0000-0000-0000-000000000011' ORDER BY document_type ASC"
+    )
+    .bind(state_id)
+    .fetch_all(&pool)
+    .await
+    .map(|rows| rows.into_iter().map(|(j,)| j).collect())
+    .unwrap_or_default();
+
+    let mcp_queries: Vec<serde_json::Value> = sqlx::query_as::<_, (serde_json::Value,)>(
+        "SELECT row_to_json(q) FROM query_audit q WHERE (state_id = $1 OR state_id = '00000000-0000-0000-0000-000000000011') ORDER BY created_at DESC LIMIT 15"
+    )
+    .bind(state_id)
+    .fetch_all(&pool)
+    .await
+    .map(|rows| rows.into_iter().map(|(j,)| j).collect())
+    .unwrap_or_default();
+
+    Ok(Json(json!({
+        "state_id": state_param,
+        "fecha": fecha_str,
+        "counts": {
+            "documents": documents.len(),
+            "ocr_pages": ocr_results.len(),
+            "items": items.len(),
+            "resumenes": resumenes.len(),
+            "prompts": prompts.len(),
+            "mcp_queries": mcp_queries.len()
+        },
+        "documents": documents,
+        "ocr_results": ocr_results,
+        "items": items,
+        "resumenes": resumenes,
+        "prompts": prompts,
+        "mcp_queries": mcp_queries
+    })))
+}
