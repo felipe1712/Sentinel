@@ -837,6 +837,22 @@ pub async fn trigger_pipeline(
             "Operatividad y despliegue preventivo sin incidencias mayores"
         ]);
 
+        // Consultar modelo y prompt configurado en diario_prompts
+        let custom_prompt_record = sqlx::query_as::<_, crate::routes::admin::DiarioPromptRecord>(
+            "SELECT * FROM diario_prompts WHERE (state_id = $1 OR state_id = '00000000-0000-0000-0000-000000000011') AND document_type = $2 LIMIT 1"
+        )
+        .bind(state_id)
+        .bind(dtype)
+        .fetch_optional(&pool)
+        .await
+        .ok()
+        .flatten();
+
+        let chosen_model = custom_prompt_record
+            .as_ref()
+            .and_then(|p| p.model.clone())
+            .unwrap_or_else(|| "claude-3-7-sonnet-20250219".to_string());
+
         let _ = sqlx::query(
             r#"
             INSERT INTO diario_resumenes (
@@ -844,7 +860,7 @@ pub async fn trigger_pipeline(
                 puntos_clave, temas_seguridad, temas_politica, temas_economia,
                 relevancia_estatal, mini_resumen, tokens_usados, modelo
             )
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, 450, 'claude-sonnet-4-6')
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, 450, $12)
             ON CONFLICT (document_id) DO UPDATE
             SET resumen_ejecutivo = EXCLUDED.resumen_ejecutivo,
                 puntos_clave = EXCLUDED.puntos_clave,
@@ -853,6 +869,7 @@ pub async fn trigger_pipeline(
                 temas_economia = EXCLUDED.temas_economia,
                 relevancia_estatal = EXCLUDED.relevancia_estatal,
                 mini_resumen = EXCLUDED.mini_resumen,
+                modelo = EXCLUDED.modelo,
                 generated_at = NOW()
             "#
         )
@@ -867,6 +884,7 @@ pub async fn trigger_pipeline(
         .bind("Indicadores de inversión industrial favorables en corredor Laja-Bajío.")
         .bind("Mantener presencia permanente en Celaya, Irapuato y León.")
         .bind(format!("{}: {}", title, sum_text))
+        .bind(chosen_model)
         .execute(&pool)
         .await;
 
