@@ -34,15 +34,6 @@ interface DiarioItem {
   es_principal: boolean;
 }
 
-interface DiarioDocStatus {
-  id: string;
-  document_type: string;
-  status: "pendiente" | "procesando_ocr" | "ocr_completo" | "filtrando" | "listo" | "error";
-  page_count: number;
-  file_size_kb: number;
-  error_message?: string;
-}
-
 interface DistribucionItem {
   id: string;
   nombre: string;
@@ -260,7 +251,7 @@ export default function DiarioPage() {
 
     try {
       await api.post(`/diario/trigger/${stateIdentifier}`, { fecha: selectedDate });
-      setUploadFeedback(`✅ Pipeline ejecutado exitosamente para la fecha ${selectedDate}. Documentos procesados y resúmenes ejecutivos generados.`);
+      setUploadFeedback(`✅ Síntesis generada exitosamente para la fecha ${selectedDate}.`);
       loadDiarioData(stateCfg);
     } catch (err) {
       console.error("Error disparando pipeline:", err);
@@ -320,7 +311,7 @@ export default function DiarioPage() {
         <div className="avatar-lg bg-light text-primary rounded-circle mx-auto mb-3 p-3 fs-36">
           <i className="ri-newspaper-line"></i>
         </div>
-        <h4 className="fw-extrabold text-dark mb-2">Módulo Diario (OCR de Prensa)</h4>
+        <h4 className="fw-extrabold text-dark mb-2">Módulo Diario (Prensa Ejecutiva)</h4>
         <p className="text-muted fs-14 mb-4 mx-auto" style={{ maxWidth: "500px" }}>
           Este módulo está habilitado actualmente de forma exclusiva para el <strong>Estado de Guanajuato</strong>.
         </p>
@@ -341,13 +332,13 @@ export default function DiarioPage() {
       <div className="d-flex flex-column flex-md-row align-items-md-center justify-content-between mb-4 gap-3">
         <div>
           <span className="badge bg-primary text-white text-uppercase px-3 py-1 fs-11 fw-bold mb-2 shadow-sm">
-            Monitoreo Matutino de Prensa & OCR · {stateCfg.name}
+            Monitoreo Matutino de Prensa · {stateCfg.name}
           </span>
           <h4 className="fw-extrabold text-dark mb-1 fs-24" style={{ color: "#0f172a" }}>
             Diario Ejecutivo de Prensa (07:00 AM)
           </h4>
           <p className="text-dark fs-14 mb-0 fw-bold" style={{ color: "#334155" }}>
-            Procesamiento OCR inteligente con Surya v2, filtrado antifarándula y resúmenes ejecutivos vía Claude MCP.
+            Síntesis matutina estructurada de medios impresos y notas de interés estatal.
           </p>
         </div>
 
@@ -373,16 +364,16 @@ export default function DiarioPage() {
             className="btn btn-outline-primary btn-md fw-bold"
             onClick={handleTriggerManualPipeline}
             disabled={triggeringPipeline}
-            title="Reprocesar pipeline completo para la fecha seleccionada"
+            title="Actualizar síntesis para la fecha seleccionada"
           >
             {triggeringPipeline ? (
               <span>
                 <span className="spinner-border spinner-border-sm me-2" role="status"></span>
-                Procesando OCR...
+                Generando Síntesis...
               </span>
             ) : (
               <span>
-                <i className="ri-play-circle-line me-1"></i> Procesar Pipeline OCR
+                <i className="ri-refresh-line me-1"></i> Actualizar Síntesis
               </span>
             )}
           </button>
@@ -601,14 +592,14 @@ export default function DiarioPage() {
                   <span className="badge bg-primary text-white fw-bold fs-12">{selectedDate}</span>
                 </div>
                 <small className="text-dark fw-semibold" style={{ color: "#334155" }}>
-                  Extracción OCR por columnas con Surya v2 · Resumen Soberano generado vía Claude MCP.
+                  Análisis de gobernabilidad, seguridad y agenda pública del Estado.
                 </small>
               </div>
 
               <div className="d-flex flex-wrap align-items-center gap-2">
                 <span className="badge px-3 py-2 fs-12 fw-bold text-white bg-success shadow-sm">
                   <i className="ri-checkbox-circle-line me-1 text-white"></i>
-                  Estado: Listo (OCR Completado)
+                  Estado: Listo
                 </span>
 
                 {currentResumen && (
@@ -685,7 +676,7 @@ export default function DiarioPage() {
                   <h5 className="card-title mb-0 fw-extrabold text-dark fs-16" style={{ color: "#0f172a" }}>
                     Notas de Prensa Clasificadas ({itemsList.length} Relevantes)
                   </h5>
-                  <span className="badge bg-primary text-white fs-11 fw-bold">Filtro Antifarándula Activo</span>
+                  <span className="badge bg-primary text-white fs-11 fw-bold">Información Prioritaria</span>
                 </div>
                 <div className="card-body p-0">
                   <div className="table-responsive">
@@ -850,7 +841,7 @@ export default function DiarioPage() {
               </div>
               <div className="modal-body p-4 bg-white">
                 <p className="text-dark fs-13 mb-4 fw-medium" style={{ color: "#334155" }}>
-                  Sube los 4 archivos PDF o imágenes de la mañana. El sistema los procesará con <strong>Surya OCR v2</strong>, filtrará el contenido y redactará el resumen ejecutivo con <strong>Claude MCP</strong>.
+                  Sube los 4 archivos PDF o imágenes de la mañana para generar la síntesis y clasificación ejecutiva.
                 </p>
 
                 <div className="row g-3">
@@ -889,7 +880,7 @@ export default function DiarioPage() {
                     handleTriggerManualPipeline();
                   }}
                 >
-                  <i className="ri-play-circle-fill me-1 text-white"></i> Iniciar Procesamiento OCR
+                  <i className="ri-play-circle-fill me-1 text-white"></i> Iniciar Procesamiento
                 </button>
               </div>
             </div>
