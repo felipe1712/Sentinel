@@ -17,6 +17,13 @@ if RUST_API.endswith('/'):
     RUST_API = RUST_API[:-1]
 
 DEFAULT_PROMPTS = {
+  'global': """
+DIRECTRICES GENERALES TRANSVERSALES DE INTELIGENCIA:
+1. Idioma y Tono: Redactar estrictamente en español formal, sobrio y ejecutivo mexicano, adecuado para la titular del Poder Ejecutivo y el Gabinete Legal y Ampliado.
+2. Veracidad y Fuentes: Cero alucinaciones. No inferir nombres, cifras ni acontecimientos que no se encuentren explícitamente en el texto extraído por OCR.
+3. Descarte Estricto: Omitir de forma taxativa noticias deportivas, farándula, notas de espectáculos y notas de sociales.
+4. Enfoque Soberano: Destacar el impacto concreto sobre el Estado de Guanajuato y sus 46 municipios.""",
+
   'primeras_planas_nacional': """
 Eres el analista de prensa de la Oficina del Despacho Ejecutivo del Estado.
 Analiza los siguientes titulares y notas de las PRIMERAS PLANAS NACIONALES del {fecha}.
@@ -118,16 +125,17 @@ def get_custom_prompt_config(state_id: str, doc_type: str, headers: dict) -> dic
 def generate_summary_via_mcp(items: list, doc_type: str, doc_id: str,
                               state_id: str, fecha: str, headers: dict) -> dict:
     """
-    Genera resumen ejecutivo usando Claude API (con soporte de prompts configurables desde /admin).
+    Genera resumen ejecutivo usando Claude API con soporte de Reglas Globales y Prompts específicos desde /admin.
     Guarda en tabla diario_resumenes.
     """
     if not items:
         logger.warning(f"No hay items para resumir el documento {doc_id}")
         return {}
 
+    global_cfg = get_custom_prompt_config(state_id, 'global', headers)
     custom_cfg = get_custom_prompt_config(state_id, doc_type, headers)
-    model_name = custom_cfg.get('model') or 'claude-3-5-sonnet-20241022'
-    max_tokens = custom_cfg.get('max_tokens') or 2000
+    model_name = custom_cfg.get('model') or global_cfg.get('model') or 'claude-3-5-sonnet-20241022'
+    max_tokens = custom_cfg.get('max_tokens') or global_cfg.get('max_tokens') or 2000
 
     api_key = os.getenv('CLAUDE_API_KEY') or os.getenv('ANTHROPIC_API_KEY')
     if not api_key or len(api_key.strip()) < 10:
@@ -157,29 +165,31 @@ def generate_summary_via_mcp(items: list, doc_type: str, doc_id: str,
             for i in sorted(items, key=lambda x: x.get('relevancia', 0), reverse=True)
         ]
 
-        if custom_cfg.get('system_prompt'):
-            prompt = f"""
-{custom_cfg.get('system_prompt')}
+        # Componer prompt combinando Reglas Globales + Instrucciones Específicas
+        global_rules_text = global_cfg.get('system_prompt', DEFAULT_PROMPTS['global'])
+        specific_prompt_text = custom_cfg.get('system_prompt') or DEFAULT_PROMPTS.get(doc_type, DEFAULT_PROMPTS['primeras_planas_nacional'])
+        filtering_rules = custom_cfg.get('filtering_rules') or global_cfg.get('filtering_rules', '')
+        output_format = custom_cfg.get('output_format') or global_cfg.get('output_format', '')
+
+        prompt = f"""
+{global_rules_text}
+
+--- INSTRUCCIONES ESPECÍFICAS PARA ESTE DOCUMENTO ---
+{specific_prompt_text}
 
 FECHA DE EDICIÓN: {fecha}
 
-REGLAS DE FILTRADO Y PRIORIDAD:
-{custom_cfg.get('filtering_rules', '')}
+--- REGLAS DE FILTRADO Y PRIORIDAD ---
+{filtering_rules}
 
-FORMATO DE SALIDA REQUERIDO (JSON):
-{custom_cfg.get('output_format', '')}
+--- FORMATO DE SALIDA REQUERIDO (JSON) ---
+{output_format}
 
-ITEMS EXTRAÍDOS DEL DOCUMENTO:
+--- ITEMS EXTRAÍDOS DEL DOCUMENTO POR OCR ---
 {json.dumps(items_clean, ensure_ascii=False, indent=2)}
 
 Genera la respuesta estrictamente en formato JSON válido.
 """
-        else:
-            prompt_template = DEFAULT_PROMPTS.get(doc_type, DEFAULT_PROMPTS['primeras_planas_nacional'])
-            prompt = prompt_template.format(
-                fecha=fecha,
-                items_json=json.dumps(items_clean, ensure_ascii=False, indent=2)
-            )
 
         try:
             response = client.messages.create(

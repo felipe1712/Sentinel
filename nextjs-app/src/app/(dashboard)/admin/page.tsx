@@ -95,14 +95,26 @@ const DEFAULT_QRO_USERS: UserItem[] = [
 ];
 
 const DEFAULT_PROMPTS: Record<string, PromptConfig> = {
+  global: {
+    document_type: "global",
+    system_prompt:
+      "DIRECTRICES GENERALES TRANSVERSALES DE INTELIGENCIA:\n1. Idioma y Tono: Redactar estrictamente en español formal, sobrio y ejecutivo mexicano, adecuado para la titular del Poder Ejecutivo y el Gabinete Legal y Ampliado.\n2. Veracidad y Fuentes: Cero alucinaciones. No inferir nombres, cifras ni acontecimientos que no se encuentren explícitamente en el texto extraído por OCR.\n3. Descarte Estricto: Omitir de forma taxativa noticias deportivas, farándula, notas de espectáculos y notas de sociales.\n4. Enfoque Soberano: Destacar el impacto concreto sobre el Estado de Guanajuato y sus 46 municipios.",
+    filtering_rules:
+      "- Filtrar cualquier nota sin relevancia de política pública o seguridad.\n- Conservar información verificable con nombre de fuente y página.",
+    output_format:
+      "- Resumen ejecutivo (4-5 oraciones)\n- Top 5 Puntos Clave\n- Balances temáticos (Seguridad, Política, Economía)\n- Mini-resumen de 3 líneas",
+    model: "claude-3-5-sonnet-20241022",
+    temperature: 0.2,
+    max_tokens: 2000,
+  },
   primeras_planas_estatal: {
     document_type: "primeras_planas_estatal",
     system_prompt:
       "Eres un analista senior de inteligencia política y seguridad para el Despacho del Ejecutivo del Estado. Tu tarea es procesar el texto extraído por OCR de las Primeras Planas Estatales (Periódico AM, Periódico Correo, El Sol del Bajío, Zona Franca) y generar una síntesis ejecutiva de alto nivel para toma de decisiones.",
     filtering_rules:
-      "1. Descartar completamente secciones de deportes, espectáculos, farándula y notas sociales.\n2. Priorizar despliegues de seguridad (FSPE, Ejército, operativos Celaya, Irapuato, León, Salamanca).\n3. Extraer anuncios de inversión económica (Puerto Interior, automotriz, parques industriales).\n4. Resaltar declaraciones de alcaldes y temas de gobernabilidad regional.",
+      "1. Priorizar despliegues de seguridad (FSPE, Ejército, operativos Celaya, Irapuato, León, Salamanca).\n2. Extraer anuncios de inversión económica (Puerto Interior, automotriz, parques industriales).\n3. Resaltar declaraciones de alcaldes y temas de gobernabilidad regional.",
     output_format:
-      "JSON estructurado con las siguientes claves:\n- resumen_ejecutivo: Síntesis fluida de 4-5 oraciones.\n- puntos_clave: Arreglo de 5 viñetas de alto impacto.\n- temas_seguridad: Párrafo de balance operativo.\n- temas_politica: Párrafo de gobernabilidad y acuerdos.\n- temas_economia: Párrafo de finanzas e inversión.\n- relevancia_estatal: Recomendación prioritaria para el despacho ejecutivo.\n- mini_resumen: Síntesis de 3 líneas para pantalla proyector.",
+      "JSON estructurado con:\n- resumen_ejecutivo: Síntesis fluida de 4-5 oraciones.\n- puntos_clave: Arreglo de 5 viñetas de alto impacto.\n- temas_seguridad: Párrafo de balance operativo.\n- temas_politica: Párrafo de gobernabilidad y acuerdos.\n- temas_economia: Párrafo de finanzas e inversión.\n- relevancia_estatal: Recomendación prioritaria para el despacho ejecutivo.\n- mini_resumen: Síntesis de 3 líneas para pantalla proyector.",
     model: "claude-3-5-sonnet-20241022",
     temperature: 0.2,
     max_tokens: 2000,
@@ -146,10 +158,11 @@ const DEFAULT_PROMPTS: Record<string, PromptConfig> = {
 };
 
 const DOC_TYPE_OPTIONS = [
-  { key: "primeras_planas_estatal", label: "🏛 Primeras Planas Guanajuato" },
-  { key: "primeras_planas_nacional", label: "🇲🇽 Primeras Planas Nacionales" },
-  { key: "sintesis_estatal", label: "📋 Síntesis Estatal Oficial" },
-  { key: "columnas_politicas", label: "✍️ Columnas Políticas" },
+  { key: "global", label: "🌐 Reglas Globales (Aplica a los 4 Documentos)", isGlobal: true },
+  { key: "primeras_planas_estatal", label: "🏛 Primeras Planas Guanajuato", isGlobal: false },
+  { key: "primeras_planas_nacional", label: "🇲🇽 Primeras Planas Nacionales", isGlobal: false },
+  { key: "sintesis_estatal", label: "📋 Síntesis Estatal Oficial", isGlobal: false },
+  { key: "columnas_politicas", label: "✍️ Columnas Políticas", isGlobal: false },
 ];
 
 export default function AdminPage() {
@@ -160,7 +173,7 @@ export default function AdminPage() {
   const [users, setUsers] = useState<UserItem[]>(DEFAULT_GTO_USERS);
 
   // Parámetros OCR
-  const [selectedDocType, setSelectedDocType] = useState<string>("primeras_planas_estatal");
+  const [selectedDocType, setSelectedDocType] = useState<string>("global");
   const [promptsMap, setPromptsMap] = useState<Record<string, PromptConfig>>(DEFAULT_PROMPTS);
   const [savingPrompt, setSavingPrompt] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState<string | null>(null);
@@ -173,7 +186,6 @@ export default function AdminPage() {
     async function loadData() {
       const stateIdentifier = cfg.stateId || cfg.key || "gto";
       try {
-        // Cargar usuarios de la BD
         const uResp = await api.get(`/admin/users?state_id=${stateIdentifier}`);
         if (uResp.data && Array.isArray(uResp.data) && uResp.data.length > 0) {
           setUsers(uResp.data);
@@ -183,7 +195,6 @@ export default function AdminPage() {
       }
 
       try {
-        // Cargar prompts OCR de la BD
         const pResp = await api.get(`/admin/ocr-prompts/${stateIdentifier}`);
         if (pResp.data && Array.isArray(pResp.data) && pResp.data.length > 0) {
           const loaded: Record<string, PromptConfig> = {};
@@ -208,6 +219,7 @@ export default function AdminPage() {
   }, []);
 
   const currentPrompt = promptsMap[selectedDocType] || DEFAULT_PROMPTS[selectedDocType];
+  const globalPrompt = promptsMap["global"] || DEFAULT_PROMPTS["global"];
 
   const handleUpdateCurrentPrompt = (field: keyof PromptConfig, value: any) => {
     setPromptsMap((prev) => ({
@@ -236,7 +248,8 @@ export default function AdminPage() {
         temperature: parseFloat(currentPrompt.temperature.toString()),
         max_tokens: parseInt(currentPrompt.max_tokens.toString()),
       });
-      setSaveSuccess(`✅ Parámetros e instrucciones para "${DOC_TYPE_OPTIONS.find((d) => d.key === selectedDocType)?.label}" guardados exitosamente en la base de datos.`);
+      const docLabel = DOC_TYPE_OPTIONS.find((d) => d.key === selectedDocType)?.label;
+      setSaveSuccess(`✅ Parámetros e instrucciones para "${docLabel}" guardados exitosamente en la base de datos.`);
     } catch (err) {
       console.warn("Parámetros guardados en memoria local:", err);
       setSaveSuccess(`✅ Parámetros de procesamiento actualizados correctamente.`);
@@ -405,184 +418,242 @@ export default function AdminPage() {
 
       {/* TAB 2: PARÁMETROS OCR & INSTRUCCIONES CLAUDE */}
       {activeAdminTab === "ocr" && (
-        <div className="row g-4">
-          <div className="col-lg-4">
-            <div className="card bg-white border-0 shadow-sm rounded-3 mb-4">
-              <div className="card-header bg-white border-bottom py-3">
-                <h5 className="card-title mb-0 fw-extrabold text-dark fs-16" style={{ color: "#0f172a" }}>
-                  Seleccionar Documento
-                </h5>
-                <small className="text-muted fs-12">Cada tipo de documento tiene sus propias directrices</small>
-              </div>
-              <div className="card-body p-3">
-                <div className="d-flex flex-column gap-2">
-                  {DOC_TYPE_OPTIONS.map((opt) => (
-                    <button
-                      key={opt.key}
-                      type="button"
-                      onClick={() => setSelectedDocType(opt.key)}
-                      className={`btn text-start p-3 rounded-3 fw-bold transition-all ${
-                        selectedDocType === opt.key
-                          ? "btn-primary text-white shadow"
-                          : "btn-light text-dark border"
-                      }`}
-                      style={{
-                        backgroundColor: selectedDocType === opt.key ? "#1d4ed8" : "#f8fafc",
-                        color: selectedDocType === opt.key ? "#ffffff" : "#0f172a",
-                        borderColor: selectedDocType === opt.key ? "#1d4ed8" : "#cbd5e1",
-                      }}
-                    >
-                      <div className="fs-14">{opt.label}</div>
-                      <small style={{ opacity: 0.85, fontSize: "11px" }}>
-                        Modelo: {promptsMap[opt.key]?.model || "claude-3-5-sonnet"}
-                      </small>
-                    </button>
-                  ))}
+        <div>
+          {/* Banner Informativo de Jerarquía de Prompts */}
+          <div className="card bg-white border border-primary-subtle shadow-sm rounded-3 mb-4 border-start border-4 border-primary">
+            <div className="card-body p-3 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2">
+              <div className="d-flex align-items-center gap-3">
+                <div className="avatar-sm bg-primary-subtle text-primary rounded-circle p-2 d-flex align-items-center justify-content-center">
+                  <i className="ri-global-line fs-20"></i>
+                </div>
+                <div>
+                  <strong className="text-dark fs-14 d-block">Esquema de Reglas Globales Activo</strong>
+                  <small className="text-muted fs-12">
+                    Las <strong>Reglas Globales</strong> son la directriz suprema. Todo lo definido en "Reglas Globales" se aplica e inyecta automáticamente en los 4 apartados de prensa.
+                  </small>
                 </div>
               </div>
-            </div>
-
-            <div className="card bg-light border border-gray-300 shadow-sm rounded-3">
-              <div className="card-body p-4">
-                <h6 className="fw-extrabold text-dark mb-2 fs-14" style={{ color: "#0f172a" }}>
-                  💡 ¿Cómo opera este módulo?
-                </h6>
-                <p className="text-dark fs-12 mb-3 fw-semibold lh-base" style={{ color: "#334155" }}>
-                  Cuando los documentos PDF son extraídos por el motor OCR a las <strong>07:00 AM</strong>, el texto plano resultante es enviado a la API de Claude junto con el <strong>System Prompt</strong> y las <strong>Reglas de Filtrado</strong> configuradas aquí.
-                </p>
-                <div className="p-2 bg-white rounded border fs-11 text-dark fw-bold">
-                  Estado Activo: <span className="text-primary">{stateCfg.name}</span>
-                </div>
-              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedDocType("global")}
+                className={`btn btn-sm fw-bold px-3 py-2 ${
+                  selectedDocType === "global" ? "btn-primary text-white" : "btn-outline-primary"
+                }`}
+              >
+                <i className="ri-edit-2-line me-1"></i> Editar Reglas Globales
+              </button>
             </div>
           </div>
 
-          <div className="col-lg-8">
-            <div className="card bg-white border-0 shadow-sm rounded-3">
-              <div className="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
-                <div>
+          <div className="row g-4">
+            <div className="col-lg-4">
+              <div className="card bg-white border-0 shadow-sm rounded-3 mb-4">
+                <div className="card-header bg-white border-bottom py-3">
                   <h5 className="card-title mb-0 fw-extrabold text-dark fs-16" style={{ color: "#0f172a" }}>
-                    Instrucciones de Procesamiento para Claude ({DOC_TYPE_OPTIONS.find((d) => d.key === selectedDocType)?.label})
+                    Apartado a Configurar
                   </h5>
-                  <small className="text-muted fs-12">Estas directrices gobernarán el resumen que recibe la Gobernadora</small>
+                  <small className="text-muted fs-12">Selecciona las reglas globales o un documento específico</small>
                 </div>
-                <span className="badge bg-primary text-white fs-11 fw-bold">Claude MCP</span>
+                <div className="card-body p-3">
+                  <div className="d-flex flex-column gap-2">
+                    {DOC_TYPE_OPTIONS.map((opt) => {
+                      const isSelected = selectedDocType === opt.key;
+                      return (
+                        <button
+                          key={opt.key}
+                          type="button"
+                          onClick={() => setSelectedDocType(opt.key)}
+                          className={`btn text-start p-3 rounded-3 fw-bold transition-all ${
+                            isSelected
+                              ? "btn-primary text-white shadow"
+                              : opt.isGlobal
+                              ? "btn-light text-primary border border-primary-subtle"
+                              : "btn-light text-dark border"
+                          }`}
+                          style={{
+                            backgroundColor: isSelected ? "#1d4ed8" : "#f8fafc",
+                            color: isSelected ? "#ffffff" : opt.isGlobal ? "#1d4ed8" : "#0f172a",
+                            borderColor: isSelected ? "#1d4ed8" : opt.isGlobal ? "#93c5fd" : "#cbd5e1",
+                          }}
+                        >
+                          <div className="d-flex justify-content-between align-items-center">
+                            <span className="fs-13">{opt.label}</span>
+                            {opt.isGlobal && (
+                              <span className={`badge fs-10 ${isSelected ? "bg-white text-primary" : "bg-primary text-white"}`}>
+                                Global
+                              </span>
+                            )}
+                          </div>
+                          <small style={{ opacity: 0.85, fontSize: "11px", display: "block", marginTop: "2px" }}>
+                            {opt.isGlobal
+                              ? "Aplica como marco base para todos"
+                              : `Modelo: ${promptsMap[opt.key]?.model || "claude-3-5-sonnet"}`}
+                          </small>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
               </div>
-              <div className="card-body p-4">
-                <form onSubmit={handleSavePrompt}>
-                  {/* TextBox 1: System Prompt */}
-                  <div className="mb-4">
-                    <label className="form-label text-dark fw-extrabold fs-13 mb-1" style={{ color: "#0f172a" }}>
-                      1. Instrucciones de Identidad y Análisis (System Prompt):
-                    </label>
-                    <small className="text-muted d-block mb-2 fs-12">
-                      Define el rol, el tono ejecutivo, el contexto de Guanajuato y la misión de análisis.
-                    </small>
-                    <textarea
-                      rows={5}
-                      className="form-control text-dark font-monospace fs-13 border-gray-300 shadow-sm"
-                      style={{ backgroundColor: "#f8fafc", color: "#0f172a" }}
-                      value={currentPrompt.system_prompt}
-                      onChange={(e) => handleUpdateCurrentPrompt("system_prompt", e.target.value)}
-                      required
-                    />
+
+              {/* Vista Previa de Herencia */}
+              {selectedDocType !== "global" && (
+                <div className="card bg-light border border-gray-300 shadow-sm rounded-3">
+                  <div className="card-body p-3">
+                    <h6 className="fw-extrabold text-primary mb-2 fs-13">
+                      <i className="ri-shield-check-line me-1"></i> Reglas Globales Heredadas
+                    </h6>
+                    <p className="text-dark fs-11 mb-0 fw-semibold lh-base" style={{ whiteSpace: "pre-line", color: "#334155" }}>
+                      {globalPrompt.system_prompt.slice(0, 180)}...
+                    </p>
                   </div>
+                </div>
+              )}
+            </div>
 
-                  {/* TextBox 2: Filtering Rules */}
-                  <div className="mb-4">
-                    <label className="form-label text-dark fw-extrabold fs-13 mb-1" style={{ color: "#0f172a" }}>
-                      2. Criterios de Selección y Filtrado de Contenido:
-                    </label>
-                    <small className="text-muted d-block mb-2 fs-12">
-                      Indica qué categorías priorizar (seguridad, finanzas, obras) y cuáles omitir (deportes, farándula).
+            <div className="col-lg-8">
+              <div className="card bg-white border-0 shadow-sm rounded-3">
+                <div className="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+                  <div>
+                    <h5 className="card-title mb-0 fw-extrabold text-dark fs-16" style={{ color: "#0f172a" }}>
+                      {selectedDocType === "global"
+                        ? "🌐 Configuración de Reglas Globales (Transversales)"
+                        : `Instrucciones Específicas (${DOC_TYPE_OPTIONS.find((d) => d.key === selectedDocType)?.label})`}
+                    </h5>
+                    <small className="text-muted fs-12">
+                      {selectedDocType === "global"
+                        ? "Estas instrucciones se combinarán con los 4 tipos de documentos al procesar con Claude"
+                        : "Directrices exclusivas para este tipo de documento"}
                     </small>
-                    <textarea
-                      rows={4}
-                      className="form-control text-dark font-monospace fs-13 border-gray-300 shadow-sm"
-                      style={{ backgroundColor: "#f8fafc", color: "#0f172a" }}
-                      value={currentPrompt.filtering_rules}
-                      onChange={(e) => handleUpdateCurrentPrompt("filtering_rules", e.target.value)}
-                    />
                   </div>
-
-                  {/* TextBox 3: Output Format */}
-                  <div className="mb-4">
-                    <label className="form-label text-dark fw-extrabold fs-13 mb-1" style={{ color: "#0f172a" }}>
-                      3. Estructura y Formato del Resumen Ejecutivo:
-                    </label>
-                    <small className="text-muted d-block mb-2 fs-12">
-                      Campos requeridos en el JSON final (puntos clave, párrafos por ramo, mini-resumen).
-                    </small>
-                    <textarea
-                      rows={4}
-                      className="form-control text-dark font-monospace fs-13 border-gray-300 shadow-sm"
-                      style={{ backgroundColor: "#f8fafc", color: "#0f172a" }}
-                      value={currentPrompt.output_format}
-                      onChange={(e) => handleUpdateCurrentPrompt("output_format", e.target.value)}
-                    />
-                  </div>
-
-                  {/* Configuración de Modelo y Parámetros */}
-                  <div className="row g-3 p-3 bg-light rounded-3 border border-gray-200 mb-4">
-                    <div className="col-md-4">
-                      <label className="form-label text-dark fw-bold fs-12 mb-1">Modelo de IA (Claude)</label>
-                      <select
-                        className="form-select form-select-sm text-dark fw-bold bg-white"
-                        value={currentPrompt.model}
-                        onChange={(e) => handleUpdateCurrentPrompt("model", e.target.value)}
-                      >
-                        <option value="claude-3-5-sonnet-20241022">Claude 3.5 Sonnet (Recomendado)</option>
-                        <option value="claude-3-opus-20240229">Claude 3 Opus (Máximo Análisis)</option>
-                        <option value="claude-3-5-haiku-20241022">Claude 3.5 Haiku (Rápido)</option>
-                      </select>
-                    </div>
-
-                    <div className="col-md-4">
-                      <label className="form-label text-dark fw-bold fs-12 mb-1">
-                        Temperatura: {currentPrompt.temperature}
+                  <span className={`badge ${selectedDocType === "global" ? "bg-info" : "bg-primary"} text-white fs-11 fw-bold`}>
+                    {selectedDocType === "global" ? "Reglas Globales" : "Específico"}
+                  </span>
+                </div>
+                <div className="card-body p-4">
+                  <form onSubmit={handleSavePrompt}>
+                    {/* TextBox 1: System Prompt / Reglas Globales */}
+                    <div className="mb-4">
+                      <label className="form-label text-dark fw-extrabold fs-13 mb-1" style={{ color: "#0f172a" }}>
+                        {selectedDocType === "global"
+                          ? "1. Directrices Generales y Criterios Soberanos (Global System Prompt):"
+                          : "1. Instrucciones de Identidad y Análisis (System Prompt):"}
                       </label>
-                      <input
-                        type="range"
-                        className="form-range"
-                        min="0"
-                        max="1"
-                        step="0.05"
-                        value={currentPrompt.temperature}
-                        onChange={(e) => handleUpdateCurrentPrompt("temperature", parseFloat(e.target.value))}
-                      />
-                      <small className="text-muted fs-11">Valores bajos (0.1 - 0.3) garantizan máxima precisión objetiva</small>
-                    </div>
-
-                    <div className="col-md-4">
-                      <label className="form-label text-dark fw-bold fs-12 mb-1">Máx. Tokens de Salida</label>
-                      <input
-                        type="number"
-                        className="form-control form-control-sm text-dark fw-bold bg-white"
-                        value={currentPrompt.max_tokens}
-                        onChange={(e) => handleUpdateCurrentPrompt("max_tokens", parseInt(e.target.value) || 2000)}
+                      <small className="text-muted d-block mb-2 fs-12">
+                        {selectedDocType === "global"
+                          ? "Tono, prohibición de alucinaciones, español formal y lineamientos obligatorios para toda la prensa."
+                          : "Define el rol, el enfoque y la misión de análisis para este documento."}
+                      </small>
+                      <textarea
+                        rows={selectedDocType === "global" ? 7 : 5}
+                        className="form-control text-dark font-monospace fs-13 border-gray-300 shadow-sm"
+                        style={{ backgroundColor: "#f8fafc", color: "#0f172a" }}
+                        value={currentPrompt.system_prompt}
+                        onChange={(e) => handleUpdateCurrentPrompt("system_prompt", e.target.value)}
+                        required
                       />
                     </div>
-                  </div>
 
-                  <div className="d-flex justify-content-end gap-2">
-                    <button
-                      type="submit"
-                      className="btn btn-primary fw-bold text-white shadow-sm px-4 py-2"
-                      disabled={savingPrompt}
-                    >
-                      {savingPrompt ? (
-                        <span>
-                          <span className="spinner-border spinner-border-sm me-2"></span>
-                          Guardando en Base de Datos...
-                        </span>
-                      ) : (
-                        <span>
-                          <i className="ri-save-3-line me-1 text-white"></i> Guardar Parámetros de Procesamiento
-                        </span>
-                      )}
-                    </button>
-                  </div>
-                </form>
+                    {/* TextBox 2: Filtering Rules */}
+                    <div className="mb-4">
+                      <label className="form-label text-dark fw-extrabold fs-13 mb-1" style={{ color: "#0f172a" }}>
+                        {selectedDocType === "global"
+                          ? "2. Criterios Globales de Descarte y Filtrado:"
+                          : "2. Criterios de Selección y Filtrado de Contenido:"}
+                      </label>
+                      <small className="text-muted d-block mb-2 fs-12">
+                        {selectedDocType === "global"
+                          ? "Temas prohibidos de manera general (deportes, espectáculos, farándula, notas de sociales)."
+                          : "Indica qué categorías priorizar (seguridad, finanzas, obras) y cuáles omitir."}
+                      </small>
+                      <textarea
+                        rows={4}
+                        className="form-control text-dark font-monospace fs-13 border-gray-300 shadow-sm"
+                        style={{ backgroundColor: "#f8fafc", color: "#0f172a" }}
+                        value={currentPrompt.filtering_rules}
+                        onChange={(e) => handleUpdateCurrentPrompt("filtering_rules", e.target.value)}
+                      />
+                    </div>
+
+                    {/* TextBox 3: Output Format */}
+                    <div className="mb-4">
+                      <label className="form-label text-dark fw-extrabold fs-13 mb-1" style={{ color: "#0f172a" }}>
+                        3. Estructura y Formato del Resumen Ejecutivo:
+                      </label>
+                      <small className="text-muted d-block mb-2 fs-12">
+                        Estructura esperada del resumen ejecutivo y formato de entrega.
+                      </small>
+                      <textarea
+                        rows={4}
+                        className="form-control text-dark font-monospace fs-13 border-gray-300 shadow-sm"
+                        style={{ backgroundColor: "#f8fafc", color: "#0f172a" }}
+                        value={currentPrompt.output_format}
+                        onChange={(e) => handleUpdateCurrentPrompt("output_format", e.target.value)}
+                      />
+                    </div>
+
+                    {/* Configuración de Modelo y Parámetros */}
+                    <div className="row g-3 p-3 bg-light rounded-3 border border-gray-200 mb-4">
+                      <div className="col-md-4">
+                        <label className="form-label text-dark fw-bold fs-12 mb-1">Modelo de IA (Claude)</label>
+                        <select
+                          className="form-select form-select-sm text-dark fw-bold bg-white"
+                          value={currentPrompt.model}
+                          onChange={(e) => handleUpdateCurrentPrompt("model", e.target.value)}
+                        >
+                          <option value="claude-3-5-sonnet-20241022">Claude 3.5 Sonnet (Recomendado)</option>
+                          <option value="claude-3-opus-20240229">Claude 3 Opus (Máximo Análisis)</option>
+                          <option value="claude-3-5-haiku-20241022">Claude 3.5 Haiku (Rápido)</option>
+                        </select>
+                      </div>
+
+                      <div className="col-md-4">
+                        <label className="form-label text-dark fw-bold fs-12 mb-1">
+                          Temperatura: {currentPrompt.temperature}
+                        </label>
+                        <input
+                          type="range"
+                          className="form-range"
+                          min="0"
+                          max="1"
+                          step="0.05"
+                          value={currentPrompt.temperature}
+                          onChange={(e) => handleUpdateCurrentPrompt("temperature", parseFloat(e.target.value))}
+                        />
+                        <small className="text-muted fs-11">Valores bajos (0.1 - 0.3) garantizan máxima precisión objetiva</small>
+                      </div>
+
+                      <div className="col-md-4">
+                        <label className="form-label text-dark fw-bold fs-12 mb-1">Máx. Tokens de Salida</label>
+                        <input
+                          type="number"
+                          className="form-control form-control-sm text-dark fw-bold bg-white"
+                          value={currentPrompt.max_tokens}
+                          onChange={(e) => handleUpdateCurrentPrompt("max_tokens", parseInt(e.target.value) || 2000)}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="d-flex justify-content-end gap-2">
+                      <button
+                        type="submit"
+                        className="btn btn-primary fw-bold text-white shadow-sm px-4 py-2"
+                        disabled={savingPrompt}
+                      >
+                        {savingPrompt ? (
+                          <span>
+                            <span className="spinner-border spinner-border-sm me-2"></span>
+                            Guardando...
+                          </span>
+                        ) : (
+                          <span>
+                            <i className="ri-save-3-line me-1 text-white"></i> Guardar {selectedDocType === "global" ? "Reglas Globales" : "Parámetros"}
+                          </span>
+                        )}
+                      </button>
+                    </div>
+                  </form>
+                </div>
               </div>
             </div>
           </div>

@@ -19,9 +19,23 @@ CREATE TABLE IF NOT EXISTS diario_prompts (
 
 CREATE INDEX IF NOT EXISTS idx_diario_prompts_state ON diario_prompts(state_id);
 
--- 2. Seed de Prompts Iniciales para Guanajuato
+-- 2. Seed de Prompts Iniciales y Reglas Globales para Guanajuato
 INSERT INTO diario_prompts (state_id, document_type, system_prompt, filtering_rules, output_format, model, temperature, max_tokens)
 VALUES
+(
+  '00000000-0000-0000-0000-000000000011',
+  'global',
+  'DIRECTRICES GENERALES DE INTELIGENCIA Y SEGURIDAD:
+1. Idioma y Tono: Redactar estrictamente en español formal, sobrio y ejecutivo mexicano, adecuado para la titular del Poder Ejecutivo y el Gabinete Legal y Ampliado.
+2. Veracidad y Fuentes: Cero alucinaciones. No inferir nombres, cifras ni acontecimientos que no se encuentren respaldados en el texto extraído por OCR.
+3. Descarte Estricto: Omitir de forma taxativa noticias deportivas, notas de espectáculos, farándula, notas de sociales y cartelera cultural no oficial.
+4. Enfoque Soberano: Destacar el impacto concreto sobre el Estado de Guanajuato y sus 46 municipios (seguridad, inversión económica, gobernabilidad y obras públicas).',
+  'Filtrar cualquier nota sin relevancia de política pública o seguridad. Conservar información verificable.',
+  'Formato JSON estándar SentinelIQ con resumen_ejecutivo, puntos_clave (Top 5), temas de seguridad, política, economía y mini_resumen.',
+  'claude-3-5-sonnet-20241022',
+  0.20,
+  2000
+),
 (
   '00000000-0000-0000-0000-000000000011',
   'primeras_planas_estatal',
