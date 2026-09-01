@@ -19,20 +19,38 @@ echo "----------------------------------------------------------"
 docker compose -p sentineliq-qro -f docker-compose.prod.yml up -d sentineliq-postgres sentineliq-redis
 docker compose -p sentineliq-gto -f docker-compose.gto.yml up -d sentineliq-gto-postgres sentineliq-gto-redis
 
-echo "⏳ Esperando 5 segundos a que PostgreSQL acepte conexiones..."
-sleep 5
+echo "⏳ Verificando disponibilidad de bases de datos..."
+sleep 3
 
-# 3. Aplicar Migraciones SQL en PostgreSQL automáticamente
+# 3. Aplicar Migraciones SQL SOLO SI HAY ARCHIVOS NUEVOS O NO APLICADOS
 echo "----------------------------------------------------------"
-echo "🗄️ Actualizando esquemas de Base de Datos PostgreSQL..."
+echo "🗄️ Verificando esquemas de Base de Datos PostgreSQL..."
 echo "----------------------------------------------------------"
+APPLIED_LOG=".applied_migrations"
+touch "$APPLIED_LOG"
+
+pending_migrations=0
 for sql_file in rust-api/migrations/*.sql; do
   if [ -f "$sql_file" ]; then
-    echo "  -> Aplicando migración: $(basename "$sql_file")"
-    docker exec -i sentineliq_postgres psql -U sentinel -d sentineliq < "$sql_file" 2>/dev/null || true
-    docker exec -i sentineliq_gto_postgres psql -U sentineliq -d sentineliq_gto < "$sql_file" 2>/dev/null || true
+    fname=$(basename "$sql_file")
+    if ! grep -Fxq "$fname" "$APPLIED_LOG" || [ "$1" == "--force-migrations" ]; then
+      echo "  -> Aplicando nueva migración: $fname"
+      docker exec -i sentineliq_postgres psql -U sentinel -d sentineliq < "$sql_file" 2>/dev/null || true
+      docker exec -i sentineliq_gto_postgres psql -U sentineliq -d sentineliq_gto < "$sql_file" 2>/dev/null || true
+      echo "$fname" >> "$APPLIED_LOG"
+      pending_migrations=$((pending_migrations + 1))
+    fi
   fi
 done
+
+# Eliminar duplicados en el registro
+sort -u "$APPLIED_LOG" -o "$APPLIED_LOG"
+
+if [ $pending_migrations -eq 0 ]; then
+  echo "  ✅ Esquemas de Base de Datos al día (sin migraciones pendientes)."
+else
+  echo "  ✅ $pending_migrations nueva(s) migración(es) aplicada(s) exitosamente."
+fi
 
 # 4. Recompilar y levantar Querétaro + ARGOS Gateway
 echo "----------------------------------------------------------"
@@ -47,7 +65,7 @@ echo "----------------------------------------------------------"
 docker compose -p sentineliq-gto -f docker-compose.gto.yml up -d --build --remove-orphans
 
 # 6. Configurar Nginx para permitir subida de archivos grandes (PDFs de 16MB a 100MB)
-echo "📁 Configurando límite de subida (client_max_body_size 100M) en Nginx..."
+echo "📁 Verificando configuración de subida (client_max_body_size 100M) en Nginx..."
 if [ -d /etc/nginx/conf.d ]; then
   echo "client_max_body_size 100M;" > /etc/nginx/conf.d/upload_limits.conf 2>/dev/null || true
 fi
@@ -60,12 +78,12 @@ systemctl reload nginx 2>/dev/null || true
 echo "=========================================================="
 echo " 🩺 Verificando Estado de Puertos Internos..."
 echo "=========================================================="
-sleep 3
+sleep 2
 curl -s -I http://127.0.0.1:3004 | head -n 1 && echo "  - Querétaro Next.js (:3004): OK" || echo "  - Querétaro Next.js (:3004): ERROR"
 curl -s -I http://127.0.0.1:3005 | head -n 1 && echo "  - Guanajuato Next.js (:3005): OK" || echo "  - Guanajuato Next.js (:3005): ERROR"
 curl -s -I http://127.0.0.1:8088/health | head -n 1 && echo "  - ARGOS Gateway (:8088): OK" || echo "  - ARGOS Gateway (:8088): ERROR"
 
 echo "=========================================================="
-echo " ✅ Despliegue y Migraciones Finalizadas Exitosamente"
+echo " ✅ Despliegue Finalizado Exitosamente"
 echo "=========================================================="
 docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
