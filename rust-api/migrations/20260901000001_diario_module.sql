@@ -2,6 +2,17 @@
 -- Migración: Módulo Diario (Prensa OCR + Resumen Ejecutivo + Distribución)
 -- ==============================================================================
 
+-- 0. Asegurar registro del Estado de Guanajuato (Clave INEGI 11)
+INSERT INTO states (id, name, clave_inegi, polygon, nombre_dependencia, color_primario)
+VALUES (
+  '00000000-0000-0000-0000-000000000011',
+  'Guanajuato',
+  '11',
+  '{"type": "Polygon", "coordinates": [[[-102.1, 20.0], [-100.0, 20.0], [-100.0, 21.9], [-102.1, 21.9], [-102.1, 20.0]]]}',
+  'Despacho de la Gobernadora del Estado de Guanajuato',
+  '#1d4ed8'
+) ON CONFLICT (clave_inegi) DO NOTHING;
+
 -- 1. Documentos PDF del Diario recibidos y procesados
 CREATE TABLE IF NOT EXISTS diario_documents (
   id                UUID PRIMARY KEY DEFAULT gen_random_uuid(),

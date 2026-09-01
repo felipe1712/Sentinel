@@ -41,6 +41,7 @@ export interface FuenteItem {
 
 export interface StateConfig {
   key: "gto" | "qro";
+  stateId: string;
   name: string;
   shortName: string;
   inegiCode: string;
@@ -69,6 +70,7 @@ export interface StateConfig {
 
 export const QUERETARO_CONFIG: StateConfig = {
   key: "qro",
+  stateId: "11111111-1111-1111-1111-111111111111",
   name: "Estado de Querétaro",
   shortName: "Querétaro",
   inegiCode: "22",
@@ -214,6 +216,7 @@ export const QUERETARO_CONFIG: StateConfig = {
 
 export const GUANAJUATO_CONFIG: StateConfig = {
   key: "gto",
+  stateId: "00000000-0000-0000-0000-000000000011",
   name: "Estado de Guanajuato",
   shortName: "Guanajuato",
   inegiCode: "11",
