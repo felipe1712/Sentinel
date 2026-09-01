@@ -49,6 +49,15 @@ export const Sidebar: React.FC = () => {
             </Link>
           </li>
 
+          {/* Módulo Diario (OCR de Prensa + Resumen Ejecutivo) */}
+          <li className="nav-item">
+            <Link href="/diario" className={`nav-link ${isActive("/diario") ? "active fw-bold text-primary" : "text-dark"}`}>
+              <i className="ri-newspaper-line me-2 text-primary"></i> 
+              <span>Diario</span>
+              <span className="badge bg-primary text-white ms-auto fs-10 fw-bold">07:00 AM</span>
+            </Link>
+          </li>
+
           {isGobernador && (
             <li className="nav-item">
               <Link href="/situacion/ejecutiva" className={`nav-link ${isActive("/situacion/ejecutiva") ? "active fw-bold text-primary" : "text-dark"}`}>

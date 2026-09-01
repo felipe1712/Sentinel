@@ -18,20 +18,26 @@ export default function SituacionPage() {
   const [stateCfg, setStateCfg] = useState<StateConfig>(getStateConfig());
   const [events, setEvents] = useState<any[]>([]);
   const [snapshot, setSnapshot] = useState<any>(null);
+  const [diarioResumenes, setDiarioResumenes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const cfg = getStateConfig();
     setStateCfg(cfg);
+    const today = new Date().toISOString().split("T")[0];
 
     async function loadData() {
       try {
-        const [evResp, snapResp] = await Promise.all([
+        const [evResp, snapResp, diarioResp] = await Promise.all([
           api.get("/events?limit=5"),
           api.get("/cabinet/snapshot"),
+          api.get(`/diario/resumenes/${cfg.stateId}/${today}`).catch(() => ({ data: [] })),
         ]);
         setEvents(evResp.data);
         setSnapshot(snapResp.data);
+        if (diarioResp && Array.isArray(diarioResp.data)) {
+          setDiarioResumenes(diarioResp.data);
+        }
       } catch (err) {
         console.error("Error cargando situación:", err);
       } finally {
@@ -40,6 +46,9 @@ export default function SituacionPage() {
     }
     loadData();
   }, []);
+
+  const miniGto = diarioResumenes.find((r) => r.document_type === "primeras_planas_estatal")?.mini_resumen;
+  const miniSintesis = diarioResumenes.find((r) => r.document_type === "sintesis_estatal")?.mini_resumen;
 
   return (
     <div className="pb-5">
@@ -60,6 +69,9 @@ export default function SituacionPage() {
           <Link href="/situacion/ejecutiva" className="btn btn-outline-primary btn-sm fw-bold">
             <i className="ri-user-star-line me-1"></i> Vista Gobernador
           </Link>
+          <Link href="/diario" className="btn btn-outline-dark btn-sm fw-bold">
+            <i className="ri-newspaper-line me-1"></i> Diario (07:00 AM)
+          </Link>
           <Link href="/briefing" className="btn btn-primary btn-sm fw-bold shadow-sm">
             <i className="ri-file-list-3-line me-1"></i> Briefing Matutino (05:30)
           </Link>
@@ -68,7 +80,7 @@ export default function SituacionPage() {
 
       {/* Grid 4 Cuadrantes Modo Claro Dinámico */}
       <div className="row g-4">
-        {/* Cuadrante 1: Semáforos por Área */}
+        {/* Cuadrante 1: Semáforos por Área + Mini-sección Diario */}
         <div className="col-lg-6">
           <div className="card bg-white border-0 shadow-sm h-100 rounded-3">
             <div className="card-header bg-white border-bottom py-3">
@@ -98,6 +110,32 @@ export default function SituacionPage() {
                 mensaje={stateCfg.prioridades[2]?.descripcion || "Mesas de trabajo y concertación parlamentaria activas."}
                 tendencia="estable"
               />
+
+              {/* Mini-sección Diario de Hoy */}
+              <div className="mt-3 p-3 bg-light rounded-3 border border-gray-200 shadow-sm">
+                <div className="d-flex justify-content-between align-items-center mb-2 pb-1 border-bottom">
+                  <strong className="fs-12 text-dark text-uppercase fw-extrabold" style={{ color: "#0f172a" }}>
+                    📰 DIARIO DE HOY (PRENSA)
+                  </strong>
+                  <Link href="/diario" className="fs-11 fw-bold text-primary text-decoration-none">
+                    ver completo &rarr;
+                  </Link>
+                </div>
+                <ul className="list-unstyled mb-0 fs-12 text-dark fw-semibold lh-base">
+                  <li className="mb-2">
+                    <span className="fw-bold text-primary">• Primeras Planas Gto:</span>{" "}
+                    <span style={{ color: "#1e293b" }}>
+                      {miniGto || "Monitoreo matutino de prensa local procesado y clasificado con Surya OCR."}
+                    </span>
+                  </li>
+                  <li>
+                    <span className="fw-bold text-primary">• Síntesis Estatal:</span>{" "}
+                    <span style={{ color: "#1e293b" }}>
+                      {miniSintesis || "Seguimiento a la agenda del gobernador y acuerdos de gobierno de la entidad."}
+                    </span>
+                  </li>
+                </ul>
+              </div>
             </div>
           </div>
         </div>

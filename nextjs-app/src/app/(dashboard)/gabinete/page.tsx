@@ -30,6 +30,7 @@ export default function GabineteView() {
   const [stateCfg, setStateCfg] = useState<StateConfig>(getStateConfig());
   const [isCrisis, setIsCrisis] = useState(false);
   const [snapshot, setSnapshot] = useState<any>(null);
+  const [diarioResumenes, setDiarioResumenes] = useState<any[]>([]);
   const [selectedDetail, setSelectedDetail] = useState<DrilldownItem | null>(null);
 
   const detailPanelRef = useRef<HTMLDivElement>(null);
@@ -37,6 +38,7 @@ export default function GabineteView() {
   useEffect(() => {
     const cfg = getStateConfig();
     setStateCfg(cfg);
+    const today = new Date().toISOString().split("T")[0];
 
     const firstM = cfg.municipios[0];
     setSelectedDetail({
@@ -62,8 +64,14 @@ export default function GabineteView() {
 
     async function load() {
       try {
-        const resp = await api.get("/cabinet/snapshot");
-        setSnapshot(resp.data);
+        const [snapResp, diarioResp] = await Promise.all([
+          api.get("/cabinet/snapshot"),
+          api.get(`/diario/resumenes/${cfg.stateId}/${today}`).catch(() => ({ data: [] })),
+        ]);
+        setSnapshot(snapResp.data);
+        if (diarioResp && Array.isArray(diarioResp.data)) {
+          setDiarioResumenes(diarioResp.data);
+        }
       } catch (e) {
         console.error("Error cargando gabinete:", e);
       }
@@ -133,6 +141,9 @@ export default function GabineteView() {
     }, 100);
   };
 
+  const miniGto = diarioResumenes.find((r) => r.document_type === "primeras_planas_estatal")?.mini_resumen;
+  const miniSintesis = diarioResumenes.find((r) => r.document_type === "sintesis_estatal")?.mini_resumen?.split(".")[0];
+
   return (
     <div
       className={`min-vh-100 pt-4 pt-md-5 mt-2 px-3 px-md-4 px-lg-5 pb-5 ${
@@ -185,7 +196,7 @@ export default function GabineteView() {
           </div>
         </div>
 
-        {/* Derecha (40%): Semáforos Interactivos Modo Claro */}
+        {/* Derecha (40%): Semáforos Interactivos + Prensa de Hoy */}
         <div className="col-lg-5">
           <div className="card bg-white border-0 h-100 shadow-sm rounded-3">
             <div className="card-header bg-white border-bottom d-flex justify-content-between align-items-center py-3">
@@ -251,6 +262,22 @@ export default function GabineteView() {
                   mensaje={stateCfg.prioridades[2]?.descripcion}
                   tendencia="estable"
                 />
+              </div>
+
+              {/* Mini-sección: PRENSA DE HOY (Pantalla Proyector) */}
+              <div className="p-3 bg-light rounded-3 border border-gray-300 shadow-sm mt-1">
+                <div className="d-flex justify-content-between align-items-center mb-2">
+                  <span className="badge bg-primary text-white fs-11 fw-bold text-uppercase">
+                    📰 PRENSA DE HOY (07:00 AM)
+                  </span>
+                  <span className="badge bg-success text-white fs-10 fw-bold">OCR Listo</span>
+                </div>
+                <div className="fs-14 fw-extrabold text-dark mb-1 lh-base" style={{ color: "#0f172a" }}>
+                  {miniGto || "Monitoreo matutino de periódicos estatales listo para revisión ejecutiva de la mesa."}
+                </div>
+                <div className="fs-12 text-muted fw-semibold">
+                  {miniSintesis || "Síntesis informativa de dependencias y acuerdos de gobierno."}
+                </div>
               </div>
             </div>
           </div>

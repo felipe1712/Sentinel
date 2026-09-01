@@ -2,6 +2,7 @@ pub mod admin;
 pub mod auth;
 pub mod briefings;
 pub mod cabinet;
+pub mod diario;
 pub mod dossiers;
 pub mod events;
 pub mod gis;
@@ -15,7 +16,7 @@ pub mod spiderfoot;
 
 use axum::{
     extract::FromRef,
-    routing::{get, patch, post},
+    routing::{delete, get, patch, post},
     Router,
 };
 use sqlx::PgPool;
@@ -68,6 +69,25 @@ pub fn create_router(pool: PgPool) -> Router {
         .route("/gis/results", get(gis::list_electoral_results))
         .route("/gis/comparison", get(gis::get_swing_comparison))
         .route("/gis/events", get(gis::list_gis_events).post(gis::create_gis_event))
+        // Módulo Diario (Prensa OCR + Resumen Ejecutivo + Distribución)
+        .route("/diario/documents/:state_id/:fecha", get(diario::list_documents))
+        .route("/diario/documents/:id", get(diario::get_document_by_id))
+        .route("/diario/documents", post(diario::create_document))
+        .route("/diario/documents/:id/status", patch(diario::update_document_status))
+        .route("/diario/ocr-results", post(diario::save_ocr_result))
+        .route("/diario/ocr-results/:doc_id", get(diario::get_ocr_results_by_doc))
+        .route("/diario/items", post(diario::save_item))
+        .route("/diario/items/:state_id/:fecha", get(diario::list_items))
+        .route("/diario/resumenes", post(diario::save_resumen))
+        .route("/diario/resumenes/:state_id/:fecha", get(diario::list_resumenes))
+        .route("/diario/resumenes/:id", get(diario::get_resumen_by_id))
+        .route("/diario/status/:state_id/:fecha", get(diario::get_daily_status))
+        .route("/diario/lista-distribucion/:state_id", get(diario::list_distribucion))
+        .route("/diario/lista-distribucion", post(diario::create_distribucion))
+        .route("/diario/lista-distribucion/:id", delete(diario::delete_distribucion))
+        .route("/diario/envios", post(diario::save_envio))
+        .route("/diario/envios/:state_id/:fecha", get(diario::list_envios))
+        .route("/diario/trigger/:state_id", post(diario::trigger_pipeline))
         // Dossiers
         .route("/dossiers", get(dossiers::list_dossiers).post(dossiers::create_dossier))
         .route("/dossiers/:id", get(dossiers::get_dossier))
