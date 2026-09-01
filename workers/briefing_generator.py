@@ -148,9 +148,17 @@ async def fn_generate_briefing():
             "mcp_intel": mcp_data
         }
 
-        logger.info(f"Briefing Matutino para {state_name} generado exitosamente.")
-        return briefing_payload
+async def main_loop():
+    logger.info("⚡ SentinelIQ Workers daemon iniciado y escuchando tareas...")
+    while True:
+        try:
+            res = await fn_generate_briefing()
+            logger.info(f"✅ Tarea periódica completada: {res.get('title')}")
+        except Exception as e:
+            logger.error(f"Error en ciclo de worker: {e}")
+        # Esperar 1 hora antes de la siguiente verificación automática
+        await asyncio.sleep(3600)
 
 if __name__ == "__main__":
-    res = asyncio.run(fn_generate_briefing())
-    print("Briefing Result:", res["title"])
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
+    asyncio.run(main_loop())
