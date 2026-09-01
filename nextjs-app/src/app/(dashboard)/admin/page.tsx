@@ -102,7 +102,7 @@ const DEFAULT_PROMPTS: Record<string, PromptConfig> = {
     filtering_rules:
       "- Filtrar cualquier nota sin relevancia de política pública o seguridad.\n- Conservar información verificable con nombre de fuente y página.",
     output_format:
-      "- Resumen ejecutivo (4-5 oraciones)\n- Top 5 Puntos Clave\n- Balances temáticos (Seguridad, Política, Economía)\n- Mini-resumen de 3 líneas",
+      "JSON estructurado estándar SentinelIQ:\n{\n  \"resumen_ejecutivo\": \"Texto fluido de 4-5 oraciones en tono memo ejecutivo\",\n  \"puntos_clave\": [\"Punto 1\", \"Punto 2\", \"Punto 3\", \"Punto 4\", \"Punto 5\"],\n  \"temas_seguridad\": \"Párrafo de seguridad y justicia\",\n  \"temas_politica\": \"Párrafo de gobernabilidad y acuerdos\",\n  \"temas_economia\": \"Párrafo de economía, finanzas y obra\",\n  \"relevancia_estatal\": \"Impacto y atención prioritaria para Guanajuato\",\n  \"mini_resumen\": \"3 líneas para widget y proyector de gabinete\",\n  \"digest_whatsapp_telegram\": \"Texto con formato móvil (*, •, emojis) listo para difusión\"\n}",
     model: "claude-3-7-sonnet-20250219",
     temperature: 0.2,
     max_tokens: 2500,
@@ -114,7 +114,7 @@ const DEFAULT_PROMPTS: Record<string, PromptConfig> = {
     filtering_rules:
       "1. Priorizar despliegues de seguridad (FSPE, Ejército, operativos Celaya, Irapuato, León, Salamanca).\n2. Extraer anuncios de inversión económica (Puerto Interior, automotriz, parques industriales).\n3. Resaltar declaraciones de alcaldes y temas de gobernabilidad regional.",
     output_format:
-      "JSON estructurado con:\n- resumen_ejecutivo: Síntesis fluida de 4-5 oraciones.\n- puntos_clave: Arreglo de 5 viñetas de alto impacto.\n- temas_seguridad: Párrafo de balance operativo.\n- temas_politica: Párrafo de gobernabilidad y acuerdos.\n- temas_economia: Párrafo de finanzas e inversión.\n- relevancia_estatal: Recomendación prioritaria para el despacho ejecutivo.\n- mini_resumen: Síntesis de 3 líneas para pantalla proyector.",
+      "JSON estructurado con:\n- resumen_ejecutivo: Síntesis fluida de 4-5 oraciones.\n- puntos_clave: Arreglo de 5 viñetas con hechos de mayor impacto en Guanajuato.\n- temas_seguridad: Párrafo de balance operativo y despliegues.\n- temas_politica: Párrafo de gobernabilidad, alcaldías y Congreso.\n- temas_economia: Párrafo de inversiones y obras en el estado.\n- relevancia_estatal: Recomendación prioritaria para la Gobernadora hoy.\n- mini_resumen: Síntesis de 3 líneas para pantalla proyector.\n- digest_whatsapp_telegram: Entregable listo para enviar con formato móvil.",
     model: "claude-3-7-sonnet-20250219",
     temperature: 0.2,
     max_tokens: 2500,
@@ -126,7 +126,7 @@ const DEFAULT_PROMPTS: Record<string, PromptConfig> = {
     filtering_rules:
       "1. Filtrar notas de política federal, tipo de cambio, presupuesto de egresos, seguridad nacional y comercio exterior.\n2. Evaluar el impacto específico de cada política federal en la región del Bajío.",
     output_format:
-      "JSON con puntos clave nacionales y sección prioritaria de Relevancia Estatal.",
+      "JSON estructurado con:\n- resumen_ejecutivo: Síntesis de 4-5 oraciones con lo más relevante de la prensa nacional.\n- puntos_clave: Arreglo de 5 viñetas con temas federales clave.\n- temas_seguridad: Estrategia y operativos federales de seguridad.\n- temas_politica: Política federal y relación con las entidades.\n- temas_economia: Tipo de cambio, presupuesto y comercio exterior.\n- relevancia_estatal: Impacto directo y acciones que debe tomar Guanajuato.\n- mini_resumen: Síntesis de 3 líneas para monitoreo rápido.\n- digest_whatsapp_telegram: Entregable listo para enviar con formato móvil.",
     model: "claude-3-7-sonnet-20250219",
     temperature: 0.2,
     max_tokens: 2500,
@@ -134,11 +134,11 @@ const DEFAULT_PROMPTS: Record<string, PromptConfig> = {
   sintesis_estatal: {
     document_type: "sintesis_estatal",
     system_prompt:
-      "Procesar la Síntesis Estatal Oficial generada por las dependencias públicas. Destacar acuerdos de gobierno, entregas de obra pública, convenios municipales y agenda del Poder Ejecutivo.",
+      "Procesar la Síntesis Estatal Oficial de Guanajuato generada por dependencias públicas. Destacar acuerdos de gobierno, entregas de obra pública, convenios municipales y agenda del Poder Ejecutivo.",
     filtering_rules:
       "Conservar todos los comunicados oficiales, convenios interinstitucionales y anuncios de dependencias de gobierno.",
     output_format:
-      "Resumen estructurado con agenda del día, acuerdos y prioridades para el gabinete de gobierno.",
+      "JSON estructurado con:\n- resumen_ejecutivo: Síntesis de 4-5 oraciones sobre la agenda y acuerdos oficiales del Gobierno del Estado.\n- puntos_clave: Arreglo de 5 viñetas con los compromisos y anuncios prioritarios.\n- temas_seguridad: Acciones y equipamiento de seguridad del gobierno estatal.\n- temas_politica: Agenda política, convenios con alcaldes y gira del Ejecutivo.\n- temas_economia: Obra pública, infraestructura y programas de desarrollo.\n- relevancia_estatal: Compromisos prioritarios que requieren atención inmediata.\n- mini_resumen: Síntesis de 3 líneas para monitoreo rápido.\n- digest_whatsapp_telegram: Entregable listo para enviar con formato móvil.",
     model: "claude-3-5-sonnet-20241022",
     temperature: 0.15,
     max_tokens: 2000,
@@ -146,11 +146,11 @@ const DEFAULT_PROMPTS: Record<string, PromptConfig> = {
   columnas_politicas: {
     document_type: "columnas_politicas",
     system_prompt:
-      "Analizar las Columnas Políticas de opinión del Estado. Identificar el balance de opinión pública, críticas constructivas hacia dependencias estatales y prospectiva política en los municipios.",
+      "Analizar las Columnas Políticas de opinión de Guanajuato. Identificar el balance de opinión pública, críticas constructivas hacia dependencias estatales y prospectiva política en los 46 municipios.",
     filtering_rules:
       "Descartar sociales y deportes. Enfocarse en gobernabilidad, legislatura local y acuerdos políticos.",
     output_format:
-      "Puntos de opinión clave, análisis de riesgos de reputación y balance cualitativo de medios.",
+      "JSON estructurado con:\n- resumen_ejecutivo: Síntesis de 4-5 oraciones sobre la narrativa predominante de los columnistas.\n- puntos_clave: Arreglo de 5 viñetas con las opiniones y análisis más trascendentes.\n- temas_seguridad: Postura y balance de columnistas sobre seguridad.\n- temas_politica: Gobernabilidad, fracciones legislativas y acuerdos.\n- temas_economia: Opinión sobre clima de negocios y finanzas públicas.\n- relevancia_estatal: Riesgos de reputación o temas que el Despacho debe atender.\n- mini_resumen: Síntesis de 3 líneas con el pulso mediático.\n- digest_whatsapp_telegram: Entregable listo para enviar con formato móvil.",
     model: "claude-3-7-sonnet-20250219",
     temperature: 0.25,
     max_tokens: 2500,
@@ -578,13 +578,13 @@ export default function AdminPage() {
                     {/* TextBox 3: Output Format */}
                     <div className="mb-4">
                       <label className="form-label text-dark fw-extrabold fs-13 mb-1" style={{ color: "#0f172a" }}>
-                        3. Estructura y Formato del Resumen Ejecutivo:
+                        3. Estructura y Formato del Resumen Ejecutivo (JSON):
                       </label>
                       <small className="text-muted d-block mb-2 fs-12">
-                        Estructura esperada del resumen ejecutivo y formato de entrega.
+                        Esquema JSON obligatorio para alimentar el sistema y generar el entregable de WhatsApp / Telegram.
                       </small>
                       <textarea
-                        rows={4}
+                        rows={6}
                         className="form-control text-dark font-monospace fs-13 border-gray-300 shadow-sm"
                         style={{ backgroundColor: "#f8fafc", color: "#0f172a" }}
                         value={currentPrompt.output_format}
