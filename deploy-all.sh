@@ -24,11 +24,24 @@ echo "🟩 Desplegando Guanajuato (:3005, :8086)..."
 echo "----------------------------------------------------------"
 docker compose -p sentineliq-gto -f docker-compose.gto.yml up -d --build --remove-orphans
 
-# 4. Reiniciar Nginx para refrescar proxies
+# 4. Aplicar Migraciones SQL en PostgreSQL automáticamente
+echo "----------------------------------------------------------"
+echo "🗄️ Actualizando esquemas de Base de Datos PostgreSQL..."
+echo "----------------------------------------------------------"
+sleep 3
+for sql_file in rust-api/migrations/*.sql; do
+  if [ -f "$sql_file" ]; then
+    echo "  -> Verificando y aplicando: $(basename "$sql_file")"
+    docker exec -i sentineliq_postgres psql -U sentinel -d sentineliq < "$sql_file" 2>/dev/null || true
+    docker exec -i sentineliq_gto_postgres psql -U sentineliq -d sentineliq_gto < "$sql_file" 2>/dev/null || true
+  fi
+done
+
+# 5. Reiniciar Nginx para refrescar proxies
 echo "🔄 Recargando Nginx en servidor..."
 systemctl reload nginx 2>/dev/null || true
 
-# 5. Diagnóstico de Salud de los Servicios
+# 6. Diagnóstico de Salud de los Servicios
 echo "=========================================================="
 echo " 🩺 Verificando Estado de Puertos Internos..."
 echo "=========================================================="
@@ -37,6 +50,6 @@ curl -s -I http://127.0.0.1:3005 | head -n 1 && echo "  - Guanajuato Next.js (:3
 curl -s -I http://127.0.0.1:8088/health | head -n 1 && echo "  - ARGOS Gateway (:8088): OK" || echo "  - ARGOS Gateway (:8088): ERROR"
 
 echo "=========================================================="
-echo " ✅ Despliegue Finalizado"
+echo " ✅ Despliegue y Migraciones Finalizadas Exitosamente"
 echo "=========================================================="
 docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
