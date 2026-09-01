@@ -5,7 +5,6 @@ use axum::{
 use serde::Deserialize;
 use serde_json::json;
 use sqlx::PgPool;
-use tokio::sync::broadcast::Sender;
 use uuid::Uuid;
 use crate::{
     auth::middleware::AuthUser,
@@ -51,7 +50,6 @@ pub async fn list_events(
 pub async fn create_event(
     auth: AuthUser,
     State(pool): State<PgPool>,
-    State(tx_event): State<Sender<String>>,
     Json(payload): Json<CreateEventDTO>,
 ) -> Result<Json<Event>, AppError> {
     auth.require_role(&["analista", "jefe_oficina", "superadmin"])?;
@@ -81,10 +79,6 @@ pub async fn create_event(
     .bind(occurred_at)
     .fetch_one(&pool)
     .await?;
-
-    if let Ok(event_json) = serde_json::to_string(&event) {
-        let _ = tx_event.send(event_json);
-    }
 
     Ok(Json(event))
 }
