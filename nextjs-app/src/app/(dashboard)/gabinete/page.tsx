@@ -66,7 +66,9 @@ export default function GabineteView() {
       try {
         const [snapResp, diarioResp] = await Promise.all([
           api.get("/cabinet/snapshot"),
-          api.get(`/diario/resumenes/${cfg.stateId}/${today}`).catch(() => ({ data: [] })),
+          cfg.key === "gto"
+            ? api.get(`/diario/resumenes/${cfg.stateId || "gto"}/${today}`).catch(() => ({ data: [] }))
+            : Promise.resolve({ data: [] }),
         ]);
         setSnapshot(snapResp.data);
         if (diarioResp && Array.isArray(diarioResp.data)) {
@@ -264,21 +266,23 @@ export default function GabineteView() {
                 />
               </div>
 
-              {/* Mini-sección: PRENSA DE HOY (Pantalla Proyector) */}
-              <div className="p-3 bg-light rounded-3 border border-gray-300 shadow-sm mt-1">
-                <div className="d-flex justify-content-between align-items-center mb-2">
-                  <span className="badge bg-primary text-white fs-11 fw-bold text-uppercase">
-                    📰 PRENSA DE HOY (07:00 AM)
-                  </span>
-                  <span className="badge bg-success text-white fs-10 fw-bold">OCR Listo</span>
+              {/* Mini-sección: PRENSA DE HOY (Exclusiva Guanajuato en proyector) */}
+              {stateCfg.key === "gto" && (
+                <div className="p-3 bg-light rounded-3 border border-gray-300 shadow-sm mt-1">
+                  <div className="d-flex justify-content-between align-items-center mb-2">
+                    <span className="badge bg-primary text-white fs-11 fw-bold text-uppercase">
+                      📰 PRENSA DE HOY (07:00 AM)
+                    </span>
+                    <span className="badge bg-success text-white fs-10 fw-bold">OCR Listo</span>
+                  </div>
+                  <div className="fs-14 fw-extrabold text-dark mb-1 lh-base" style={{ color: "#0f172a" }}>
+                    {miniGto || "Monitoreo matutino de periódicos estatales listo para revisión ejecutiva de la mesa."}
+                  </div>
+                  <div className="fs-12 text-muted fw-semibold">
+                    {miniSintesis || "Síntesis informativa de dependencias y acuerdos de gobierno."}
+                  </div>
                 </div>
-                <div className="fs-14 fw-extrabold text-dark mb-1 lh-base" style={{ color: "#0f172a" }}>
-                  {miniGto || "Monitoreo matutino de periódicos estatales listo para revisión ejecutiva de la mesa."}
-                </div>
-                <div className="fs-12 text-muted fw-semibold">
-                  {miniSintesis || "Síntesis informativa de dependencias y acuerdos de gobierno."}
-                </div>
-              </div>
+              )}
             </div>
           </div>
         </div>

@@ -60,7 +60,6 @@ const DOC_TYPES = [
   { key: "columnas_politicas", label: "✍️ Columnas Políticas", icon: "ri-quill-pen-line" },
 ];
 
-// Fallback de demostración soberana para cuando no hay documentos cargados en la fecha
 const DEFAULT_DEMO_RESUMENES: Record<string, DiarioResumen> = {
   primeras_planas_estatal: {
     id: "demo_gto",
@@ -200,13 +199,11 @@ export default function DiarioPage() {
   // Estados de datos
   const [resumenes, setResumenes] = useState<Record<string, DiarioResumen>>(DEFAULT_DEMO_RESUMENES);
   const [itemsList, setItemsList] = useState<DiarioItem[]>(DEFAULT_DEMO_ITEMS);
-  const [docStatuses, setDocStatuses] = useState<Record<string, DiarioDocStatus>>({});
   const [distribucion, setDistribucion] = useState<DistribucionItem[]>([
     { id: "d1", nombre: "C. Gobernador del Estado", email: "despacho@guanajuato.gob.mx", telegram_chat_id: "@GobernadorGTO", recibe_email: true, recibe_telegram: true, activo: true },
     { id: "d2", nombre: "Jefe de la Oficina del Ejecutivo", email: "jefe.oficina@guanajuato.gob.mx", telegram_chat_id: "@JefaturaGTO", recibe_email: true, recibe_telegram: true, activo: true },
     { id: "d3", nombre: "Secretario de Seguridad y Paz", email: "seguridad@fspe.gob.mx", telegram_chat_id: "@SeguridadGTO", recibe_email: true, recibe_telegram: true, activo: true },
   ]);
-  const [loading, setLoading] = useState(false);
 
   // Estados de UI
   const [showUploadModal, setShowUploadModal] = useState(false);
@@ -228,44 +225,31 @@ export default function DiarioPage() {
   }, [selectedDate]);
 
   const loadDiarioData = async (cfg: StateConfig) => {
-    setLoading(true);
     const stateIdentifier = cfg.stateId || cfg.key || "gto";
     try {
-      // 1. Obtener status de documentos
-      const statusRes = await api.get(`/diario/status/${stateIdentifier}/${selectedDate}`);
-      if (statusRes.data && statusRes.data.documents) {
-        const statuses: Record<string, DiarioDocStatus> = {};
-        statusRes.data.documents.forEach((d: any) => {
-          statuses[d.document_type] = d;
-        });
-        setDocStatuses(statuses);
-      }
-
-      // 2. Obtener resúmenes ejecutivos
+      // 1. Obtener resúmenes ejecutivos
       const resRes = await api.get(`/diario/resumenes/${stateIdentifier}/${selectedDate}`);
       if (resRes.data && Array.isArray(resRes.data) && resRes.data.length > 0) {
         const resMap: Record<string, DiarioResumen> = {};
         resRes.data.forEach((r: DiarioResumen) => {
           resMap[r.document_type] = r;
         });
-        setResumenes(resMap);
+        setResumenes((prev) => ({ ...prev, ...resMap }));
       }
 
-      // 3. Obtener items filtrados
+      // 2. Obtener items filtrados
       const itemsRes = await api.get(`/diario/items/${stateIdentifier}/${selectedDate}`);
       if (itemsRes.data && Array.isArray(itemsRes.data) && itemsRes.data.length > 0) {
         setItemsList(itemsRes.data);
       }
 
-      // 4. Lista de distribución
+      // 3. Lista de distribución
       const distRes = await api.get(`/diario/lista-distribucion/${stateIdentifier}`);
       if (distRes.data && Array.isArray(distRes.data) && distRes.data.length > 0) {
         setDistribucion(distRes.data);
       }
     } catch (err) {
       console.warn("Usando catálogo soberano de respaldo para el Módulo Diario:", err);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -275,38 +259,11 @@ export default function DiarioPage() {
     const stateIdentifier = stateCfg.stateId || stateCfg.key || "gto";
 
     try {
-      const resp = await api.post(`/diario/trigger/${stateIdentifier}`, { fecha: selectedDate });
+      await api.post(`/diario/trigger/${stateIdentifier}`, { fecha: selectedDate });
       setUploadFeedback(`✅ Pipeline ejecutado exitosamente para la fecha ${selectedDate}. Documentos procesados y resúmenes ejecutivos generados.`);
-      
-      // Actualizar los estados de los 4 documentos a 'listo'
-      const updatedStatuses: Record<string, DiarioDocStatus> = {};
-      DOC_TYPES.forEach((d) => {
-        updatedStatuses[d.key] = {
-          id: d.key,
-          document_type: d.key,
-          status: "listo",
-          page_count: 4,
-          file_size_kb: 240,
-        };
-      });
-      setDocStatuses(updatedStatuses);
-      
-      // Recargar datos desde la base de datos
       loadDiarioData(stateCfg);
     } catch (err) {
       console.error("Error disparando pipeline:", err);
-      // Fallback amigable: marcar como listos los documentos de la demo
-      const updatedStatuses: Record<string, DiarioDocStatus> = {};
-      DOC_TYPES.forEach((d) => {
-        updatedStatuses[d.key] = {
-          id: d.key,
-          document_type: d.key,
-          status: "listo",
-          page_count: 4,
-          file_size_kb: 240,
-        };
-      });
-      setDocStatuses(updatedStatuses);
       setUploadFeedback(`✅ Resúmenes ejecutivos cargados y listos para la fecha ${selectedDate}.`);
     } finally {
       setTriggeringPipeline(false);
@@ -356,14 +313,27 @@ export default function DiarioPage() {
     setTimeout(() => setCopiedSuccess(false), 3000);
   };
 
+  // Si estamos en Querétaro, indicar que el módulo está activo solo para Guanajuato
+  if (stateCfg.key !== "gto") {
+    return (
+      <div className="card bg-white border-0 shadow-sm rounded-3 p-5 text-center my-4">
+        <div className="avatar-lg bg-light text-primary rounded-circle mx-auto mb-3 p-3 fs-36">
+          <i className="ri-newspaper-line"></i>
+        </div>
+        <h4 className="fw-extrabold text-dark mb-2">Módulo Diario (OCR de Prensa)</h4>
+        <p className="text-muted fs-14 mb-4 mx-auto" style={{ maxWidth: "500px" }}>
+          Este módulo está habilitado actualmente de forma exclusiva para el <strong>Estado de Guanajuato</strong>.
+        </p>
+        <div>
+          <Link href="/situacion" className="btn btn-primary fw-bold text-white shadow-sm px-4">
+            Volver a Situación Ejecutiva
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   const currentResumen = resumenes[activeTab] || DEFAULT_DEMO_RESUMENES[activeTab];
-  const currentDocStatus = docStatuses[activeTab] || {
-    id: activeTab,
-    document_type: activeTab,
-    status: "listo",
-    page_count: 4,
-    file_size_kb: 240,
-  };
 
   return (
     <div className="pb-5">
@@ -427,40 +397,61 @@ export default function DiarioPage() {
         </div>
       )}
 
-      {/* Navegación por Tabs Velzon */}
-      <div className="card bg-white border-0 shadow-sm rounded-3 mb-4">
+      {/* Barra de Tabs con Alto Contraste (Fondo Blanco Claro) */}
+      <div className="card bg-white border border-gray-200 shadow-sm rounded-3 mb-4">
         <div className="card-body p-2 bg-white">
-          <ul className="nav nav-pills nav-custom gap-2 flex-wrap">
+          <div className="d-flex flex-wrap gap-2 align-items-center">
             {DOC_TYPES.map((doc) => {
-              const st = docStatuses[doc.key]?.status || "listo";
+              const isActive = activeTab === doc.key;
               return (
-                <li key={doc.key} className="nav-item">
-                  <button
-                    className={`nav-link fw-bold d-flex align-items-center gap-2 ${
-                      activeTab === doc.key ? "active btn-primary text-white" : "text-dark"
+                <button
+                  key={doc.key}
+                  type="button"
+                  onClick={() => setActiveTab(doc.key)}
+                  className={`btn btn-md fw-bold d-flex align-items-center gap-2 px-3 py-2 fs-13 transition-all ${
+                    isActive
+                      ? "btn-primary text-white shadow"
+                      : "btn-light text-dark border"
+                  }`}
+                  style={{
+                    backgroundColor: isActive ? "#1d4ed8" : "#f8fafc",
+                    color: isActive ? "#ffffff" : "#0f172a",
+                    borderColor: isActive ? "#1d4ed8" : "#cbd5e1",
+                  }}
+                >
+                  <i className={`${doc.icon} fs-15`} style={{ color: isActive ? "#ffffff" : "#1d4ed8" }}></i>
+                  <span style={{ color: isActive ? "#ffffff" : "#0f172a" }}>{doc.label}</span>
+                  <span
+                    className={`badge fs-10 fw-bold ms-1 ${
+                      isActive ? "bg-white text-primary" : "bg-success text-white"
                     }`}
-                    onClick={() => setActiveTab(doc.key)}
                   >
-                    <i className={doc.icon}></i>
-                    <span>{doc.label}</span>
-                    <span className="badge bg-success text-white fs-10 fw-bold">Listo</span>
-                  </button>
-                </li>
+                    Listo
+                  </span>
+                </button>
               );
             })}
 
-            <li className="nav-item ms-auto">
+            <div className="ms-auto">
               <button
-                className={`nav-link fw-bold d-flex align-items-center gap-2 ${
-                  activeTab === "distribucion" ? "active btn-primary text-white" : "text-dark"
-                }`}
+                type="button"
                 onClick={() => setActiveTab("distribucion")}
+                className={`btn btn-md fw-bold d-flex align-items-center gap-2 px-3 py-2 fs-13 transition-all ${
+                  activeTab === "distribucion"
+                    ? "btn-primary text-white shadow"
+                    : "btn-light text-dark border"
+                }`}
+                style={{
+                  backgroundColor: activeTab === "distribucion" ? "#1d4ed8" : "#f8fafc",
+                  color: activeTab === "distribucion" ? "#ffffff" : "#0f172a",
+                  borderColor: activeTab === "distribucion" ? "#1d4ed8" : "#cbd5e1",
+                }}
               >
-                <i className="ri-send-plane-fill"></i>
-                <span>Distribución & Alertas</span>
+                <i className="ri-send-plane-fill fs-15" style={{ color: activeTab === "distribucion" ? "#ffffff" : "#1d4ed8" }}></i>
+                <span style={{ color: activeTab === "distribucion" ? "#ffffff" : "#0f172a" }}>Distribución & Alertas</span>
               </button>
-            </li>
-          </ul>
+            </div>
+          </div>
         </div>
       </div>
 

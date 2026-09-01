@@ -40,23 +40,27 @@ export const Sidebar: React.FC = () => {
             </Link>
           </li>
 
-          {/* WebGIS Político-Electoral */}
-          <li className="nav-item">
-            <Link href="/gis-electoral" className={`nav-link ${isActive("/gis-electoral") ? "active fw-bold text-primary" : "text-dark"}`}>
-              <i className="ri-map-2-line me-2 text-primary"></i> 
-              <span>WebGIS Electoral</span>
-              <span className="badge bg-primary text-white ms-auto fs-10 fw-bold">INE GIS</span>
-            </Link>
-          </li>
+          {/* WebGIS Político-Electoral (Exclusivo Guanajuato) */}
+          {stateCfg.key === "gto" && (
+            <li className="nav-item">
+              <Link href="/gis-electoral" className={`nav-link ${isActive("/gis-electoral") ? "active fw-bold text-primary" : "text-dark"}`}>
+                <i className="ri-map-2-line me-2 text-primary"></i> 
+                <span>WebGIS Electoral</span>
+                <span className="badge bg-primary text-white ms-auto fs-10 fw-bold">INE GIS</span>
+              </Link>
+            </li>
+          )}
 
-          {/* Módulo Diario (OCR de Prensa + Resumen Ejecutivo) */}
-          <li className="nav-item">
-            <Link href="/diario" className={`nav-link ${isActive("/diario") ? "active fw-bold text-primary" : "text-dark"}`}>
-              <i className="ri-newspaper-line me-2 text-primary"></i> 
-              <span>Diario</span>
-              <span className="badge bg-primary text-white ms-auto fs-10 fw-bold">07:00 AM</span>
-            </Link>
-          </li>
+          {/* Módulo Diario (Exclusivo Guanajuato) */}
+          {stateCfg.key === "gto" && (
+            <li className="nav-item">
+              <Link href="/diario" className={`nav-link ${isActive("/diario") ? "active fw-bold text-primary" : "text-dark"}`}>
+                <i className="ri-newspaper-line me-2 text-primary"></i> 
+                <span>Diario</span>
+                <span className="badge bg-primary text-white ms-auto fs-10 fw-bold">07:00 AM</span>
+              </Link>
+            </li>
+          )}
 
           {isGobernador && (
             <li className="nav-item">
