@@ -46,8 +46,14 @@ echo "🟩 Desplegando Guanajuato (:3005, :8086)..."
 echo "----------------------------------------------------------"
 docker compose -p sentineliq-gto -f docker-compose.gto.yml up -d --build --remove-orphans
 
-# 6. Reiniciar Nginx para refrescar proxies
-echo "🔄 Recargando Nginx en servidor..."
+# 6. Configurar Nginx para permitir subida de archivos grandes (PDFs de 16MB a 100MB)
+echo "📁 Configurando límite de subida (client_max_body_size 100M) en Nginx..."
+if [ -d /etc/nginx/conf.d ]; then
+  echo "client_max_body_size 100M;" > /etc/nginx/conf.d/upload_limits.conf 2>/dev/null || true
+fi
+if [ -f /etc/nginx/nginx.conf ]; then
+  sed -i 's/client_max_body_size [0-9]*[a-zA-Z]*;/client_max_body_size 100M;/g' /etc/nginx/nginx.conf 2>/dev/null || true
+fi
 systemctl reload nginx 2>/dev/null || true
 
 # 7. Diagnóstico de Salud de los Servicios

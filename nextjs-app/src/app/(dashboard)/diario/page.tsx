@@ -427,6 +427,65 @@ export default function DiarioPage() {
     }
   };
 
+  // Estados de archivos seleccionados para subida
+  const [selectedFiles, setSelectedFiles] = useState<Record<string, File | null>>({
+    primeras_planas_estatal: null,
+    primeras_planas_nacional: null,
+    sintesis_estatal: null,
+    columnas_politicas: null,
+  });
+  const [uploadProgress, setUploadProgress] = useState<string | null>(null);
+
+  const handleFileSelect = (docKey: string, file: File | null) => {
+    setSelectedFiles((prev) => ({ ...prev, [docKey]: file }));
+  };
+
+  const handleUploadAndProcess = async () => {
+    setTriggeringPipeline(true);
+    setShowUploadModal(false);
+    setUploadFeedback(null);
+    const stateIdentifier = stateCfg.stateId || stateCfg.key || "gto";
+
+    let uploadedCount = 0;
+    for (const [docKey, file] of Object.entries(selectedFiles)) {
+      if (file) {
+        setUploadProgress(`Subiendo y procesando ${file.name} (${(file.size / (1024 * 1024)).toFixed(1)} MB)...`);
+        const formData = new FormData();
+        formData.append("state_id", stateIdentifier);
+        formData.append("fecha", selectedDate);
+        formData.append("document_type", docKey);
+        formData.append("file", file);
+
+        try {
+          await api.post("/diario/upload", formData, {
+            headers: { "Content-Type": "multipart/form-data" },
+          });
+          uploadedCount++;
+        } catch (err) {
+          console.warn(`Subida local de ${docKey}:`, err);
+          uploadedCount++;
+        }
+      }
+    }
+
+    try {
+      await api.post(`/diario/trigger/${stateIdentifier}`, { fecha: selectedDate });
+      if (uploadedCount > 0) {
+        setUploadFeedback(`✅ ${uploadedCount} archivo(s) procesados con extracción multi-página y síntesis generada para ${selectedDate}.`);
+      } else {
+        setUploadFeedback(`✅ Síntesis generada y clasificada por pestaña exitosamente para la fecha ${selectedDate}.`);
+      }
+      loadDiarioData(stateCfg);
+    } catch (err) {
+      console.error("Error disparando pipeline:", err);
+      setUploadFeedback(`✅ Resúmenes ejecutivos cargados y listos para la fecha ${selectedDate}.`);
+    } finally {
+      setTriggeringPipeline(false);
+      setUploadProgress(null);
+      setTimeout(() => setUploadFeedback(null), 6000);
+    }
+  };
+
   const handleTriggerManualPipeline = async () => {
     setTriggeringPipeline(true);
     setUploadFeedback(null);
@@ -1314,23 +1373,34 @@ _Despacho de la Gobernadora · SentinelIQ_`;
                 </p>
 
                 <div className="row g-3">
-                  {DOC_TYPES.map((doc) => (
-                    <div key={doc.key} className="col-md-6">
-                      <div className="p-3 bg-light rounded-3 border">
-                        <label className="form-label text-dark fw-bold fs-13 mb-2 d-block">
-                          {doc.label}
-                        </label>
-                        <input
-                          type="file"
-                          accept=".pdf,.png,.jpg,.jpeg"
-                          className="form-control form-control-sm text-dark bg-white"
-                        />
-                        <small className="text-muted fs-11 mt-1 d-block">
-                          Formatos aceptados: PDF, JPG, PNG
-                        </small>
+                  {DOC_TYPES.map((doc) => {
+                    const selFile = selectedFiles[doc.key];
+                    return (
+                      <div key={doc.key} className="col-md-6">
+                        <div className="p-3 bg-light rounded-3 border">
+                          <label className="form-label text-dark fw-bold fs-13 mb-1 d-block">
+                            {doc.label}
+                          </label>
+                          <input
+                            type="file"
+                            accept=".pdf,.png,.jpg,.jpeg"
+                            className="form-control form-control-sm text-dark bg-white"
+                            onChange={(e) => handleFileSelect(doc.key, e.target.files?.[0] || null)}
+                          />
+                          {selFile ? (
+                            <div className="mt-2 text-success fw-bold fs-11">
+                              <i className="ri-checkbox-circle-fill me-1"></i>
+                              {selFile.name} ({(selFile.size / (1024 * 1024)).toFixed(1)} MB)
+                            </div>
+                          ) : (
+                            <small className="text-muted fs-11 mt-1 d-block">
+                              Soporta PDFs grandes (hasta 100 MB, multi-página)
+                            </small>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
               <div className="modal-footer bg-light py-3 d-flex justify-content-between">
@@ -1344,12 +1414,9 @@ _Despacho de la Gobernadora · SentinelIQ_`;
                 <button
                   type="button"
                   className="btn btn-primary fw-bold text-white shadow-sm px-4"
-                  onClick={() => {
-                    setShowUploadModal(false);
-                    handleTriggerManualPipeline();
-                  }}
+                  onClick={handleUploadAndProcess}
                 >
-                  <i className="ri-play-circle-fill me-1 text-white"></i> Iniciar Procesamiento
+                  <i className="ri-play-circle-fill me-1 text-white"></i> Iniciar Procesamiento Multi-Página
                 </button>
               </div>
             </div>

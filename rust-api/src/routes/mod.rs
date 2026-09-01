@@ -65,6 +65,7 @@ pub fn create_router(pool: PgPool) -> Router {
         .route("/diario/envios", post(diario::save_envio))
         .route("/diario/envios/:state_id/:fecha", get(diario::list_envios))
         .route("/diario/trigger/:state_id", post(diario::trigger_pipeline))
+        .route("/diario/upload", post(diario::upload_document))
         // Dossiers
         .route("/dossiers", get(dossiers::list_dossiers).post(dossiers::create_dossier))
         .route("/dossiers/:id", get(dossiers::get_dossier))
@@ -103,6 +104,7 @@ pub fn create_router(pool: PgPool) -> Router {
         .route("/admin/query-audit", get(admin::list_query_audits).post(admin::create_query_audit))
         .route("/admin/query-audit/stats", get(admin::get_query_audit_stats))
         .route("/admin/query-audit/:id", get(admin::get_query_audit_by_id))
+        .layer(axum::extract::DefaultBodyLimit::max(100 * 1024 * 1024))
         .layer(cors)
         .with_state(pool)
 }
