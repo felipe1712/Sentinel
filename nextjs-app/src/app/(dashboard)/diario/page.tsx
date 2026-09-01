@@ -17,6 +17,7 @@ interface DiarioResumen {
   temas_economia?: string;
   relevancia_estatal?: string;
   mini_resumen: string;
+  digest_whatsapp_telegram?: string;
   tokens_usados?: number;
   modelo?: string;
   generated_at?: string;
@@ -145,7 +146,6 @@ const DEFAULT_DEMO_RESUMENES: Record<string, DiarioResumen> = {
   },
 };
 
-// Notas específicas segmentadas por documento
 const DEMO_ITEMS_BY_DOC: Record<string, DiarioItem[]> = {
   primeras_planas_estatal: [
     {
@@ -350,11 +350,13 @@ export default function DiarioPage() {
   // Estados de UI
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [showOcrModal, setShowOcrModal] = useState(false);
+  const [showSocialModal, setShowSocialModal] = useState(false);
   const [ocrRawData, setOcrRawData] = useState<OcrRawData | null>(null);
   const [loadingOcrRaw, setLoadingOcrRaw] = useState(false);
   const [uploadFeedback, setUploadFeedback] = useState<string | null>(null);
   const [triggeringPipeline, setTriggeringPipeline] = useState(false);
   const [copiedSuccess, setCopiedSuccess] = useState(false);
+  const [copiedSocialSuccess, setCopiedSocialSuccess] = useState(false);
 
   // Formulario nuevo destinatario
   const [newNombre, setNewNombre] = useState("");
@@ -372,7 +374,6 @@ export default function DiarioPage() {
   const loadDiarioData = async (cfg: StateConfig) => {
     const stateIdentifier = cfg.stateId || cfg.key || "gto";
     try {
-      // 1. Obtener resúmenes ejecutivos
       const resRes = await api.get(`/diario/resumenes/${stateIdentifier}/${selectedDate}`);
       if (resRes.data && Array.isArray(resRes.data) && resRes.data.length > 0) {
         const resMap: Record<string, DiarioResumen> = {};
@@ -382,13 +383,11 @@ export default function DiarioPage() {
         setResumenes((prev) => ({ ...prev, ...resMap }));
       }
 
-      // 2. Obtener items filtrados específicamente para la pestaña activa
       const itemsRes = await api.get(`/diario/items/${stateIdentifier}/${selectedDate}?document_type=${activeTab}`);
       if (itemsRes.data && Array.isArray(itemsRes.data) && itemsRes.data.length > 0) {
         setItemsByDoc((prev) => ({ ...prev, [activeTab]: itemsRes.data }));
       }
 
-      // 3. Lista de distribución
       const distRes = await api.get(`/diario/lista-distribucion/${stateIdentifier}`);
       if (distRes.data && Array.isArray(distRes.data) && distRes.data.length > 0) {
         setDistribucion(distRes.data);
@@ -407,7 +406,6 @@ export default function DiarioPage() {
       const resp = await api.get(`/diario/ocr-raw/${stateIdentifier}/${selectedDate}/${activeTab}`);
       setOcrRawData(resp.data);
     } catch (err) {
-      // Respaldo de comprobación visual
       setOcrRawData({
         document_type: activeTab,
         fecha: selectedDate,
@@ -488,7 +486,41 @@ export default function DiarioPage() {
     setTimeout(() => setCopiedSuccess(false), 3000);
   };
 
-  // Si estamos en Querétaro, indicar que el módulo está activo solo para Guanajuato
+  // Generador de Entregable Formateado para WhatsApp / Telegram
+  const generateFormattedSocialDigest = () => {
+    const res = resumenes[activeTab] || DEFAULT_DEMO_RESUMENES[activeTab];
+    const docLabel = DOC_TYPES.find((d) => d.key === activeTab)?.label.replace(/[🏛🇲🇽📋✍️]/g, "").trim();
+
+    return `🏛 *SÍNTESIS EJECUTIVA DE PRENSA · ${stateCfg.name.toUpperCase()}*
+📅 _Edición: ${selectedDate} (07:15 AM)_
+📑 *Documento:* ${docLabel}
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📌 *RESUMEN EJECUTIVO:*
+${res.resumen_ejecutivo}
+
+🔹 *PUNTOS CLAVE DEL DÍA:*
+${(Array.isArray(res.puntos_clave) ? res.puntos_clave : [])
+  .map((p, i) => `• *${i + 1}.* ${p}`)
+  .join("\n")}
+
+${res.temas_seguridad ? `🔴 *SEGURIDAD & JUSTICIA:*\n${res.temas_seguridad}\n` : ""}
+${res.temas_politica ? `🔵 *POLÍTICA & GOBERNABILIDAD:*\n${res.temas_politica}\n` : ""}
+${res.temas_economia ? `🟢 *ECONOMÍA & FINANZAS:*\n${res.temas_economia}\n` : ""}
+🎯 *ATENCIÓN PRIORITARIA (OFICINA DEL EJECUTIVO):*
+${res.relevancia_estatal || "Seguimiento preventivo y coordinación interinstitucional."}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+_Generado por SentinelIQ · Inteligencia Situacional del Estado_`;
+  };
+
+  const handleCopySocialDigest = () => {
+    const formatted = generateFormattedSocialDigest();
+    navigator.clipboard.writeText(formatted);
+    setCopiedSocialSuccess(true);
+    setTimeout(() => setCopiedSocialSuccess(false), 3000);
+  };
+
   if (stateCfg.key !== "gto") {
     return (
       <div className="card bg-white border-0 shadow-sm rounded-3 p-5 text-center my-4">
@@ -795,21 +827,30 @@ export default function DiarioPage() {
                   <i className="ri-search-eye-line me-1 text-primary"></i> Comprobar Texto OCR
                 </button>
 
+                {/* BOTÓN ENTREGABLE MÓVIL WHATSAPP / TELEGRAM */}
+                <button
+                  className="btn btn-success btn-sm fw-bold text-white shadow-sm"
+                  onClick={() => setShowSocialModal(true)}
+                  title="Ver y copiar entregable formateado para WhatsApp y Telegram"
+                >
+                  <i className="ri-whatsapp-line me-1 text-white"></i> Entregable Móvil (WhatsApp/TG)
+                </button>
+
                 {currentResumen && (
                   <>
                     <button
                       className="btn btn-outline-primary btn-sm fw-bold"
                       onClick={() => handleCopyResumen(currentResumen.resumen_ejecutivo)}
-                      title="Copiar al portapapeles"
+                      title="Copiar resumen al portapapeles"
                     >
                       <i className={`ri-${copiedSuccess ? "check-line" : "file-copy-line"} me-1`}></i>
-                      {copiedSuccess ? "¡Copiado!" : "Copiar Resumen"}
+                      {copiedSuccess ? "¡Copiado!" : "Copiar Texto"}
                     </button>
 
                     <button
                       className="btn btn-outline-info btn-sm fw-bold"
                       onClick={() => {
-                        setUploadFeedback("Digest matutino enviado exitosamente vía Telegram.");
+                        setUploadFeedback("Digest matutino enviado exitosamente vía Telegram al Gabinete.");
                         setTimeout(() => setUploadFeedback(null), 4000);
                       }}
                     >
@@ -863,7 +904,7 @@ export default function DiarioPage() {
                 </div>
               </div>
 
-              {/* Tabla de Items de Prensa Clasificados (Exclusivos de esta Pestaña) */}
+              {/* Tabla de Items de Prensa Clasificados */}
               <div className="card bg-white border-0 shadow-sm rounded-3 mb-4">
                 <div className="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
                   <h5 className="card-title mb-0 fw-extrabold text-dark fs-16" style={{ color: "#0f172a" }}>
@@ -1012,6 +1053,73 @@ export default function DiarioPage() {
         </div>
       )}
 
+      {/* MODAL ENTREGABLE MÓVIL (WHATSAPP / TELEGRAM) */}
+      {showSocialModal && (
+        <div
+          className="modal fade show d-block"
+          style={{ backgroundColor: "rgba(15, 23, 42, 0.7)", zIndex: 1060 }}
+          tabIndex={-1}
+        >
+          <div className="modal-dialog modal-dialog-centered modal-lg">
+            <div className="modal-content border-0 shadow-lg rounded-3">
+              <div
+                className="modal-header text-white py-3"
+                style={{ backgroundColor: "#065f46" }}
+              >
+                <div className="d-flex align-items-center gap-2">
+                  <i className="ri-whatsapp-fill text-white fs-22"></i>
+                  <h5 className="modal-title fw-extrabold text-white fs-16 mb-0">
+                    Entregable Ejecutivo para WhatsApp & Telegram
+                  </h5>
+                </div>
+                <button
+                  type="button"
+                  className="btn-close btn-close-white"
+                  onClick={() => setShowSocialModal(false)}
+                ></button>
+              </div>
+              <div className="modal-body p-4 bg-white">
+                <p className="text-dark fs-13 mb-3 fw-semibold" style={{ color: "#334155" }}>
+                  Este es el formato listo para enviarse a los grupos de chat de la Gobernadora y el Gabinete con negritas, emojis y viñetas optimizadas:
+                </p>
+
+                <div
+                  className="p-3 rounded-3 border border-gray-300 font-monospace fs-13 text-dark overflow-auto shadow-inner"
+                  style={{
+                    backgroundColor: "#f0fdf4",
+                    color: "#064e3b",
+                    maxHeight: "380px",
+                    whiteSpace: "pre-wrap",
+                    lineHeight: "1.6",
+                  }}
+                >
+                  {generateFormattedSocialDigest()}
+                </div>
+              </div>
+              <div className="modal-footer bg-light py-3 d-flex justify-content-between">
+                <button
+                  type="button"
+                  className="btn btn-outline-secondary fw-bold"
+                  onClick={() => setShowSocialModal(false)}
+                >
+                  Cerrar
+                </button>
+                <div className="d-flex gap-2">
+                  <button
+                    type="button"
+                    className="btn btn-success fw-bold text-white shadow-sm px-4"
+                    onClick={handleCopySocialDigest}
+                  >
+                    <i className={`ri-${copiedSocialSuccess ? "check-line" : "file-copy-line"} me-1`}></i>
+                    {copiedSocialSuccess ? "¡Copiado para WhatsApp!" : "Copiar Texto con Formato"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* MODAL DE COMPROBACIÓN DE TEXTO OCR EXTRAÍDO */}
       {showOcrModal && (
         <div
@@ -1042,7 +1150,6 @@ export default function DiarioPage() {
                   </div>
                 ) : (
                   <div>
-                    {/* Indicadores de Diagnóstico */}
                     <div className="row g-3 mb-4">
                       <div className="col-md-3">
                         <div className="p-3 bg-light rounded-3 border">
@@ -1072,7 +1179,6 @@ export default function DiarioPage() {
                       </div>
                     </div>
 
-                    {/* Texto Extraído */}
                     <label className="form-label text-dark fw-bold fs-13 mb-2 d-block">
                       Texto Plano Extraído de las Planas (Entrada directa para el Resumen Ejecutivo):
                     </label>
