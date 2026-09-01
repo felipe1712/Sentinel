@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS diario_prompts (
 
 CREATE INDEX IF NOT EXISTS idx_diario_prompts_state ON diario_prompts(state_id);
 
--- 2. Seed de Prompts Iniciales y Reglas Globales para Guanajuato (Todos con JSON)
+-- 2. Seed de Prompts Iniciales y Reglas Globales para Guanajuato
 INSERT INTO diario_prompts (state_id, document_type, system_prompt, filtering_rules, output_format, model, temperature, max_tokens)
 VALUES
 (
@@ -46,6 +46,28 @@ VALUES
   'claude-3-7-sonnet-20250219',
   0.20,
   2500
+),
+(
+  '00000000-0000-0000-0000-000000000011',
+  'social_delivery',
+  'REGLAS EDITORIALES DE CONSOLIDACIÓN PARA WHATSAPP / TELEGRAM (MOMENTO 2):
+A partir de los 4 JSONs extraídos en el Momento 1 (Estatales, Nacionales, Síntesis Oficial y Columnas), compila un único briefing matutino institucional optimizado para lectura en móvil (60 segundos).
+
+ESTRUCTURA OBLIGATORIA DEL MENSAJE:
+1. Encabezado institucional con fecha y hora (07:15 AM).
+2. 📌 PANORAMA ESTATAL: Síntesis de portadas locales y notas prioritarias.
+3. 🇲🇽 IMPACTO FEDERAL: Acuerdos nacionales que afectan directamente a Guanajuato.
+4. 🔴 SEGURIDAD: Balance de operativos, despliegues y municipios prioritarios.
+5. ✍️ PULSO POLÍTICO: Postura general de columnistas y narrativa de medios.
+6. 🎯 ATENCIÓN PRIORITARIA: Los 2-3 puntos que requieren acción del despacho hoy.
+7. Pie de firma oficial con enlace a SentinelIQ.',
+  '1. Usar asteriscos (*) para negritas y guión bajo (_) para cursivas (compatibilidad WhatsApp/Telegram).
+2. Mantener extensión total menor a 350 palabras.
+3. No incluir texto no verificado.',
+  'Texto formateado directo para mensajería instantánea.',
+  'claude-3-7-sonnet-20250219',
+  0.15,
+  1500
 ),
 (
   '00000000-0000-0000-0000-000000000011',

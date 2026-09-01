@@ -107,6 +107,18 @@ const DEFAULT_PROMPTS: Record<string, PromptConfig> = {
     temperature: 0.2,
     max_tokens: 2500,
   },
+  social_delivery: {
+    document_type: "social_delivery",
+    system_prompt:
+      "REGLAS EDITORIALES DE CONSOLIDACIÓN PARA WHATSAPP / TELEGRAM (MOMENTO 2):\nA partir de los 4 JSONs extraídos en el Momento 1 (Estatales, Nacionales, Síntesis Oficial y Columnas), compila un único briefing matutino institucional optimizado para lectura en móvil (60 segundos).\n\nESTRUCTURA OBLIGATORIA DEL MENSAJE:\n1. 🏛 Encabezado institucional con fecha y hora (07:15 AM).\n2. 📌 PANORAMA ESTATAL: Síntesis de portadas locales y notas prioritarias.\n3. 🇲🇽 IMPACTO FEDERAL: Acuerdos nacionales que afectan directamente a Guanajuato.\n4. 🔴 SEGURIDAD: Balance de operativos, despliegues y municipios prioritarios.\n5. ✍️ PULSO POLÍTICO: Postura general de columnistas y narrativa de medios.\n6. 🎯 ATENCIÓN PRIORITARIA: Los 2-3 puntos que requieren acción del despacho hoy.\n7. 🔗 Pie de firma oficial con enlace a SentinelIQ.",
+    filtering_rules:
+      "1. Usar asteriscos (*) para negritas y guión bajo (_) para cursivas (compatibilidad WhatsApp/Telegram).\n2. Mantener extensión total menor a 350 palabras para lectura en 1 minuto.\n3. Cero jerga y cero notas sin verificar.",
+    output_format:
+      "Texto formateado listo para envío directo por mensajería.",
+    model: "claude-3-7-sonnet-20250219",
+    temperature: 0.15,
+    max_tokens: 1500,
+  },
   primeras_planas_estatal: {
     document_type: "primeras_planas_estatal",
     system_prompt:
@@ -167,7 +179,7 @@ const DOC_TYPE_OPTIONS = [
 
 export default function AdminPage() {
   const [stateCfg, setStateCfg] = useState<StateConfig>(getStateConfig());
-  const [activeAdminTab, setActiveAdminTab] = useState<"users" | "ocr">("users");
+  const [activeAdminTab, setActiveAdminTab] = useState<"users" | "ocr" | "social_rules">("users");
 
   // Usuarios
   const [users, setUsers] = useState<UserItem[]>(DEFAULT_GTO_USERS);
@@ -220,39 +232,39 @@ export default function AdminPage() {
 
   const currentPrompt = promptsMap[selectedDocType] || DEFAULT_PROMPTS[selectedDocType];
   const globalPrompt = promptsMap["global"] || DEFAULT_PROMPTS["global"];
+  const socialPrompt = promptsMap["social_delivery"] || DEFAULT_PROMPTS["social_delivery"];
 
-  const handleUpdateCurrentPrompt = (field: keyof PromptConfig, value: any) => {
+  const handleUpdatePromptByKey = (docKey: string, field: keyof PromptConfig, value: any) => {
     setPromptsMap((prev) => ({
       ...prev,
-      [selectedDocType]: {
-        ...prev[selectedDocType],
+      [docKey]: {
+        ...prev[docKey],
         [field]: value,
       },
     }));
   };
 
-  const handleSavePrompt = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSavePromptGeneric = async (docKey: string) => {
     setSavingPrompt(true);
     setSaveSuccess(null);
+    const target = promptsMap[docKey] || DEFAULT_PROMPTS[docKey];
     const stateIdentifier = stateCfg.stateId || "00000000-0000-0000-0000-000000000011";
 
     try {
       await api.post("/admin/ocr-prompts", {
         state_id: stateIdentifier,
-        document_type: selectedDocType,
-        system_prompt: currentPrompt.system_prompt,
-        filtering_rules: currentPrompt.filtering_rules,
-        output_format: currentPrompt.output_format,
-        model: currentPrompt.model,
-        temperature: parseFloat(currentPrompt.temperature.toString()),
-        max_tokens: parseInt(currentPrompt.max_tokens.toString()),
+        document_type: docKey,
+        system_prompt: target.system_prompt,
+        filtering_rules: target.filtering_rules,
+        output_format: target.output_format,
+        model: target.model,
+        temperature: parseFloat(target.temperature.toString()),
+        max_tokens: parseInt(target.max_tokens.toString()),
       });
-      const docLabel = DOC_TYPE_OPTIONS.find((d) => d.key === selectedDocType)?.label;
-      setSaveSuccess(`✅ Parámetros e instrucciones para "${docLabel}" guardados exitosamente en la base de datos.`);
+      setSaveSuccess(`✅ Parámetros e instrucciones para "${docKey}" guardados exitosamente en la base de datos.`);
     } catch (err) {
-      console.warn("Parámetros guardados en memoria local:", err);
-      setSaveSuccess(`✅ Parámetros de procesamiento actualizados correctamente.`);
+      console.warn("Parámetros guardados localmente:", err);
+      setSaveSuccess(`✅ Parámetros guardados correctamente.`);
     } finally {
       setSavingPrompt(false);
       setTimeout(() => setSaveSuccess(null), 5000);
@@ -313,7 +325,25 @@ export default function AdminPage() {
               }}
             >
               <i className="ri-settings-4-line fs-15"></i>
-              <span>Parámetros OCR & Prompts Claude</span>
+              <span>Parámetros OCR & JSON (Momento 1)</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setActiveAdminTab("social_rules")}
+              className={`btn btn-md fw-bold d-flex align-items-center gap-2 px-3 py-2 fs-13 transition-all ${
+                activeAdminTab === "social_rules"
+                  ? "btn-primary text-white shadow"
+                  : "btn-light text-dark border"
+              }`}
+              style={{
+                backgroundColor: activeAdminTab === "social_rules" ? "#065f46" : "#f8fafc",
+                color: activeAdminTab === "social_rules" ? "#ffffff" : "#065f46",
+                borderColor: activeAdminTab === "social_rules" ? "#065f46" : "#cbd5e1",
+              }}
+            >
+              <i className="ri-whatsapp-fill fs-15"></i>
+              <span>Reglas de Entregable WhatsApp / Telegram (Momento 2)</span>
               <span className="badge bg-success text-white fs-10 fw-bold ms-1">Nuevo</span>
             </button>
 
@@ -416,10 +446,9 @@ export default function AdminPage() {
         </div>
       )}
 
-      {/* TAB 2: PARÁMETROS OCR & INSTRUCCIONES CLAUDE */}
+      {/* TAB 2: PARÁMETROS OCR & INSTRUCCIONES CLAUDE (MOMENTO 1) */}
       {activeAdminTab === "ocr" && (
         <div>
-          {/* Banner Informativo de Jerarquía de Prompts */}
           <div className="card bg-white border border-primary-subtle shadow-sm rounded-3 mb-4 border-start border-4 border-primary">
             <div className="card-body p-3 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2">
               <div className="d-flex align-items-center gap-3">
@@ -427,9 +456,9 @@ export default function AdminPage() {
                   <i className="ri-global-line fs-20"></i>
                 </div>
                 <div>
-                  <strong className="text-dark fs-14 d-block">Esquema de Reglas Globales Activo</strong>
+                  <strong className="text-dark fs-14 d-block">Momento 1: Extracción OCR & Entrega de JSONs</strong>
                   <small className="text-muted fs-12">
-                    Las <strong>Reglas Globales</strong> son la directriz suprema. Todo lo definido en "Reglas Globales" se aplica e inyecta automáticamente en los 4 apartados de prensa.
+                    Las <strong>Reglas Globales</strong> son la directriz suprema. Todo lo definido aquí gobierna la generación del JSON de cada sección.
                   </small>
                 </div>
               </div>
@@ -496,7 +525,6 @@ export default function AdminPage() {
                 </div>
               </div>
 
-              {/* Vista Previa de Herencia */}
               {selectedDocType !== "global" && (
                 <div className="card bg-light border border-gray-300 shadow-sm rounded-3">
                   <div className="card-body p-3">
@@ -531,8 +559,7 @@ export default function AdminPage() {
                   </span>
                 </div>
                 <div className="card-body p-4">
-                  <form onSubmit={handleSavePrompt}>
-                    {/* TextBox 1: System Prompt / Reglas Globales */}
+                  <form onSubmit={(e) => { e.preventDefault(); handleSavePromptGeneric(selectedDocType); }}>
                     <div className="mb-4">
                       <label className="form-label text-dark fw-extrabold fs-13 mb-1" style={{ color: "#0f172a" }}>
                         {selectedDocType === "global"
@@ -549,12 +576,11 @@ export default function AdminPage() {
                         className="form-control text-dark font-monospace fs-13 border-gray-300 shadow-sm"
                         style={{ backgroundColor: "#f8fafc", color: "#0f172a" }}
                         value={currentPrompt.system_prompt}
-                        onChange={(e) => handleUpdateCurrentPrompt("system_prompt", e.target.value)}
+                        onChange={(e) => handleUpdatePromptByKey(selectedDocType, "system_prompt", e.target.value)}
                         required
                       />
                     </div>
 
-                    {/* TextBox 2: Filtering Rules */}
                     <div className="mb-4">
                       <label className="form-label text-dark fw-extrabold fs-13 mb-1" style={{ color: "#0f172a" }}>
                         {selectedDocType === "global"
@@ -571,28 +597,26 @@ export default function AdminPage() {
                         className="form-control text-dark font-monospace fs-13 border-gray-300 shadow-sm"
                         style={{ backgroundColor: "#f8fafc", color: "#0f172a" }}
                         value={currentPrompt.filtering_rules}
-                        onChange={(e) => handleUpdateCurrentPrompt("filtering_rules", e.target.value)}
+                        onChange={(e) => handleUpdatePromptByKey(selectedDocType, "filtering_rules", e.target.value)}
                       />
                     </div>
 
-                    {/* TextBox 3: Output Format */}
                     <div className="mb-4">
                       <label className="form-label text-dark fw-extrabold fs-13 mb-1" style={{ color: "#0f172a" }}>
                         3. Estructura y Formato del Resumen Ejecutivo (JSON):
                       </label>
                       <small className="text-muted d-block mb-2 fs-12">
-                        Esquema JSON obligatorio para alimentar el sistema y generar el entregable de WhatsApp / Telegram.
+                        Esquema JSON obligatorio para alimentar el sistema.
                       </small>
                       <textarea
                         rows={6}
                         className="form-control text-dark font-monospace fs-13 border-gray-300 shadow-sm"
                         style={{ backgroundColor: "#f8fafc", color: "#0f172a" }}
                         value={currentPrompt.output_format}
-                        onChange={(e) => handleUpdateCurrentPrompt("output_format", e.target.value)}
+                        onChange={(e) => handleUpdatePromptByKey(selectedDocType, "output_format", e.target.value)}
                       />
                     </div>
 
-                    {/* Configuración de Modelo y Parámetros */}
                     <div className="row g-3 p-3 bg-light rounded-3 border border-gray-200 mb-4">
                       <div className="col-md-5">
                         <label className="form-label text-dark fw-bold fs-12 mb-1">
@@ -601,7 +625,7 @@ export default function AdminPage() {
                         <select
                           className="form-select form-select-sm text-dark fw-bold bg-white"
                           value={currentPrompt.model}
-                          onChange={(e) => handleUpdateCurrentPrompt("model", e.target.value)}
+                          onChange={(e) => handleUpdatePromptByKey(selectedDocType, "model", e.target.value)}
                         >
                           <optgroup label="⭐ Generación Claude 3.7 & 3.5 (Recomendados)">
                             <option value="claude-3-7-sonnet-20250219">
@@ -652,7 +676,7 @@ export default function AdminPage() {
                           max="1"
                           step="0.05"
                           value={currentPrompt.temperature}
-                          onChange={(e) => handleUpdateCurrentPrompt("temperature", parseFloat(e.target.value))}
+                          onChange={(e) => handleUpdatePromptByKey(selectedDocType, "temperature", parseFloat(e.target.value))}
                         />
                         <small className="text-muted fs-11">0.1 - 0.3: Máxima fidelidad objetiva</small>
                       </div>
@@ -663,7 +687,7 @@ export default function AdminPage() {
                           type="number"
                           className="form-control form-control-sm text-dark fw-bold bg-white"
                           value={currentPrompt.max_tokens}
-                          onChange={(e) => handleUpdateCurrentPrompt("max_tokens", parseInt(e.target.value) || 2500)}
+                          onChange={(e) => handleUpdatePromptByKey(selectedDocType, "max_tokens", parseInt(e.target.value) || 2500)}
                         />
                         <small className="text-muted fs-11">Límite de generación de respuesta</small>
                       </div>
@@ -688,6 +712,180 @@ export default function AdminPage() {
                       </button>
                     </div>
                   </form>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 3: REGLAS DE ENTREGABLE WHATSAPP / TELEGRAM (MOMENTO 2) */}
+      {activeAdminTab === "social_rules" && (
+        <div>
+          {/* Banner Explicativo del Momento 2 */}
+          <div className="card bg-white border border-success shadow-sm rounded-3 mb-4 border-start border-4 border-success">
+            <div className="card-body p-4">
+              <div className="d-flex align-items-center gap-3 mb-2">
+                <div className="avatar-sm bg-success text-white rounded-circle p-2 d-flex align-items-center justify-content-center">
+                  <i className="ri-whatsapp-fill fs-22"></i>
+                </div>
+                <div>
+                  <h5 className="fw-extrabold text-dark mb-0 fs-16" style={{ color: "#065f46" }}>
+                    Momento 2: Consolidación & Distribución vía WhatsApp / Telegram (07:15 AM)
+                  </h5>
+                  <p className="text-muted fs-12 mb-0">
+                    A partir de los 4 JSONs procesados en el Momento 1, el motor ensambla un <strong>único entregable institucional condensado</strong> para el teléfono de la Gobernadora y el Gabinete.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="row g-4">
+            {/* Formulario de Edición de Reglas de Entregable */}
+            <div className="col-lg-7">
+              <div className="card bg-white border-0 shadow-sm rounded-3">
+                <div className="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+                  <h5 className="card-title mb-0 fw-extrabold text-dark fs-16" style={{ color: "#0f172a" }}>
+                    Plantilla Maestra & Directrices Editoriales de Mensajería
+                  </h5>
+                  <span className="badge bg-success text-white fs-11 fw-bold">WhatsApp / Telegram</span>
+                </div>
+                <div className="card-body p-4">
+                  <form onSubmit={(e) => { e.preventDefault(); handleSavePromptGeneric("social_delivery"); }}>
+                    {/* TextBox 1: Plantilla y Estructura */}
+                    <div className="mb-4">
+                      <label className="form-label text-dark fw-extrabold fs-13 mb-1" style={{ color: "#0f172a" }}>
+                        1. Estructura y Jerarquía del Briefing Consolidado:
+                      </label>
+                      <small className="text-muted d-block mb-2 fs-12">
+                        Define el orden de los bloques temáticos, saludo oficial, separadores y pie de firma.
+                      </small>
+                      <textarea
+                        rows={8}
+                        className="form-control text-dark font-monospace fs-13 border-gray-300 shadow-sm"
+                        style={{ backgroundColor: "#f8fafc", color: "#0f172a" }}
+                        value={socialPrompt.system_prompt}
+                        onChange={(e) => handleUpdatePromptByKey("social_delivery", "system_prompt", e.target.value)}
+                        required
+                      />
+                    </div>
+
+                    {/* TextBox 2: Criterios de Formato Móvil */}
+                    <div className="mb-4">
+                      <label className="form-label text-dark fw-extrabold fs-13 mb-1" style={{ color: "#0f172a" }}>
+                        2. Reglas de Formato Móvil (Negritas, Cursivas y Longitud):
+                      </label>
+                      <small className="text-muted d-block mb-2 fs-12">
+                        Compatibilidad con WhatsApp (`*texto*`, `_texto_`, emojis sobrios, máx. 350 palabras).
+                      </small>
+                      <textarea
+                        rows={4}
+                        className="form-control text-dark font-monospace fs-13 border-gray-300 shadow-sm"
+                        style={{ backgroundColor: "#f8fafc", color: "#0f172a" }}
+                        value={socialPrompt.filtering_rules}
+                        onChange={(e) => handleUpdatePromptByKey("social_delivery", "filtering_rules", e.target.value)}
+                      />
+                    </div>
+
+                    <div className="row g-3 p-3 bg-light rounded-3 border border-gray-200 mb-4">
+                      <div className="col-md-6">
+                        <label className="form-label text-dark fw-bold fs-12 mb-1">
+                          Modelo de Consolidación (Claude)
+                        </label>
+                        <select
+                          className="form-select form-select-sm text-dark fw-bold bg-white"
+                          value={socialPrompt.model}
+                          onChange={(e) => handleUpdatePromptByKey("social_delivery", "model", e.target.value)}
+                        >
+                          <option value="claude-3-7-sonnet-20250219">Claude 3.7 Sonnet (Recomendado)</option>
+                          <option value="claude-3-5-sonnet-20241022">Claude 3.5 Sonnet</option>
+                          <option value="claude-3-5-haiku-20241022">Claude 3.5 Haiku (Ultra Rápido)</option>
+                        </select>
+                      </div>
+
+                      <div className="col-md-6">
+                        <label className="form-label text-dark fw-bold fs-12 mb-1">
+                          Temperatura: {socialPrompt.temperature} (0.10 Recomendado)
+                        </label>
+                        <input
+                          type="range"
+                          className="form-range"
+                          min="0"
+                          max="1"
+                          step="0.05"
+                          value={socialPrompt.temperature}
+                          onChange={(e) => handleUpdatePromptByKey("social_delivery", "temperature", parseFloat(e.target.value))}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="d-flex justify-content-end gap-2">
+                      <button
+                        type="submit"
+                        className="btn btn-success fw-bold text-white shadow-sm px-4 py-2"
+                        disabled={savingPrompt}
+                      >
+                        {savingPrompt ? (
+                          <span>
+                            <span className="spinner-border spinner-border-sm me-2"></span>
+                            Guardando Reglas...
+                          </span>
+                        ) : (
+                          <span>
+                            <i className="ri-save-3-line me-1 text-white"></i> Guardar Reglas de Entregable
+                          </span>
+                        )}
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+
+            {/* Simulador de Celular en Vivo */}
+            <div className="col-lg-5">
+              <div className="card bg-white border-0 shadow-sm rounded-3">
+                <div className="card-header bg-dark text-white py-3 d-flex justify-content-between align-items-center">
+                  <div className="d-flex align-items-center gap-2">
+                    <i className="ri-smartphone-line text-success fs-18"></i>
+                    <strong className="fs-14 text-white">Simulador WhatsApp / Telegram</strong>
+                  </div>
+                  <span className="badge bg-success text-white fs-10 fw-bold">Vista Previa 07:15 AM</span>
+                </div>
+                <div
+                  className="card-body p-3"
+                  style={{ backgroundColor: "#e5ddd5", minHeight: "450px" }}
+                >
+                  <div
+                    className="p-3 bg-white rounded-3 shadow-sm text-dark font-monospace fs-12 border"
+                    style={{ whiteSpace: "pre-wrap", lineHeight: "1.55", color: "#111827" }}
+                  >
+                    {`🏛 *SÍNTESIS EJECUTIVA DE PRENSA · ${stateCfg.name.toUpperCase()}*
+📅 _Edición: 01/09/2026 (07:15 AM)_
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📌 *PANORAMA ESTATAL (PRIMERAS PLANAS):*
+• *AM & Correo:* Reforzamiento de la estrategia de seguridad interinstitucional en Celaya e Irapuato con despliegue de FSPE.
+• *Economía:* Inversión automotriz de 85 MDD en Puerto Interior.
+
+🇲🇽 *IMPACTO FEDERAL & NACIONAL:*
+• *Reforma & El Economista:* Estabilidad cambiaria y bolsa federal de recursos para tecnificación hídrica en el Bajío.
+
+🔴 *SEGURIDAD & JUSTICIA:*
+• Operativos conjuntos FSPE y Ejército en accesos carreteros. Saldo blanco en carreteras estatales en las últimas 12 hrs.
+
+✍️ *PULSO POLÍTICO & OPINIÓN:*
+• Columnistas destacan disciplina presupuestal y pronta respuesta de gabinete.
+
+🎯 *ATENCIÓN PRIORITARIA:*
+1. Supervisar accesos carreteros en corredor Laja-Bajío.
+2. Mesa de seguimiento a proyectos hídricos concurrentes.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔗 _Consulta completa: https://gto.sentineliq.com.mx/diario_
+_Despacho del Ejecutivo · SentinelIQ_`}
+                  </div>
                 </div>
               </div>
             </div>

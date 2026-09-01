@@ -351,6 +351,7 @@ export default function DiarioPage() {
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [showOcrModal, setShowOcrModal] = useState(false);
   const [showSocialModal, setShowSocialModal] = useState(false);
+  const [socialModalMode, setSocialModalMode] = useState<"consolidado" | "seccion">("consolidado");
   const [ocrRawData, setOcrRawData] = useState<OcrRawData | null>(null);
   const [loadingOcrRaw, setLoadingOcrRaw] = useState(false);
   const [uploadFeedback, setUploadFeedback] = useState<string | null>(null);
@@ -486,8 +487,8 @@ export default function DiarioPage() {
     setTimeout(() => setCopiedSuccess(false), 3000);
   };
 
-  // Generador de Entregable Formateado para WhatsApp / Telegram
-  const generateFormattedSocialDigest = () => {
+  // Generador 1: Entregable de la Sección Activa
+  const generateSectionSocialDigest = () => {
     const res = resumenes[activeTab] || DEFAULT_DEMO_RESUMENES[activeTab];
     const docLabel = DOC_TYPES.find((d) => d.key === activeTab)?.label.replace(/[🏛🇲🇽📋✍️]/g, "").trim();
 
@@ -514,8 +515,49 @@ ${res.relevancia_estatal || "Seguimiento preventivo y coordinación interinstitu
 _Generado por SentinelIQ · Inteligencia Situacional del Estado_`;
   };
 
+  // Generador 2: Entregable Consolidado Matutino de Gabinete (Los 4 Documentos en 1 solo Briefing)
+  const generateConsolidatedSocialDigest = () => {
+    const rGto = resumenes["primeras_planas_estatal"] || DEFAULT_DEMO_RESUMENES["primeras_planas_estatal"];
+    const rNac = resumenes["primeras_planas_nacional"] || DEFAULT_DEMO_RESUMENES["primeras_planas_nacional"];
+    const rSint = resumenes["sintesis_estatal"] || DEFAULT_DEMO_RESUMENES["sintesis_estatal"];
+    const rCol = resumenes["columnas_politicas"] || DEFAULT_DEMO_RESUMENES["columnas_politicas"];
+
+    return `🏛 *BRIEFING MATUTINO EJECUTIVO DE GABINETE · ${stateCfg.name.toUpperCase()}*
+📅 _Fecha: ${selectedDate} (07:15 AM)_
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📌 *1. PANORAMA ESTATAL (PRIMERAS PLANAS):*
+• *AM & Correo:* ${rGto.puntos_clave?.[0] || "Reforzamiento de seguridad en corredor Celaya-Irapuato."}
+• *Inversión:* ${rGto.puntos_clave?.[1] || "Expansión industrial en Puerto Interior."}
+
+🇲🇽 *2. IMPACTO FEDERAL EN GUANAJUATO:*
+• ${rNac.puntos_clave?.[0] || "Acuerdos de coordinación federal en seguridad regional."}
+• *Atención Federal:* ${rNac.relevancia_estatal || "Monitoreo a fondos concurrentes hídricos."}
+
+📋 *3. AGENDA DEL EJECUTIVO & GOBIERNO:*
+• ${rSint.puntos_clave?.[0] || "Entrega de equipamiento policial a corporaciones municipales."}
+• ${rSint.puntos_clave?.[1] || "Firma de convenios de infraestructura de agua potable."}
+
+✍️ *4. PULSO POLÍTICO & OPINIÓN PÚBLICA:*
+• ${rCol.puntos_clave?.[0] || "Opinión favorable sobre disciplina presupuestal y gobernabilidad."}
+
+🔴 *BALANCE DE SEGURIDAD (FSPE):*
+${rGto.temas_seguridad || "Despliegues permanentes en las 4 regiones del estado con saldo blanco."}
+
+🎯 *ATENCIÓN PRIORITARIA DEL DÍA:*
+1. ${rGto.relevancia_estatal || "Supervisar accesos carreteros en corredor Laja-Bajío."}
+2. Dar seguimiento a la agenda del convenio de infraestructura municipal.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔗 _Consulta completa: https://gto.sentineliq.com.mx/diario_
+_Despacho de la Gobernadora · SentinelIQ_`;
+  };
+
   const handleCopySocialDigest = () => {
-    const formatted = generateFormattedSocialDigest();
+    const formatted =
+      socialModalMode === "consolidado"
+        ? generateConsolidatedSocialDigest()
+        : generateSectionSocialDigest();
     navigator.clipboard.writeText(formatted);
     setCopiedSocialSuccess(true);
     setTimeout(() => setCopiedSocialSuccess(false), 3000);
@@ -640,7 +682,20 @@ _Generado por SentinelIQ · Inteligencia Situacional del Estado_`;
               );
             })}
 
-            <div className="ms-auto">
+            <div className="ms-auto d-flex gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setSocialModalMode("consolidado");
+                  setShowSocialModal(true);
+                }}
+                className="btn btn-md fw-bold d-flex align-items-center gap-2 px-3 py-2 fs-13 text-white shadow"
+                style={{ backgroundColor: "#065f46", borderColor: "#065f46" }}
+              >
+                <i className="ri-whatsapp-fill fs-16 text-white"></i>
+                <span>Briefing Consolidado (WhatsApp)</span>
+              </button>
+
               <button
                 type="button"
                 onClick={() => setActiveTab("distribucion")}
@@ -827,13 +882,15 @@ _Generado por SentinelIQ · Inteligencia Situacional del Estado_`;
                   <i className="ri-search-eye-line me-1 text-primary"></i> Comprobar Texto OCR
                 </button>
 
-                {/* BOTÓN ENTREGABLE MÓVIL WHATSAPP / TELEGRAM */}
                 <button
                   className="btn btn-success btn-sm fw-bold text-white shadow-sm"
-                  onClick={() => setShowSocialModal(true)}
-                  title="Ver y copiar entregable formateado para WhatsApp y Telegram"
+                  onClick={() => {
+                    setSocialModalMode("seccion");
+                    setShowSocialModal(true);
+                  }}
+                  title="Ver y copiar entregable formateado de esta sección para WhatsApp y Telegram"
                 >
-                  <i className="ri-whatsapp-line me-1 text-white"></i> Entregable Móvil (WhatsApp/TG)
+                  <i className="ri-whatsapp-line me-1 text-white"></i> Entregable Sección
                 </button>
 
                 {currentResumen && (
@@ -1053,7 +1110,7 @@ _Generado por SentinelIQ · Inteligencia Situacional del Estado_`;
         </div>
       )}
 
-      {/* MODAL ENTREGABLE MÓVIL (WHATSAPP / TELEGRAM) */}
+      {/* MODAL ENTREGABLE MÓVIL (WHATSAPP / TELEGRAM) CON SELECTOR CONSOLIDADO VS SECCIÓN */}
       {showSocialModal && (
         <div
           className="modal fade show d-block"
@@ -1069,7 +1126,7 @@ _Generado por SentinelIQ · Inteligencia Situacional del Estado_`;
                 <div className="d-flex align-items-center gap-2">
                   <i className="ri-whatsapp-fill text-white fs-22"></i>
                   <h5 className="modal-title fw-extrabold text-white fs-16 mb-0">
-                    Entregable Ejecutivo para WhatsApp & Telegram
+                    Entregable Ejecutivo para WhatsApp & Telegram (Momento 2)
                   </h5>
                 </div>
                 <button
@@ -1079,9 +1136,32 @@ _Generado por SentinelIQ · Inteligencia Situacional del Estado_`;
                 ></button>
               </div>
               <div className="modal-body p-4 bg-white">
-                <p className="text-dark fs-13 mb-3 fw-semibold" style={{ color: "#334155" }}>
-                  Este es el formato listo para enviarse a los grupos de chat de la Gobernadora y el Gabinete con negritas, emojis y viñetas optimizadas:
-                </p>
+                {/* Selector de Modalidad */}
+                <div className="d-flex gap-2 mb-3">
+                  <button
+                    type="button"
+                    onClick={() => setSocialModalMode("consolidado")}
+                    className={`btn btn-sm fw-bold px-3 py-2 rounded-3 ${
+                      socialModalMode === "consolidado"
+                        ? "btn-success text-white shadow"
+                        : "btn-light text-dark border"
+                    }`}
+                  >
+                    ⭐ Briefing Consolidado de Gabinete (Las 4 Secciones)
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setSocialModalMode("seccion")}
+                    className={`btn btn-sm fw-bold px-3 py-2 rounded-3 ${
+                      socialModalMode === "seccion"
+                        ? "btn-success text-white shadow"
+                        : "btn-light text-dark border"
+                    }`}
+                  >
+                    📄 Solo {DOC_TYPES.find((d) => d.key === activeTab)?.label}
+                  </button>
+                </div>
 
                 <div
                   className="p-3 rounded-3 border border-gray-300 font-monospace fs-13 text-dark overflow-auto shadow-inner"
@@ -1093,7 +1173,9 @@ _Generado por SentinelIQ · Inteligencia Situacional del Estado_`;
                     lineHeight: "1.6",
                   }}
                 >
-                  {generateFormattedSocialDigest()}
+                  {socialModalMode === "consolidado"
+                    ? generateConsolidatedSocialDigest()
+                    : generateSectionSocialDigest()}
                 </div>
               </div>
               <div className="modal-footer bg-light py-3 d-flex justify-content-between">
