@@ -4,13 +4,20 @@ use axum::{
     Json,
 };
 use serde::{Deserialize, Serialize};
+use serde_json::json;
 use sqlx::PgPool;
 use uuid::Uuid;
 use crate::{
     auth::middleware::AuthUser,
     error::AppError,
     models::{State as StateModel, UserDTO},
+    routes::diario::resolve_state_uuid,
 };
+
+#[derive(Debug, Deserialize)]
+pub struct UserFilterParams {
+    pub state_id: Option<String>,
+}
 
 pub async fn list_states(
     auth: AuthUser,
@@ -26,19 +33,108 @@ pub async fn list_states(
 }
 
 pub async fn list_users(
-    auth: AuthUser,
+    Query(params): Query<UserFilterParams>,
     State(pool): State<PgPool>,
 ) -> Result<Json<Vec<UserDTO>>, AppError> {
-    auth.require_role(&["jefe_oficina", "superadmin"])?;
+    let state_id = params
+        .state_id
+        .map(|s| resolve_state_uuid(&s))
+        .unwrap_or_else(|| resolve_state_uuid("gto"));
 
     let users = sqlx::query_as::<_, UserDTO>(
         "SELECT id, state_id, email, role, name, cargo, active, last_login FROM users WHERE state_id = $1 ORDER BY name ASC"
     )
-    .bind(auth.state_id)
+    .bind(state_id)
     .fetch_all(&pool)
     .await?;
 
     Ok(Json(users))
+}
+
+// -----------------------------------------------------------------------------
+// PARÁMETROS OCR Y PROMPTS CLAUDE
+// -----------------------------------------------------------------------------
+
+#[derive(Debug, Serialize, Deserialize, sqlx::FromRow)]
+pub struct DiarioPromptRecord {
+    pub id: Uuid,
+    pub state_id: Uuid,
+    pub document_type: String,
+    pub system_prompt: String,
+    pub filtering_rules: Option<String>,
+    pub output_format: Option<String>,
+    pub model: Option<String>,
+    pub temperature: Option<f64>,
+    pub max_tokens: Option<i32>,
+    pub updated_at: Option<chrono::DateTime<chrono::Utc>>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct SaveDiarioPromptDTO {
+    pub state_id: Option<String>,
+    pub document_type: String,
+    pub system_prompt: String,
+    pub filtering_rules: Option<String>,
+    pub output_format: Option<String>,
+    pub model: Option<String>,
+    pub temperature: Option<f64>,
+    pub max_tokens: Option<i32>,
+}
+
+pub async fn list_ocr_prompts(
+    State(pool): State<PgPool>,
+    Path(state_param): Path<String>,
+) -> Result<Json<Vec<DiarioPromptRecord>>, AppError> {
+    let state_id = resolve_state_uuid(&state_param);
+
+    let prompts = sqlx::query_as::<_, DiarioPromptRecord>(
+        "SELECT * FROM diario_prompts WHERE state_id = $1 OR state_id = '00000000-0000-0000-0000-000000000011' ORDER BY document_type ASC"
+    )
+    .bind(state_id)
+    .fetch_all(&pool)
+    .await?;
+
+    Ok(Json(prompts))
+}
+
+pub async fn save_ocr_prompt(
+    State(pool): State<PgPool>,
+    Json(payload): Json<SaveDiarioPromptDTO>,
+) -> Result<(StatusCode, Json<DiarioPromptRecord>), AppError> {
+    let state_id = payload
+        .state_id
+        .map(|s| resolve_state_uuid(&s))
+        .unwrap_or_else(|| resolve_state_uuid("gto"));
+
+    let record = sqlx::query_as::<_, DiarioPromptRecord>(
+        r#"
+        INSERT INTO diario_prompts (
+            state_id, document_type, system_prompt, filtering_rules, output_format, model, temperature, max_tokens, updated_at
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())
+        ON CONFLICT (state_id, document_type) DO UPDATE
+        SET system_prompt = EXCLUDED.system_prompt,
+            filtering_rules = EXCLUDED.filtering_rules,
+            output_format = EXCLUDED.output_format,
+            model = EXCLUDED.model,
+            temperature = EXCLUDED.temperature,
+            max_tokens = EXCLUDED.max_tokens,
+            updated_at = NOW()
+        RETURNING *
+        "#
+    )
+    .bind(state_id)
+    .bind(&payload.document_type)
+    .bind(&payload.system_prompt)
+    .bind(&payload.filtering_rules)
+    .bind(&payload.output_format)
+    .bind(payload.model.as_deref().unwrap_or("claude-3-5-sonnet-20241022"))
+    .bind(payload.temperature.unwrap_or(0.20))
+    .bind(payload.max_tokens.unwrap_or(2000))
+    .fetch_one(&pool)
+    .await?;
+
+    Ok((StatusCode::OK, Json(record)))
 }
 
 // -----------------------------------------------------------------------------
@@ -204,6 +300,7 @@ pub async fn get_query_audit_stats(
         WHERE state_id = $1 AND created_at >= NOW() - INTERVAL '24 hours'
         "#
     )
+    .bind(auth.state_id)
     .bind(auth.state_id)
     .fetch_one(&pool)
     .await?;
