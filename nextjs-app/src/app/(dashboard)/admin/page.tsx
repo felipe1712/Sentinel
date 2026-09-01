@@ -103,9 +103,9 @@ const DEFAULT_PROMPTS: Record<string, PromptConfig> = {
       "- Filtrar cualquier nota sin relevancia de política pública o seguridad.\n- Conservar información verificable con nombre de fuente y página.",
     output_format:
       "- Resumen ejecutivo (4-5 oraciones)\n- Top 5 Puntos Clave\n- Balances temáticos (Seguridad, Política, Economía)\n- Mini-resumen de 3 líneas",
-    model: "claude-3-5-sonnet-20241022",
+    model: "claude-3-7-sonnet-20250219",
     temperature: 0.2,
-    max_tokens: 2000,
+    max_tokens: 2500,
   },
   primeras_planas_estatal: {
     document_type: "primeras_planas_estatal",
@@ -115,9 +115,9 @@ const DEFAULT_PROMPTS: Record<string, PromptConfig> = {
       "1. Priorizar despliegues de seguridad (FSPE, Ejército, operativos Celaya, Irapuato, León, Salamanca).\n2. Extraer anuncios de inversión económica (Puerto Interior, automotriz, parques industriales).\n3. Resaltar declaraciones de alcaldes y temas de gobernabilidad regional.",
     output_format:
       "JSON estructurado con:\n- resumen_ejecutivo: Síntesis fluida de 4-5 oraciones.\n- puntos_clave: Arreglo de 5 viñetas de alto impacto.\n- temas_seguridad: Párrafo de balance operativo.\n- temas_politica: Párrafo de gobernabilidad y acuerdos.\n- temas_economia: Párrafo de finanzas e inversión.\n- relevancia_estatal: Recomendación prioritaria para el despacho ejecutivo.\n- mini_resumen: Síntesis de 3 líneas para pantalla proyector.",
-    model: "claude-3-5-sonnet-20241022",
+    model: "claude-3-7-sonnet-20250219",
     temperature: 0.2,
-    max_tokens: 2000,
+    max_tokens: 2500,
   },
   primeras_planas_nacional: {
     document_type: "primeras_planas_nacional",
@@ -127,9 +127,9 @@ const DEFAULT_PROMPTS: Record<string, PromptConfig> = {
       "1. Filtrar notas de política federal, tipo de cambio, presupuesto de egresos, seguridad nacional y comercio exterior.\n2. Evaluar el impacto específico de cada política federal en la región del Bajío.",
     output_format:
       "JSON con puntos clave nacionales y sección prioritaria de Relevancia Estatal.",
-    model: "claude-3-5-sonnet-20241022",
+    model: "claude-3-7-sonnet-20250219",
     temperature: 0.2,
-    max_tokens: 2000,
+    max_tokens: 2500,
   },
   sintesis_estatal: {
     document_type: "sintesis_estatal",
@@ -151,9 +151,9 @@ const DEFAULT_PROMPTS: Record<string, PromptConfig> = {
       "Descartar sociales y deportes. Enfocarse en gobernabilidad, legislatura local y acuerdos políticos.",
     output_format:
       "Puntos de opinión clave, análisis de riesgos de reputación y balance cualitativo de medios.",
-    model: "claude-3-5-sonnet-20241022",
+    model: "claude-3-7-sonnet-20250219",
     temperature: 0.25,
-    max_tokens: 2000,
+    max_tokens: 2500,
   },
 };
 
@@ -204,7 +204,7 @@ export default function AdminPage() {
               system_prompt: p.system_prompt,
               filtering_rules: p.filtering_rules || "",
               output_format: p.output_format || "",
-              model: p.model || "claude-3-5-sonnet-20241022",
+              model: p.model || "claude-3-7-sonnet-20250219",
               temperature: p.temperature || 0.2,
               max_tokens: p.max_tokens || 2000,
             };
@@ -487,7 +487,7 @@ export default function AdminPage() {
                           <small style={{ opacity: 0.85, fontSize: "11px", display: "block", marginTop: "2px" }}>
                             {opt.isGlobal
                               ? "Aplica como marco base para todos"
-                              : `Modelo: ${promptsMap[opt.key]?.model || "claude-3-5-sonnet"}`}
+                              : `Modelo: ${promptsMap[opt.key]?.model || "claude-3-7-sonnet"}`}
                           </small>
                         </button>
                       );
@@ -594,20 +594,54 @@ export default function AdminPage() {
 
                     {/* Configuración de Modelo y Parámetros */}
                     <div className="row g-3 p-3 bg-light rounded-3 border border-gray-200 mb-4">
-                      <div className="col-md-4">
-                        <label className="form-label text-dark fw-bold fs-12 mb-1">Modelo de IA (Claude)</label>
+                      <div className="col-md-5">
+                        <label className="form-label text-dark fw-bold fs-12 mb-1">
+                          Modelo de IA Claude (Anthropic)
+                        </label>
                         <select
                           className="form-select form-select-sm text-dark fw-bold bg-white"
                           value={currentPrompt.model}
                           onChange={(e) => handleUpdateCurrentPrompt("model", e.target.value)}
                         >
-                          <option value="claude-3-5-sonnet-20241022">Claude 3.5 Sonnet (Recomendado)</option>
-                          <option value="claude-3-opus-20240229">Claude 3 Opus (Máximo Análisis)</option>
-                          <option value="claude-3-5-haiku-20241022">Claude 3.5 Haiku (Rápido)</option>
+                          <optgroup label="⭐ Generación Claude 3.7 & 3.5 (Recomendados)">
+                            <option value="claude-3-7-sonnet-20250219">
+                              Claude 3.7 Sonnet (Última Generación · Razonamiento Híbrido)
+                            </option>
+                            <option value="claude-3-5-sonnet-20241022">
+                              Claude 3.5 Sonnet v2 (Alta Precisión & Síntesis)
+                            </option>
+                            <option value="claude-3-5-sonnet-20240620">
+                              Claude 3.5 Sonnet v1
+                            </option>
+                            <option value="claude-3-5-haiku-20241022">
+                              Claude 3.5 Haiku (Ultra Rápido & Eficiente)
+                            </option>
+                          </optgroup>
+
+                          <optgroup label="🧠 Serie Opus (Máxima Profundidad Analítica)">
+                            <option value="claude-3-opus-20240229">
+                              Claude 3 Opus (Análisis Político Complejo)
+                            </option>
+                            <option value="claude-3-opus-latest">
+                              Claude 3 Opus Latest
+                            </option>
+                          </optgroup>
+
+                          <optgroup label="⚡ Serie Base Claude 3">
+                            <option value="claude-3-sonnet-20240229">
+                              Claude 3 Sonnet
+                            </option>
+                            <option value="claude-3-haiku-20240307">
+                              Claude 3 Haiku (Económico)
+                            </option>
+                          </optgroup>
                         </select>
+                        <small className="text-muted fs-11 d-block mt-1">
+                          ID: <code className="text-primary">{currentPrompt.model}</code>
+                        </small>
                       </div>
 
-                      <div className="col-md-4">
+                      <div className="col-md-3">
                         <label className="form-label text-dark fw-bold fs-12 mb-1">
                           Temperatura: {currentPrompt.temperature}
                         </label>
@@ -620,7 +654,7 @@ export default function AdminPage() {
                           value={currentPrompt.temperature}
                           onChange={(e) => handleUpdateCurrentPrompt("temperature", parseFloat(e.target.value))}
                         />
-                        <small className="text-muted fs-11">Valores bajos (0.1 - 0.3) garantizan máxima precisión objetiva</small>
+                        <small className="text-muted fs-11">0.1 - 0.3: Máxima fidelidad objetiva</small>
                       </div>
 
                       <div className="col-md-4">
@@ -629,8 +663,9 @@ export default function AdminPage() {
                           type="number"
                           className="form-control form-control-sm text-dark fw-bold bg-white"
                           value={currentPrompt.max_tokens}
-                          onChange={(e) => handleUpdateCurrentPrompt("max_tokens", parseInt(e.target.value) || 2000)}
+                          onChange={(e) => handleUpdateCurrentPrompt("max_tokens", parseInt(e.target.value) || 2500)}
                         />
+                        <small className="text-muted fs-11">Límite de generación de respuesta</small>
                       </div>
                     </div>
 
