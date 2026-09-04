@@ -78,6 +78,7 @@ export default function GisElectoralPage() {
   const [baseBoundary, setBaseBoundary] = useState<BaseLayerType>("secciones");
   const [choroplethMode, setChoroplethMode] = useState<ChoroplethMode>("ganador");
   const [selectedYear, setSelectedYear] = useState<number>(2024);
+  const [electionType, setElectionType] = useState<"gubernatura" | "diputaciones">("gubernatura");
   const [selectedMunicipio, setSelectedMunicipio] = useState<number | null>(null);
   const [tileProvider, setTileProvider] = useState<"osm" | "carto" | "satellite">("carto");
 
@@ -90,7 +91,7 @@ export default function GisElectoralPage() {
   });
 
   // Datos electorales cargados
-  const [electoralCache, setElectoralCache] = useState<Record<string, Record<string, ElectoralResult>>>({});
+  const [electoralCache, setElectoralCache] = useState<any>({});
   const [selectedSection, setSelectedSection] = useState<any | null>(null);
   const [selectedSectionResult, setSelectedSectionResult] = useState<ElectoralResult | null>(null);
 
@@ -155,6 +156,8 @@ export default function GisElectoralPage() {
       <EventFilterToolbar
         selectedYear={selectedYear}
         onSelectYear={setSelectedYear}
+        electionType={electionType}
+        onSelectElectionType={setElectionType}
         choroplethMode={choroplethMode}
         onSelectChoroplethMode={setChoroplethMode}
         selectedMunicipio={selectedMunicipio}
@@ -184,6 +187,7 @@ export default function GisElectoralPage() {
             baseBoundary={baseBoundary}
             choroplethMode={choroplethMode}
             selectedYear={selectedYear}
+            electionType={electionType}
             selectedMunicipio={selectedMunicipio}
             electoralCache={electoralCache}
             activeEventLayers={activeEventLayers}

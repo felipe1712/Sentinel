@@ -64,11 +64,16 @@ export const ElectoralStatsPanel: React.FC<StatsPanelProps> = ({
           </span>
           <h6 className="card-title mb-0 fw-extrabold text-dark fs-15" style={{ color: "#0f172a" }}>
             {selectedSection
-              ? `Sección ${selectedSection.seccion || selectedSection.id}`
+              ? selectedSection.featureTitle || (selectedSection.seccion ? `Sección ${selectedSection.seccion}` : `Distrito ${selectedSection.id}`)
               : selectedMunicipio
               ? `Municipio: ${currentMpioObj?.nombre || selectedMunicipio}`
               : "Resumen Estatal Guanajuato"}
           </h6>
+          {selectedSection?.featureSubtitle && (
+            <small className="text-muted fs-11 d-block mt-1">
+              {selectedSection.featureSubtitle}
+            </small>
+          )}
         </div>
         {(selectedSection || selectedMunicipio) && (
           <button
@@ -84,7 +89,7 @@ export const ElectoralStatsPanel: React.FC<StatsPanelProps> = ({
 
       <div className="card-body p-3 bg-white overflow-auto flex-grow-1">
         {selectedSection ? (
-          /* 1. VISTA DETALLADA DE LA SECCIÓN SELECCIONADA */
+          /* 1. VISTA DETALLADA DE LA SECCIÓN O DISTRITO SELECCIONADO */
           <div>
             {/* Ficha Territorial INE */}
             <div className="p-3 bg-light rounded-3 mb-3 border border-gray-200">
@@ -93,25 +98,33 @@ export const ElectoralStatsPanel: React.FC<StatsPanelProps> = ({
               </span>
               <div className="row g-2 fs-13 text-dark fw-semibold">
                 <div className="col-6">
-                  <span className="text-muted d-block fs-11">Municipio:</span>
-                  <strong className="text-dark">
-                    {selectedSection.nombre_municipio || `Municipio ${selectedSection.municipio}`}
+                  <span className="text-muted d-block fs-11">Nivel Territorial:</span>
+                  <strong className="text-dark text-capitalize">
+                    {selectedSection.baseBoundary ? selectedSection.baseBoundary.replace("_", " ") : "Sección"}
                   </strong>
                 </div>
                 <div className="col-6">
-                  <span className="text-muted d-block fs-11">Tipo de Sección:</span>
+                  <span className="text-muted d-block fs-11">
+                    {selectedSection.seccion ? "Tipo de Sección:" : "Secciones Agrupadas:"}
+                  </span>
                   <span className="badge bg-secondary-subtle text-dark fw-bold">
-                    {selectedSection.tipo === 1 ? "Urbana" : selectedSection.tipo === 2 ? "Rural" : "Mixta"}
+                    {selectedSection.seccion
+                      ? (selectedSection.tipo === 1 ? "Urbana" : selectedSection.tipo === 2 ? "Rural" : "Mixta")
+                      : `${(sectionResult as any)?.secciones_count || selectedSection.secciones || "Varias"} Secciones`}
                   </span>
                 </div>
-                <div className="col-6">
-                  <span className="text-muted d-block fs-11">Distrito Local:</span>
-                  <strong className="text-dark">Dtto. {selectedSection.distrito_l || "N/D"}</strong>
-                </div>
-                <div className="col-6">
-                  <span className="text-muted d-block fs-11">Distrito Federal:</span>
-                  <strong className="text-dark">Dtto. {selectedSection.distrito_f || "N/D"}</strong>
-                </div>
+                {selectedSection.seccion && (
+                  <>
+                    <div className="col-6">
+                      <span className="text-muted d-block fs-11">Distrito Local:</span>
+                      <strong className="text-dark">Dtto. {selectedSection.distrito_l || "N/D"}</strong>
+                    </div>
+                    <div className="col-6">
+                      <span className="text-muted d-block fs-11">Distrito Federal:</span>
+                      <strong className="text-dark">Dtto. {selectedSection.distrito_f || "N/D"}</strong>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
 

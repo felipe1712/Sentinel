@@ -52,7 +52,7 @@ export default function TelegramSearchPage() {
         setConnectedMap(JSON.parse(stored));
       } else {
         // Pre-conectar canales base de referencia
-        const defaultConnected = cfg.key === "gto" 
+        const defaultConnected: Record<string, boolean> = cfg.key === "gto" 
           ? { "@AlertasCelayaBajio": true, "@FSPE_GtoOficial": true }
           : { "@NoticiasQRO": true, "@PoliciaEstatalQRO": true };
         setConnectedMap(defaultConnected);
