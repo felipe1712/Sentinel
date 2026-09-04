@@ -18,6 +18,8 @@ workers/sample_report.pdf
 
 # Large Raw GIS Shapefiles (Raw INE layers > 100MB; GeoJSONs live in nextjs-app/public/data)
 Sf-gto/
+data/electoral/*.xlsx
+data/electoral/*.xls
 
 # Environment & Credentials
 .env
