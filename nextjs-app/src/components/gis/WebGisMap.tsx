@@ -153,16 +153,16 @@ export const WebGisMap: React.FC<WebGisMapProps> = ({
       const isSelectedMpio = selectedMunicipio === null || mpioId === selectedMunicipio || !mpioId;
 
       let fillColor = "#cbd5e1";
-      let fillOpacity = isSelectedMpio ? 0.75 : 0.15;
-      let strokeColor = isSelectedMpio ? "#ffffff" : "#94a3b8";
-      let weight = isSelectedMpio ? (baseBoundary === "secciones" ? 0.9 : 2) : 0.3;
+      let fillOpacity = isSelectedMpio ? 0.82 : 0.25;
+      let strokeColor = isSelectedMpio ? "#ffffff" : "#64748b";
+      let weight = isSelectedMpio ? (baseBoundary === "secciones" ? 1.0 : 2.5) : 0.4;
 
       if (res) {
         if (choroplethMode === "ganador") {
           fillColor = getPartyColor(res.ganador_partido);
         } else if (choroplethMode === "porcentaje_ganador") {
           fillColor = getPartyColor(res.ganador_partido);
-          fillOpacity = isSelectedMpio ? Math.max(0.35, Math.min(0.9, res.ganador_pct / 100)) : 0.15;
+          fillOpacity = isSelectedMpio ? Math.max(0.45, Math.min(0.95, res.ganador_pct / 100)) : 0.20;
         } else if (choroplethMode === "participacion") {
           fillColor = getParticipationColor(res.participacion_pct);
         } else if (choroplethMode === "margen_victoria") {
@@ -300,6 +300,42 @@ export const WebGisMap: React.FC<WebGisMapProps> = ({
 
       {/* Contenedor del Mapa Leaflet */}
       <div ref={mapContainerRef} className="w-100 h-100" style={{ minHeight: "580px" }} />
+
+      {/* Leyenda Visual de Partidos y Coaliciones */}
+      <div
+        className="position-absolute bottom-0 start-0 m-3 p-2 bg-white rounded-3 shadow border border-gray-300"
+        style={{ zIndex: 999, maxWidth: "340px", fontSize: "11px", backgroundColor: "rgba(255, 255, 255, 0.95)" }}
+      >
+        <div className="fw-extrabold text-dark text-uppercase mb-1 fs-11 d-flex align-items-center gap-1">
+          <i className="ri-palette-fill text-primary"></i> Partidos y Coaliciones
+        </div>
+        <div className="d-flex flex-wrap gap-2 fw-bold text-dark fs-11">
+          <span className="d-flex align-items-center gap-1">
+            <span style={{ width: 12, height: 12, backgroundColor: "#0055B8", borderRadius: 2, display: "inline-block" }}></span>
+            PAN / Coalición
+          </span>
+          <span className="d-flex align-items-center gap-1">
+            <span style={{ width: 12, height: 12, backgroundColor: "#70112C", borderRadius: 2, display: "inline-block" }}></span>
+            MORENA / Coalición
+          </span>
+          <span className="d-flex align-items-center gap-1">
+            <span style={{ width: 12, height: 12, backgroundColor: "#D92128", borderRadius: 2, display: "inline-block" }}></span>
+            PRI
+          </span>
+          <span className="d-flex align-items-center gap-1">
+            <span style={{ width: 12, height: 12, backgroundColor: "#50B848", borderRadius: 2, display: "inline-block" }}></span>
+            PVEM
+          </span>
+          <span className="d-flex align-items-center gap-1">
+            <span style={{ width: 12, height: 12, backgroundColor: "#1B5E20", borderRadius: 2, display: "inline-block" }}></span>
+            PRD
+          </span>
+          <span className="d-flex align-items-center gap-1">
+            <span style={{ width: 12, height: 12, backgroundColor: "#FF8200", borderRadius: 2, display: "inline-block" }}></span>
+            MC
+          </span>
+        </div>
+      </div>
     </div>
   );
 };
