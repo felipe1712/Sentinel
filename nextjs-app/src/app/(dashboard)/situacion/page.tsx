@@ -58,7 +58,7 @@ export default function SituacionPage() {
       <div className="d-flex flex-column flex-md-row align-items-md-center justify-content-between mb-4 gap-3">
         <div>
           <span className="badge bg-primary text-white text-uppercase px-3 py-1 fs-11 fw-bold mb-1 shadow-sm">
-            {stateCfg.name} · Soberana
+            {stateCfg.name}
           </span>
           <h4 className="fw-extrabold text-dark mb-1 fs-24" style={{ color: "#0f172a" }}>
             Centro de Inteligencia Situacional

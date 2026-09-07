@@ -148,7 +148,7 @@ export const Sidebar: React.FC = () => {
 
           {isJefeOficina && (
             <>
-              <li className="menu-title mt-3"><span data-key="t-admin" className="text-primary fw-bold">Administración Soberana</span></li>
+              <li className="menu-title mt-3"><span data-key="t-admin" className="text-primary fw-bold">Administración</span></li>
 
               <li className="nav-item">
                 <Link href="/admin" className={`nav-link ${pathname === "/admin" ? "active fw-bold text-primary" : "text-dark"}`}>

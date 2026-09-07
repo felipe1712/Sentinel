@@ -20,7 +20,7 @@ export const Topbar: React.FC = () => {
         <div className="navbar-header d-flex align-items-center justify-content-between">
           <div className="d-flex align-items-center">
             <span className="badge bg-primary text-white px-3 py-2 fs-12 fw-bold text-uppercase me-3 shadow-sm">
-              {stateCfg.shortName} · Soberana
+              {stateCfg.shortName}
             </span>
             <h5 className="mb-0 fw-bold fs-15 text-dark d-none d-md-block" style={{ color: "#0f172a" }}>
               {stateCfg.governorTitle}

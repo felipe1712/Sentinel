@@ -1149,7 +1149,7 @@ export const TerritorialDetailModal: React.FC<TerritorialDetailModalProps> = ({
           {/* Footer del Modal */}
           <div className="modal-footer bg-light border-0 py-2 px-4 d-flex justify-content-between">
             <span className="text-muted fs-11">
-              <i className="ri-information-line me-1"></i> Análisis electoral soberano SentinelIQ · INE Guanajuato
+              <i className="ri-information-line me-1"></i> Análisis electoral SentinelIQ · INE Guanajuato
             </span>
             <button type="button" className="btn btn-secondary btn-sm fw-bold px-4" onClick={onClose}>
               Cerrar Ficha

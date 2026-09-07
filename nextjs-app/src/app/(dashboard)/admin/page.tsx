@@ -280,7 +280,7 @@ export default function AdminPage() {
             {stateCfg.governorTitle}
           </span>
           <h4 className="fw-extrabold text-dark mb-1 fs-24" style={{ color: "#0f172a" }}>
-            Administración Soberana & Parámetros · {stateCfg.name}
+            Administración & Parámetros · {stateCfg.name}
           </h4>
           <p className="text-dark fs-13 mb-0 fw-semibold" style={{ color: "#334155" }}>
             Gestión de roles, permisos, credenciales e instrucciones de IA para el procesamiento de información.
