@@ -4,7 +4,6 @@ import React, { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import { getStateConfig, StateConfig } from "@/lib/stateConfig";
 import { BaseLayerType, ChoroplethMode, ElectoralResult, GisEventItem } from "@/lib/electoralTypes";
-import LayerControlPanel from "@/components/gis/LayerControlPanel";
 import EventFilterToolbar from "@/components/gis/EventFilterToolbar";
 import ElectoralStatsPanel from "@/components/gis/ElectoralStatsPanel";
 import CsvUploaderModal from "@/components/gis/CsvUploaderModal";
@@ -164,6 +163,8 @@ export default function GisElectoralPage() {
 
       {/* Barra de Filtros Superior */}
       <EventFilterToolbar
+        baseBoundary={baseBoundary}
+        onSelectBaseBoundary={setBaseBoundary}
         selectedYear={selectedYear}
         onSelectYear={setSelectedYear}
         electionType={electionType}
@@ -177,22 +178,10 @@ export default function GisElectoralPage() {
         onOpenSwingModal={() => setIsSwingModalOpen(true)}
       />
 
-      {/* Grid Principal: Gestor de Capas + Mapa Interactivo + Panel Lateral de Análisis */}
+      {/* Grid Principal: Visor de Mapa Extendido (col-lg-9) + Panel Lateral de Análisis (col-lg-3) */}
       <div className="row g-3">
-        {/* Columna Izquierda: Gestor de Capas */}
-        <div className="col-lg-3">
-          <LayerControlPanel
-            baseBoundary={baseBoundary}
-            onSelectBaseBoundary={setBaseBoundary}
-            activeEventLayers={activeEventLayers}
-            onToggleEventLayer={handleToggleEventLayer}
-            tileProvider={tileProvider}
-            onSelectTileProvider={setTileProvider}
-          />
-        </div>
-
-        {/* Columna Central: Visor del Mapa */}
-        <div className="col-lg-6">
+        {/* Columna Central: Visor del Mapa Extendido */}
+        <div className="col-lg-9">
           <WebGisMap
             baseBoundary={baseBoundary}
             choroplethMode={choroplethMode}
@@ -202,6 +191,7 @@ export default function GisElectoralPage() {
             electoralCache={electoralCache}
             activeEventLayers={activeEventLayers}
             tileProvider={tileProvider}
+            onSelectTileProvider={setTileProvider}
             onSelectSection={handleSelectSection}
             swingYears={swingYears}
           />

@@ -100,8 +100,8 @@ export const ElectoralStatsPanel: React.FC<StatsPanelProps> = ({
                 className="btn btn-primary btn-sm w-100 fw-bold d-flex align-items-center justify-content-center gap-2 mb-3 shadow-sm py-2"
                 onClick={onOpenDetailModal}
               >
-                <i className="ri-shape-line fs-15"></i>
-                Ver Ficha Técnica con Silueta SVG
+                <i className="ri-file-list-3-line fs-15"></i>
+                Ficha Técnica
               </button>
             )}
 

@@ -15,6 +15,7 @@ interface WebGisMapProps {
   electoralCache: any;
   activeEventLayers: Record<string, boolean>;
   tileProvider: "osm" | "carto" | "satellite";
+  onSelectTileProvider?: (provider: "osm" | "carto" | "satellite") => void;
   onSelectSection: (sectionProps: any, result: ElectoralResult | null) => void;
   swingYears?: { year1: number; year2: number };
 }
@@ -35,6 +36,7 @@ export const WebGisMap: React.FC<WebGisMapProps> = ({
   electoralCache,
   activeEventLayers,
   tileProvider,
+  onSelectTileProvider,
   onSelectSection,
   swingYears,
 }) => {
@@ -43,8 +45,13 @@ export const WebGisMap: React.FC<WebGisMapProps> = ({
   const tileLayerRef = useRef<L.TileLayer | null>(null);
   const geojsonLayerRef = useRef<L.GeoJSON | null>(null);
 
+  const [loadingGeo, setLoadingGeo] = useState<boolean>(true);
   const [geoData, setGeoData] = useState<any>(null);
-  const [loadingGeo, setLoadingGeo] = useState(true);
+  const [hoveredInfo, setHoveredInfo] = useState<{
+    featureTitle: string;
+    featureSubtitle: string;
+    res: ElectoralResult | null;
+  } | null>(null);
 
   // 1. Inicializar Mapa Leaflet
   useEffect(() => {
@@ -223,35 +230,6 @@ export const WebGisMap: React.FC<WebGisMapProps> = ({
           featureSubtitle = `Guanajuato (Clave ${mpioId}) · ${res?.secciones_count || 0} Secciones`;
         }
 
-        const tooltipContent = `
-          <div style="font-family: sans-serif; min-width: 190px; padding: 2px;">
-            <strong style="font-size: 13px; color: #0f172a; display: block; margin-bottom: 2px;">
-              ${featureTitle}
-            </strong>
-            <span style="font-size: 11px; color: #64748b; display: block; margin-bottom: 4px;">
-              ${featureSubtitle}
-            </span>
-            ${
-              res
-                ? `
-                <hr style="margin: 4px 0; border: none; border-top: 1px solid #e2e8f0;"/>
-                <div style="font-size: 12px; font-weight: bold; color: ${getPartyColor(res.ganador_partido)}; margin-bottom: 2px;">
-                  🏆 Ganador ${selectedYear}: ${res.ganador_partido} (${res.ganador_pct}%)
-                </div>
-                <div style="font-size: 11px; color: #059669; margin-bottom: 2px;">
-                  🗳️ Votos: ${Number(res.total_votos || 0).toLocaleString()} · Part: ${res.participacion_pct}%
-                </div>
-                <div style="font-size: 10px; color: #475569;">
-                  🥈 Segundo: ${res.segundo_partido} (${res.segundo_pct}%) · Margen: +${res.margen_victoria_pct}%
-                </div>
-              `
-                : `<span style="font-size: 11px; color: #94a3b8;">Sin datos electorales cargados</span>`
-            }
-          </div>
-        `;
-
-        layer.bindTooltip(tooltipContent, { sticky: true, className: "custom-gis-tooltip" });
-
         layer.on({
           click: () => {
             const enrichedProps = {
@@ -266,6 +244,11 @@ export const WebGisMap: React.FC<WebGisMapProps> = ({
           mouseover: (e) => {
             const l = e.target;
             l.setStyle({ weight: 3, color: "#0f172a", fillOpacity: 0.95 });
+            setHoveredInfo({
+              featureTitle,
+              featureSubtitle,
+              res: res || null,
+            });
           },
           mouseout: (e) => {
             geoLayer.resetStyle(e.target);
@@ -301,6 +284,95 @@ export const WebGisMap: React.FC<WebGisMapProps> = ({
 
       {/* Contenedor del Mapa Leaflet */}
       <div ref={mapContainerRef} className="w-100 h-100" style={{ minHeight: "580px" }} />
+
+      {/* 1. HUD Fijo Superior Izquierdo: Ficha Rápida al Vuelo (Sin solapar el cursor) */}
+      <div
+        className="position-absolute top-0 start-0 m-3 p-3 bg-white rounded-3 shadow border border-gray-300"
+        style={{
+          zIndex: 1000,
+          width: "285px",
+          backgroundColor: "rgba(255, 255, 255, 0.96)",
+          backdropFilter: "blur(6px)",
+          boxShadow: "0 8px 24px rgba(15, 23, 42, 0.14)",
+          pointerEvents: "auto",
+        }}
+      >
+        {hoveredInfo ? (
+          <div>
+            <div className="d-flex align-items-center justify-content-between mb-1">
+              <span className="badge bg-primary-subtle text-primary fs-10 fw-bold text-uppercase">
+                {baseBoundary.replace("_", " ")}
+              </span>
+              <span className="fs-10 text-muted fw-semibold d-flex align-items-center gap-1">
+                <span style={{ width: 6, height: 6, backgroundColor: "#10b981", borderRadius: "50%", display: "inline-block" }}></span>
+                Inspección Activa
+              </span>
+            </div>
+            <h6 className="fw-extrabold text-dark fs-13 mb-0" style={{ color: "#0f172a" }}>
+              {hoveredInfo.featureTitle}
+            </h6>
+            <small className="text-muted fs-11 d-block mb-2">
+              {hoveredInfo.featureSubtitle}
+            </small>
+
+            {hoveredInfo.res ? (
+              <div>
+                <div
+                  className="d-flex align-items-center justify-content-between p-1.5 px-2 rounded mb-2 text-white fs-12 fw-bold shadow-sm"
+                  style={{ backgroundColor: getPartyColor(hoveredInfo.res.ganador_partido) }}
+                >
+                  <span className="text-truncate">🏆 {hoveredInfo.res.ganador_partido}</span>
+                  <span className="badge bg-white text-dark fs-11 ms-1">
+                    {hoveredInfo.res.ganador_pct}%
+                  </span>
+                </div>
+                <div className="d-flex justify-content-between fs-11 text-dark fw-bold mb-1">
+                  <span>🗳️ Votos: {Number(hoveredInfo.res.total_votos || 0).toLocaleString()}</span>
+                  <span className="text-success">Part: {hoveredInfo.res.participacion_pct}%</span>
+                </div>
+                {hoveredInfo.res.segundo_partido && (
+                  <div className="fs-10 text-muted d-flex justify-content-between">
+                    <span>🥈 {hoveredInfo.res.segundo_partido} ({hoveredInfo.res.segundo_pct}%)</span>
+                    <span className="text-primary fw-bold">+{hoveredInfo.res.margen_victoria_pct}%</span>
+                  </div>
+                )}
+                <div className="mt-2 pt-1 border-top text-center text-primary fs-10 fw-bold">
+                  <i className="ri-cursor-fill me-1"></i>Clic para abrir Ficha Técnica
+                </div>
+              </div>
+            ) : (
+              <div className="text-muted fs-11 py-1">
+                Sin datos electorales cargados
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="py-2 text-center text-muted">
+            <i className="ri-cursor-line text-primary fs-20 d-block mb-1"></i>
+            <span className="fs-12 fw-bold text-dark d-block">Inspección de Territorio</span>
+            <small className="fs-11 text-muted">Pase el cursor sobre cualquier polígono para ver métricas</small>
+          </div>
+        )}
+      </div>
+
+      {/* 2. Selector Flotante de Mapa Base en Esquina Superior Derecha */}
+      {onSelectTileProvider && (
+        <div
+          className="position-absolute top-0 end-0 m-3 me-5 bg-white p-1 rounded-3 shadow border border-gray-300 d-flex gap-1"
+          style={{ zIndex: 999 }}
+        >
+          {(["carto", "osm", "satellite"] as const).map((prov) => (
+            <button
+              key={prov}
+              type="button"
+              className={`btn btn-xs px-2 py-1 fs-11 fw-bold text-capitalize ${tileProvider === prov ? "btn-primary text-white shadow-sm" : "btn-outline-secondary"}`}
+              onClick={() => onSelectTileProvider(prov)}
+            >
+              {prov === "satellite" ? "Satélite" : prov.toUpperCase()}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Leyenda Visual de Partidos y Coaliciones */}
       <div

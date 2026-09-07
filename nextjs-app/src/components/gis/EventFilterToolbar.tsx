@@ -1,9 +1,11 @@
 "use client";
 
 import React from "react";
-import { ChoroplethMode } from "@/lib/electoralTypes";
+import { BaseLayerType, ChoroplethMode } from "@/lib/electoralTypes";
 
 interface EventFilterToolbarProps {
+  baseBoundary: BaseLayerType;
+  onSelectBaseBoundary: (layer: BaseLayerType) => void;
   selectedYear: number;
   onSelectYear: (year: number) => void;
   electionType: "gubernatura" | "diputaciones";
@@ -18,6 +20,8 @@ interface EventFilterToolbarProps {
 }
 
 export const EventFilterToolbar: React.FC<EventFilterToolbarProps> = ({
+  baseBoundary,
+  onSelectBaseBoundary,
   selectedYear,
   onSelectYear,
   electionType,
@@ -34,6 +38,43 @@ export const EventFilterToolbar: React.FC<EventFilterToolbarProps> = ({
     <div className="card bg-white border-0 shadow-sm rounded-3 mb-3">
       <div className="card-body p-3 bg-white">
         <div className="d-flex flex-column flex-xl-row align-items-xl-center justify-content-between gap-3 flex-wrap">
+          {/* Selector de Nivel Territorial (Polígonos Electorales INE) */}
+          <div className="d-flex align-items-center gap-2">
+            <span className="fs-12 text-dark fw-extrabold text-uppercase text-nowrap">
+              <i className="ri-map-2-line text-primary me-1"></i> Territorio:
+            </span>
+            <div className="btn-group" role="group">
+              <button
+                type="button"
+                className={`btn btn-sm fw-bold ${baseBoundary === "secciones" ? "btn-primary text-white shadow-sm" : "btn-outline-primary"}`}
+                onClick={() => onSelectBaseBoundary("secciones")}
+              >
+                Secciones
+              </button>
+              <button
+                type="button"
+                className={`btn btn-sm fw-bold ${baseBoundary === "municipios" ? "btn-primary text-white shadow-sm" : "btn-outline-primary"}`}
+                onClick={() => onSelectBaseBoundary("municipios")}
+              >
+                Municipios
+              </button>
+              <button
+                type="button"
+                className={`btn btn-sm fw-bold ${baseBoundary === "distritos_locales" ? "btn-primary text-white shadow-sm" : "btn-outline-primary"}`}
+                onClick={() => onSelectBaseBoundary("distritos_locales")}
+              >
+                Dtto. Local
+              </button>
+              <button
+                type="button"
+                className={`btn btn-sm fw-bold ${baseBoundary === "distritos_federales" ? "btn-primary text-white shadow-sm" : "btn-outline-primary"}`}
+                onClick={() => onSelectBaseBoundary("distritos_federales")}
+              >
+                Dtto. Fed.
+              </button>
+            </div>
+          </div>
+
           {/* Selector de Tipo de Elección */}
           <div className="d-flex align-items-center gap-2">
             <span className="fs-12 text-dark fw-extrabold text-uppercase text-nowrap">
