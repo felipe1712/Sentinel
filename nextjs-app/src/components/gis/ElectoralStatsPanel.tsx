@@ -14,6 +14,7 @@ interface StatsPanelProps {
   municipiosList: { id: number; nombre: string }[];
   electoralCache: Record<string, Record<string, ElectoralResult>>;
   onClearSelection: () => void;
+  onOpenDetailModal?: () => void;
 }
 
 export const ElectoralStatsPanel: React.FC<StatsPanelProps> = ({
@@ -26,6 +27,7 @@ export const ElectoralStatsPanel: React.FC<StatsPanelProps> = ({
   municipiosList,
   electoralCache,
   onClearSelection,
+  onOpenDetailModal,
 }) => {
   const currentMpioObj = municipiosList.find((m) => m.id === selectedMunicipio);
 
@@ -91,6 +93,18 @@ export const ElectoralStatsPanel: React.FC<StatsPanelProps> = ({
         {selectedSection ? (
           /* 1. VISTA DETALLADA DE LA SECCIÓN O DISTRITO SELECCIONADO */
           <div>
+            {/* Botón Acceso a Ficha Técnica con Silueta */}
+            {onOpenDetailModal && (
+              <button
+                type="button"
+                className="btn btn-primary btn-sm w-100 fw-bold d-flex align-items-center justify-content-center gap-2 mb-3 shadow-sm py-2"
+                onClick={onOpenDetailModal}
+              >
+                <i className="ri-shape-line fs-15"></i>
+                Ver Ficha Técnica con Silueta SVG
+              </button>
+            )}
+
             {/* Ficha Territorial INE */}
             <div className="p-3 bg-light rounded-3 mb-3 border border-gray-200">
               <span className="fs-11 text-muted fw-bold text-uppercase d-block mb-1">

@@ -259,6 +259,7 @@ export const WebGisMap: React.FC<WebGisMapProps> = ({
               featureTitle,
               featureSubtitle,
               baseBoundary,
+              geometry: feature.geometry,
             };
             onSelectSection(enrichedProps, res || null);
           },

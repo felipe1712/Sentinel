@@ -33,9 +33,11 @@ if sys.platform == "win32":
 
 STATE_ID_GTO = "00000000-0000-0000-0000-000000000011"
 EXCEL_PATH = "data/electoral/Guanajuato 2018 - 2024.xlsx"
+EXCEL_2021_PATH = "data/electoral/Guanajuato 2021 Dip.xlsx"
 
 CONFIGS = [
     {
+        "file_path": EXCEL_PATH,
         "sheet_name": "Gubernatura 2018",
         "header_row": 6,
         "election_year": 2018,
@@ -49,6 +51,7 @@ CONFIGS = [
         "mc_col": "MC",
     },
     {
+        "file_path": EXCEL_PATH,
         "sheet_name": "Guanajuato 2018 - 2024",
         "header_row": 6,
         "election_year": 2024,
@@ -64,6 +67,7 @@ CONFIGS = [
         "mc_col": "MC",
     },
     {
+        "file_path": EXCEL_PATH,
         "sheet_name": "Guanajuato Dip 2018",
         "header_row": 5,
         "election_year": 2018,
@@ -78,6 +82,22 @@ CONFIGS = [
         "mc_col": "MC",
     },
     {
+        "file_path": EXCEL_2021_PATH,
+        "sheet_name": "Guanajuato Dip 2021",
+        "header_row": 5,
+        "election_year": 2021,
+        "election_type": "diputaciones",
+        "seccion_col": "SECCION",
+        "distrito_col": "ID_DISTRITO",
+        "ln_col": "LISTA_NOMINAL_CASILLA",
+        "tv_col": "TOTAL_VOTOS_CALCULADOS",
+        "pan_puro_col": "PAN",
+        "pan_coalition_cols": ["PAN", "PRI", "PRD", "PAN-PRI-PRD", "PAN-PRI", "PAN-PRD", "PRI-PRD"],
+        "opp_coalition_cols": ["MORENA", "PT", "PVEM", "PVEM-PT-MORENA", "PVEM-PT", "PVEM-MORENA", "PT-MORENA"],
+        "mc_col": "MC",
+    },
+    {
+        "file_path": EXCEL_PATH,
         "sheet_name": "Guanajuato Dip 2024",
         "header_row": 6,
         "election_year": 2024,
@@ -239,24 +259,29 @@ def process_one_sheet(xl: pd.ExcelFile, cfg: dict) -> pd.DataFrame:
 
 def main():
     print("==================================================================")
-    print(" 🗳️ SentinelIQ — Procesador Electoral de Guanajuato (4 Pestañas)")
+    print(" 🗳️ SentinelIQ — Procesador Electoral de Guanajuato (5 Procesos)")
     print("==================================================================")
 
-    if not os.path.exists(EXCEL_PATH):
-        print(f"❌ Archivo no encontrado: {EXCEL_PATH}")
-        return
-
-    xl = pd.ExcelFile(EXCEL_PATH)
-    print(f"📂 Archivo cargado: {EXCEL_PATH}")
-    print(f"📋 Pestañas del archivo: {xl.sheet_names}")
-
+    excel_cache = {}
     all_processed = []
+
     for cfg in CONFIGS:
-        if cfg["sheet_name"] in xl.sheet_names:
+        fpath = cfg.get("file_path", EXCEL_PATH)
+        sname = cfg["sheet_name"]
+        if not os.path.exists(fpath):
+            print(f"❌ Archivo no encontrado: {fpath}")
+            continue
+
+        if fpath not in excel_cache:
+            excel_cache[fpath] = pd.ExcelFile(fpath)
+            print(f"📂 Archivo cargado: {fpath}")
+
+        xl = excel_cache[fpath]
+        if sname in xl.sheet_names:
             proc_df = process_one_sheet(xl, cfg)
             all_processed.append(proc_df)
         else:
-            print(f"⚠️ Pestaña '{cfg['sheet_name']}' no encontrada en el archivo.")
+            print(f"⚠️ Pestaña '{sname}' no encontrada en '{fpath}'.")
 
     # Generar SQL de Inserción Masiva
     output_sql = "data/electoral/ingest_electoral_results.sql"

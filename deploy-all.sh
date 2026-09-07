@@ -48,10 +48,10 @@ sort -u "$APPLIED_LOG" -o "$APPLIED_LOG"
 
 # Ingesta masiva de resultados electorales si no se ha aplicado
 if [ -f "data/electoral/ingest_electoral_results.sql" ]; then
-  if ! grep -Fxq "ingest_electoral_results.sql" "$APPLIED_LOG" || [ "$1" == "--force-migrations" ]; then
-    echo "  -> Aplicando resultados electorales masivos (12,766 registros)..."
+  if ! grep -Fxq "ingest_electoral_results_v2.sql" "$APPLIED_LOG" || [ "$1" == "--force-migrations" ]; then
+    echo "  -> Aplicando resultados electorales masivos (15,925 registros)..."
     docker exec -i sentineliq_gto_postgres psql -U sentineliq -d sentineliq_gto < "data/electoral/ingest_electoral_results.sql" 2>/dev/null || true
-    echo "ingest_electoral_results.sql" >> "$APPLIED_LOG"
+    echo "ingest_electoral_results_v2.sql" >> "$APPLIED_LOG"
     echo "  ✅ Resultados electorales aplicados a sentineliq_gto."
   fi
 fi

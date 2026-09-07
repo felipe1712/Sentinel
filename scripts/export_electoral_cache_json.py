@@ -20,6 +20,7 @@ if sys.platform == "win32":
         pass
 
 EXCEL_PATH = "data/electoral/Guanajuato 2018 - 2024.xlsx"
+EXCEL_2021_PATH = "data/electoral/Guanajuato 2021 Dip.xlsx"
 GEOJSON_PATH = "nextjs-app/public/data/gto_secciones.geojson"
 OUTPUT_JSON_PATH = "nextjs-app/public/data/electoral_results_cache.json"
 
@@ -41,6 +42,7 @@ MUNICIPIOS_GTO = {
 
 CONFIGS = [
     {
+        "file_path": EXCEL_PATH,
         "sheet_name": "Guanajuato 2018 - 2024",
         "header_row": 6,
         "election_year": "2024",
@@ -55,6 +57,7 @@ CONFIGS = [
         "mc_col": "MC",
     },
     {
+        "file_path": EXCEL_PATH,
         "sheet_name": "Gubernatura 2018",
         "header_row": 6,
         "election_year": "2018",
@@ -69,6 +72,7 @@ CONFIGS = [
         "mc_col": "MC",
     },
     {
+        "file_path": EXCEL_PATH,
         "sheet_name": "Guanajuato Dip 2024",
         "header_row": 6,
         "election_year": "2024",
@@ -83,6 +87,22 @@ CONFIGS = [
         "mc_col": "MC",
     },
     {
+        "file_path": EXCEL_2021_PATH,
+        "sheet_name": "Guanajuato Dip 2021",
+        "header_row": 5,
+        "election_year": "2021",
+        "election_type": "diputaciones",
+        "seccion_col": "SECCION",
+        "ln_col": "LISTA_NOMINAL_CASILLA",
+        "tv_col": "TOTAL_VOTOS_CALCULADOS",
+        "pan_label": "PAN-PRI-PRD",
+        "opp_label": "MORENA-PT-PVEM",
+        "pan_cols": ["PAN", "PRI", "PRD", "PAN-PRI-PRD", "PAN-PRI", "PAN-PRD", "PRI-PRD"],
+        "opp_cols": ["MORENA", "PT", "PVEM", "PVEM-PT-MORENA", "PVEM-PT", "PVEM-MORENA", "PT-MORENA"],
+        "mc_col": "MC",
+    },
+    {
+        "file_path": EXCEL_PATH,
         "sheet_name": "Guanajuato Dip 2018",
         "header_row": 5,
         "election_year": "2018",
@@ -124,26 +144,27 @@ def main():
                 "distrito_f": int(p.get("distrito_f") or 0),
             }
 
-    xl = pd.ExcelFile(EXCEL_PATH)
+    excel_cache = {}
     master_cache = {
         "gubernatura": {"2024": {}, "2018": {}},
-        "diputaciones": {"2024": {}, "2018": {}},
+        "diputaciones": {"2024": {}, "2021": {}, "2018": {}},
         # Nivel agregado por Distritos y Municipios
         "distritos_locales": {
             "gubernatura": {"2024": {}, "2018": {}},
-            "diputaciones": {"2024": {}, "2018": {}},
+            "diputaciones": {"2024": {}, "2021": {}, "2018": {}},
         },
         "distritos_federales": {
             "gubernatura": {"2024": {}, "2018": {}},
-            "diputaciones": {"2024": {}, "2018": {}},
+            "diputaciones": {"2024": {}, "2021": {}, "2018": {}},
         },
         "municipios": {
             "gubernatura": {"2024": {}, "2018": {}},
-            "diputaciones": {"2024": {}, "2018": {}},
+            "diputaciones": {"2024": {}, "2021": {}, "2018": {}},
         }
     }
 
     for cfg in CONFIGS:
+        fpath = cfg.get("file_path", EXCEL_PATH)
         sname = cfg["sheet_name"]
         hrow = cfg["header_row"]
         year = cfg["election_year"]
@@ -151,6 +172,11 @@ def main():
         pan_label = cfg["pan_label"]
         opp_label = cfg["opp_label"]
 
+        if fpath not in excel_cache:
+            excel_cache[fpath] = pd.ExcelFile(fpath)
+            print(f"📂 Archivo cargado: {fpath}")
+
+        xl = excel_cache[fpath]
         print(f"\nProcesando {sname} ({etype} {year})...")
         df = pd.read_excel(xl, sheet_name=sname, header=hrow)
 

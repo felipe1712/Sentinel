@@ -9,6 +9,7 @@ import EventFilterToolbar from "@/components/gis/EventFilterToolbar";
 import ElectoralStatsPanel from "@/components/gis/ElectoralStatsPanel";
 import CsvUploaderModal from "@/components/gis/CsvUploaderModal";
 import SwingAnalysisModal from "@/components/gis/SwingAnalysisModal";
+import TerritorialDetailModal from "@/components/gis/TerritorialDetailModal";
 
 // Importar dinámicamente WebGisMap sin SSR
 const WebGisMap = dynamic(() => import("@/components/gis/WebGisMap"), {
@@ -98,6 +99,7 @@ export default function GisElectoralPage() {
   // Modales
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [isSwingModalOpen, setIsSwingModalOpen] = useState(false);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [swingYears, setSwingYears] = useState<{ year1: number; year2: number } | undefined>();
 
   useEffect(() => {
@@ -114,9 +116,17 @@ export default function GisElectoralPage() {
     setActiveEventLayers((prev) => ({ ...prev, [layer]: !prev[layer] }));
   };
 
+  const handleSelectElectionType = (type: "gubernatura" | "diputaciones") => {
+    setElectionType(type);
+    if (type === "gubernatura" && selectedYear === 2021) {
+      setSelectedYear(2024);
+    }
+  };
+
   const handleSelectSection = (sectionProps: any, result: ElectoralResult | null) => {
     setSelectedSection(sectionProps);
     setSelectedSectionResult(result);
+    setIsDetailModalOpen(true);
   };
 
   const handleApplyLoadedData = (newResults: ElectoralResult[]) => {
@@ -157,7 +167,7 @@ export default function GisElectoralPage() {
         selectedYear={selectedYear}
         onSelectYear={setSelectedYear}
         electionType={electionType}
-        onSelectElectionType={setElectionType}
+        onSelectElectionType={handleSelectElectionType}
         choroplethMode={choroplethMode}
         onSelectChoroplethMode={setChoroplethMode}
         selectedMunicipio={selectedMunicipio}
@@ -213,11 +223,12 @@ export default function GisElectoralPage() {
               setSelectedSectionResult(null);
               setSelectedMunicipio(null);
             }}
+            onOpenDetailModal={() => setIsDetailModalOpen(true)}
           />
         </div>
       </div>
 
-      {/* Modales de Carga CSV y Swing */}
+      {/* Modales de Carga CSV, Swing y Ficha Territorial */}
       <CsvUploaderModal
         isOpen={isUploadModalOpen}
         onClose={() => setIsUploadModalOpen(false)}
@@ -229,6 +240,17 @@ export default function GisElectoralPage() {
         onClose={() => setIsSwingModalOpen(false)}
         onApplySwing={handleApplySwing}
         electoralCache={electoralCache}
+      />
+
+      <TerritorialDetailModal
+        isOpen={isDetailModalOpen}
+        onClose={() => setIsDetailModalOpen(false)}
+        selectedSection={selectedSection}
+        initialResult={selectedSectionResult}
+        currentYear={selectedYear}
+        currentElectionType={electionType}
+        electoralCache={electoralCache}
+        municipiosList={MUNICIPIOS_GTO}
       />
     </div>
   );

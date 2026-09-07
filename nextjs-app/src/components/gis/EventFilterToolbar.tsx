@@ -63,7 +63,7 @@ export const EventFilterToolbar: React.FC<EventFilterToolbarProps> = ({
               <i className="ri-calendar-check-line text-primary me-1"></i> Proceso:
             </span>
             <div className="btn-group" role="group">
-              {[2024, 2018].map((yr) => (
+              {(electionType === "diputaciones" ? [2024, 2021, 2018] : [2024, 2018]).map((yr) => (
                 <button
                   key={yr}
                   type="button"
