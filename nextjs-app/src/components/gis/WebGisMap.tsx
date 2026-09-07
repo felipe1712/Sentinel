@@ -321,18 +321,18 @@ export const WebGisMap: React.FC<WebGisMapProps> = ({
                   className="d-flex align-items-center justify-content-between p-1.5 px-2 rounded mb-2 text-white fs-12 fw-bold shadow-sm"
                   style={{ backgroundColor: getPartyColor(hoveredInfo.res.ganador_partido) }}
                 >
-                  <span className="text-truncate">🏆 {hoveredInfo.res.ganador_partido}</span>
+                  <span className="text-truncate">{hoveredInfo.res.ganador_partido}</span>
                   <span className="badge bg-white text-dark fs-11 ms-1">
                     {hoveredInfo.res.ganador_pct}%
                   </span>
                 </div>
                 <div className="d-flex justify-content-between fs-11 text-dark fw-bold mb-1">
-                  <span>🗳️ Votos: {Number(hoveredInfo.res.total_votos || 0).toLocaleString()}</span>
+                  <span>Votos: {Number(hoveredInfo.res.total_votos || 0).toLocaleString()}</span>
                   <span className="text-success">Part: {hoveredInfo.res.participacion_pct}%</span>
                 </div>
                 {hoveredInfo.res.segundo_partido && (
                   <div className="fs-10 text-muted d-flex justify-content-between">
-                    <span>🥈 {hoveredInfo.res.segundo_partido} ({hoveredInfo.res.segundo_pct}%)</span>
+                    <span>2° {hoveredInfo.res.segundo_partido} ({hoveredInfo.res.segundo_pct}%)</span>
                     <span className="text-primary fw-bold">+{hoveredInfo.res.margen_victoria_pct}%</span>
                   </div>
                 )}

@@ -387,14 +387,14 @@ export const TerritorialDetailModal: React.FC<TerritorialDetailModalProps> = ({
                   className={`btn btn-sm fw-bold ${modalElectionType === "gubernatura" ? "btn-primary text-white shadow-sm" : "btn-outline-secondary bg-white"}`}
                   onClick={() => handleElectionTypeChange("gubernatura")}
                 >
-                  🏛️ Gubernatura
+                  Gubernatura
                 </button>
                 <button
                   type="button"
                   className={`btn btn-sm fw-bold ${modalElectionType === "diputaciones" ? "btn-primary text-white shadow-sm" : "btn-outline-secondary bg-white"}`}
                   onClick={() => handleElectionTypeChange("diputaciones")}
                 >
-                  🗳️ Diputaciones
+                  Diputaciones
                 </button>
               </div>
             </div>
@@ -404,7 +404,7 @@ export const TerritorialDetailModal: React.FC<TerritorialDetailModalProps> = ({
                 <i className="ri-calendar-line text-primary me-1"></i> Ciclo:
               </span>
               <div className="btn-group" role="group">
-                {(modalElectionType === "diputaciones" ? [2024, 2021, 2018] : [2024, 2018]).map((yr) => (
+                {(modalElectionType === "diputaciones" ? [2018, 2021, 2024] : [2018, 2024]).map((yr) => (
                   <button
                     key={yr}
                     type="button"
@@ -454,12 +454,9 @@ export const TerritorialDetailModal: React.FC<TerritorialDetailModalProps> = ({
               {/* Columna Izquierda: Silueta Vectorial y Tarjeta de Ganador */}
               <div className="col-12 col-lg-4 text-center">
                 <div className="p-3 rounded-4 bg-light border border-gray-200 shadow-sm d-flex flex-column align-items-center">
-                  <div className="d-flex justify-content-between w-100 align-items-center mb-2 px-2">
-                    <span className="fs-11 fw-extrabold text-uppercase text-muted">
-                      Silueta Cartográfica
-                    </span>
-                    <span className="badge bg-secondary-subtle text-secondary fs-10 fw-bold">
-                      Escala Normalizada
+                  <div className="d-flex justify-content-center w-100 align-items-center mb-2 px-2">
+                    <span className="fs-13 fw-extrabold text-uppercase text-dark">
+                      {territoryTitle}
                     </span>
                   </div>
 
@@ -632,7 +629,7 @@ export const TerritorialDetailModal: React.FC<TerritorialDetailModalProps> = ({
                     {activeResult?.segundo_partido && (
                       <div className="p-2 px-3 bg-light rounded-3 d-flex justify-content-between align-items-center fs-12 text-dark">
                         <span>
-                          🥈 Segundo Lugar: <strong>{activeResult.segundo_partido}</strong> ({activeResult.segundo_pct}%)
+                          Segundo Lugar: <strong>{activeResult.segundo_partido}</strong> ({activeResult.segundo_pct}%)
                         </span>
                         <span>{Number(activeResult.segundo_votos || 0).toLocaleString()} votos</span>
                       </div>

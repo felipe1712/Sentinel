@@ -86,14 +86,14 @@ export const EventFilterToolbar: React.FC<EventFilterToolbarProps> = ({
                 className={`btn btn-sm fw-bold ${electionType === "gubernatura" ? "btn-primary text-white shadow-sm" : "btn-outline-primary"}`}
                 onClick={() => onSelectElectionType("gubernatura")}
               >
-                🏛️ Gubernatura
+                Gubernatura
               </button>
               <button
                 type="button"
                 className={`btn btn-sm fw-bold ${electionType === "diputaciones" ? "btn-primary text-white shadow-sm" : "btn-outline-primary"}`}
                 onClick={() => onSelectElectionType("diputaciones")}
               >
-                🗳️ Diputaciones
+                Diputaciones
               </button>
             </div>
           </div>
@@ -104,7 +104,7 @@ export const EventFilterToolbar: React.FC<EventFilterToolbarProps> = ({
               <i className="ri-calendar-check-line text-primary me-1"></i> Proceso:
             </span>
             <div className="btn-group" role="group">
-              {(electionType === "diputaciones" ? [2024, 2021, 2018] : [2024, 2018]).map((yr) => (
+              {(electionType === "diputaciones" ? [2018, 2021, 2024] : [2018, 2024]).map((yr) => (
                 <button
                   key={yr}
                   type="button"
@@ -135,11 +135,11 @@ export const EventFilterToolbar: React.FC<EventFilterToolbarProps> = ({
               value={choroplethMode}
               onChange={(e) => onSelectChoroplethMode(e.target.value as ChoroplethMode)}
             >
-              <option value="ganador">🏆 Partido / Coalición Ganador</option>
-              <option value="porcentaje_ganador">📊 % de Votación del Ganador</option>
-              <option value="participacion">🗳️ % Participación Ciudadana</option>
-              <option value="margen_victoria">⚔️ Margen de Victoria (Competitividad)</option>
-              <option value="swing">🔄 Mapa de Swing / Alternancia</option>
+              <option value="ganador">Partido / Coalición Ganador</option>
+              <option value="porcentaje_ganador">% de Votación del Ganador</option>
+              <option value="participacion">% Participación Ciudadana</option>
+              <option value="margen_victoria">Margen de Victoria (Competitividad)</option>
+              <option value="swing">Mapa de Swing / Alternancia</option>
             </select>
           </div>
 
