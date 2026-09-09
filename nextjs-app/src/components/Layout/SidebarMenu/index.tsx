@@ -22,7 +22,7 @@ const SidebarMenu: React.FC<SidebarMenuProps> = ({ toggleActive }) => {
   };
 
   const linkClass = (path: string) =>
-    `flex items-center justify-between px-3.5 py-2.5 rounded-lg font-medium text-[13px] transition-all ${
+    `flex items-center justify-between px-3.5 py-2.5 rounded-lg font-medium text-[13px] no-underline transition-all ${
       isActive(path)
         ? "bg-primary-50 text-primary-600 dark:bg-[#15203c] dark:text-primary-400 font-semibold"
         : "text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#15203c] hover:text-black dark:hover:text-white"
@@ -32,7 +32,7 @@ const SidebarMenu: React.FC<SidebarMenuProps> = ({ toggleActive }) => {
     <div className="sidebar-area bg-white dark:bg-[#0c1427] fixed z-[7] top-0 h-screen transition-all rounded-r-md border-r border-gray-100 dark:border-[#172036]">
       {/* Brand Header */}
       <div className="logo bg-white dark:bg-[#0c1427] border-b border-gray-100 dark:border-[#172036] px-5 py-4 flex items-center justify-between">
-        <Link href="/gis-electoral" className="flex items-center gap-2.5 outline-none">
+        <Link href="/gis-electoral" className="flex items-center gap-2.5 outline-none no-underline">
           <div className="w-9 h-9 rounded-lg bg-primary-600 flex items-center justify-center text-white font-black text-xl shadow-sm">
             S
           </div>

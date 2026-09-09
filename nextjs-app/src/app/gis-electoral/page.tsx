@@ -147,18 +147,10 @@ export default function GisElectoralPage() {
   return (
     <div className="pb-5">
       {/* Header de la Sección WebGIS */}
-      <div className="d-flex flex-column flex-md-row align-items-md-center justify-content-between mb-3 gap-3">
-        <div>
-          <span className="badge bg-primary text-white text-uppercase px-3 py-1 fs-11 fw-bold mb-2 shadow-sm">
-            WebGIS Político-Electoral & Inteligencia Espacial · {stateCfg.name}
-          </span>
-          <h4 className="fw-extrabold text-dark mb-1 fs-24" style={{ color: "#0f172a" }}>
-            Visor Geográfico Electoral de Guanajuato
-          </h4>
-          <p className="text-dark fs-14 mb-0 fw-bold" style={{ color: "#334155" }}>
-            Cruce multidimensional de 3,357 secciones electorales, 46 municipios, resultados históricos y eventos en tiempo real.
-          </p>
-        </div>
+      <div className="mb-3">
+        <h4 className="fw-extrabold text-dark mb-0 fs-24" style={{ color: "#0f172a" }}>
+          Visor Geográfico Electoral de Guanajuato
+        </h4>
       </div>
 
       {/* Barra de Filtros Superior */}

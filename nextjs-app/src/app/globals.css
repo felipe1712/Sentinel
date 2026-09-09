@@ -2,6 +2,13 @@
 
 @custom-variant dark (&:where([class=dark], [class=dark] *));
 
+a, a:hover, a:focus {
+  text-decoration: none !important;
+}
+.sidebar-area a, .sidebar-area a:hover, .sidebar-area a:focus {
+  text-decoration: none !important;
+}
+
 @theme {
   --font-body: "Inter", serif;
   --text-xs: 12px;

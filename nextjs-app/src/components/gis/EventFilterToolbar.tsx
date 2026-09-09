@@ -15,7 +15,7 @@ interface EventFilterToolbarProps {
   selectedMunicipio: number | null;
   onSelectMunicipio: (m: number | null) => void;
   municipiosList: { id: number; nombre: string }[];
-  onOpenUploadModal: () => void;
+  onOpenUploadModal?: () => void;
   onOpenSwingModal: () => void;
 }
 
@@ -119,9 +119,9 @@ export const EventFilterToolbar: React.FC<EventFilterToolbarProps> = ({
               type="button"
               className="btn btn-sm btn-outline-info fw-bold text-nowrap"
               onClick={onOpenSwingModal}
-              title="Comparativa y Swing entre elecciones"
+              title="Tendencias electorales y comparativa histórica"
             >
-              <i className="ri-swap-line me-1"></i> Comparar / Swing
+              <i className="ri-line-chart-line me-1"></i> Tendencias
             </button>
           </div>
 
@@ -161,17 +161,6 @@ export const EventFilterToolbar: React.FC<EventFilterToolbarProps> = ({
                 </option>
               ))}
             </select>
-          </div>
-
-          {/* Botón Cargar Datos CSV */}
-          <div>
-            <button
-              type="button"
-              className="btn btn-sm btn-outline-secondary fw-bold text-nowrap"
-              onClick={onOpenUploadModal}
-            >
-              <i className="ri-file-upload-line me-1"></i> Cargar CSV
-            </button>
           </div>
         </div>
       </div>
