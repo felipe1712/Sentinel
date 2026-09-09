@@ -134,9 +134,9 @@ export default function AuditoriaPage() {
             id: "q1",
             state_id: stateIdentifier,
             query_type: "ocr_synthesis",
-            prompt_text: "Procesamiento de Primeras Planas Guanajuato con MCP Surya v2 y Claude 3.7 Sonnet",
+            prompt_text: "Procesamiento de Inteligencia Estratégica con Claude 3.7 Sonnet",
             model: "claude-3-7-sonnet-20250219",
-            tools_used: ["ocr_surya_v2", "clean_text_filter", "structured_json_formatter"],
+            tools_used: ["intel_synthesis", "clean_text_filter", "structured_json_formatter"],
             confidence_score: 98,
             hallucination_flag: false,
             tokens_used: 480,
@@ -564,7 +564,7 @@ ${auditData?.resumenes.find(r => r.document_type === "primeras_planas_estatal")?
 ${auditData?.resumenes.find(r => r.document_type === "primeras_planas_estatal")?.relevancia_estatal || "Supervisar accesos carreteros en corredor Laja-Bajío."}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔗 _Consulta completa: https://gto.sentineliq.com.mx/diario_
+🔗 _Consulta completa: https://gto.sentineliq.com.mx_
 _Despacho de la Gobernadora · SentinelIQ_`}
                   </div>
                 </div>
@@ -611,7 +611,7 @@ _Despacho de la Gobernadora · SentinelIQ_`}
                       <td className="text-muted">{q.model || "claude-3-7-sonnet"}</td>
                       <td>
                         <div className="d-flex flex-wrap gap-1">
-                          {(q.tools_used || ["ocr_surya_v2"]).map((t: string, i: number) => (
+                          {(q.tools_used || ["intel_synthesis"]).map((t: string, i: number) => (
                             <span key={i} className="badge bg-light text-dark border fs-10">{t}</span>
                           ))}
                         </div>

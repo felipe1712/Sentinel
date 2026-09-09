@@ -883,7 +883,7 @@ export default function AdminPage() {
 2. Mesa de seguimiento a proyectos hídricos concurrentes.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔗 _Consulta completa: https://gto.sentineliq.com.mx/diario_
+🔗 _Consulta completa: https://gto.sentineliq.com.mx_
 _Despacho del Ejecutivo · SentinelIQ_`}
                   </div>
                 </div>

@@ -30,7 +30,6 @@ export default function GabineteView() {
   const [stateCfg, setStateCfg] = useState<StateConfig>(getStateConfig());
   const [isCrisis, setIsCrisis] = useState(false);
   const [snapshot, setSnapshot] = useState<any>(null);
-  const [diarioResumenes, setDiarioResumenes] = useState<any[]>([]);
   const [selectedDetail, setSelectedDetail] = useState<DrilldownItem | null>(null);
 
   const detailPanelRef = useRef<HTMLDivElement>(null);
@@ -38,7 +37,6 @@ export default function GabineteView() {
   useEffect(() => {
     const cfg = getStateConfig();
     setStateCfg(cfg);
-    const today = new Date().toISOString().split("T")[0];
 
     const firstM = cfg.municipios[0];
     setSelectedDetail({
@@ -48,15 +46,15 @@ export default function GabineteView() {
       badge: `ALERTA OPERATIVA · ${firstM.eventos_24h} INCIDENTES`,
       badgeColor: "bg-danger text-white",
       eventsCount: firstM.eventos_24h,
-      relevance: 9,
-      description: `Operativo especial y seguimiento situacional en ${firstM.nombre}. Intervención continua de corporaciones de seguridad y monitoreo de movilidad en accesos principales.`,
+      relevance: 10,
+      description: `Operativos coordinados en el municipio de ${firstM.nombre}. Vigilancia prioritaria en accesos y zonas de afluencia.`,
       actions: [
-        `Mantener presencia de mandos operativos en ${firstM.nombre}.`,
-        "Coordinación con Comunicación Social para avisos oficiales en tiempo real.",
-        "Sugerir corte informativo al despacho ejecutivo a las 14:00 hrs.",
+        "Instruir reforzamiento de patrullaje a la Secretaría de Seguridad.",
+        "Monitorear puntos de enlace y coordinación con corporaciones municipales.",
+        "Mantener canal abierto con la mesa de gobernabilidad y atención ciudadana.",
       ],
       timeline: [
-        { time: "05:30 AM", text: "Reporte matutino registra aforo elevado y patrullaje preventivo." },
+        { time: "06:00 AM", text: "Reporte de apertura de jornada y pase de lista." },
         { time: "07:15 AM", text: "Despliegue coordinado en nodos de mayor movilidad." },
         { time: "08:45 AM", text: "Monitoreo continuo de cámaras de videovigilancia." },
       ],
@@ -64,16 +62,8 @@ export default function GabineteView() {
 
     async function load() {
       try {
-        const [snapResp, diarioResp] = await Promise.all([
-          api.get("/cabinet/snapshot"),
-          cfg.key === "gto"
-            ? api.get(`/diario/resumenes/${cfg.stateId || "gto"}/${today}`).catch(() => ({ data: [] }))
-            : Promise.resolve({ data: [] }),
-        ]);
+        const snapResp = await api.get("/cabinet/snapshot");
         setSnapshot(snapResp.data);
-        if (diarioResp && Array.isArray(diarioResp.data)) {
-          setDiarioResumenes(diarioResp.data);
-        }
       } catch (e) {
         console.error("Error cargando gabinete:", e);
       }
@@ -142,9 +132,6 @@ export default function GabineteView() {
       detailPanelRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     }, 100);
   };
-
-  const miniGto = diarioResumenes.find((r) => r.document_type === "primeras_planas_estatal")?.mini_resumen;
-  const miniSintesis = diarioResumenes.find((r) => r.document_type === "sintesis_estatal")?.mini_resumen?.split(".")[0];
 
   return (
     <div
@@ -265,24 +252,6 @@ export default function GabineteView() {
                   tendencia="estable"
                 />
               </div>
-
-              {/* Mini-sección: PRENSA DE HOY (Exclusiva Guanajuato en proyector) */}
-              {stateCfg.key === "gto" && (
-                <div className="p-3 bg-light rounded-3 border border-gray-300 shadow-sm mt-1">
-                  <div className="d-flex justify-content-between align-items-center mb-2">
-                    <span className="badge bg-primary text-white fs-11 fw-bold text-uppercase">
-                      📰 PRENSA DE HOY (07:00 AM)
-                    </span>
-                    <span className="badge bg-success text-white fs-10 fw-bold">OCR Listo</span>
-                  </div>
-                  <div className="fs-14 fw-extrabold text-dark mb-1 lh-base" style={{ color: "#0f172a" }}>
-                    {miniGto || "Monitoreo matutino de periódicos estatales listo para revisión ejecutiva de la mesa."}
-                  </div>
-                  <div className="fs-12 text-muted fw-semibold">
-                    {miniSintesis || "Síntesis informativa de dependencias y acuerdos de gobierno."}
-                  </div>
-                </div>
-              )}
             </div>
           </div>
         </div>
