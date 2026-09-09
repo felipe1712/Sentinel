@@ -4,6 +4,7 @@ nextjs-app/.next/
 nextjs-app/out/
 nextjs-app/build/
 nextjs-app/.env*.local
+nextjs-app-velzon-backup/
 
 # Rust / Cargo
 rust-api/target/

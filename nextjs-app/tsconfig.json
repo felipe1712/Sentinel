@@ -1,11 +1,7 @@
 {
   "compilerOptions": {
     "target": "ES2017",
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
+    "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -15,7 +11,7 @@
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "jsx": "react-jsx",
+    "jsx": "preserve",
     "incremental": true,
     "plugins": [
       {
@@ -23,51 +19,9 @@
       }
     ],
     "paths": {
-      "src/*": [
-        "./src/*"
-      ],
-      "@/*": [
-        "./src/*"
-      ],
-      "@components/*": [
-        "./src/components/*"
-      ],
-      "@common/*": [
-        "./src/components/Common/*"
-      ],
-      "@assets/*": [
-        "./src/assets/*"
-      ],
-      "@slices/*": [
-        "./src/slices/*"
-      ],
-      "@layouts/*": [
-        "./src/layouts/*"
-      ],
-      "@utils/*": [
-        "./src/utils/*"
-      ],
-      "@hooks/*": [
-        "./src/hooks/*"
-      ],
-      "@types/*": [
-        "./src/types/*"
-      ],
-      "@styles/*": [
-        "./src/styles/*"
-      ]
-    },
-    "baseUrl": "."
+      "@/*": ["./src/*"]
+    }
   },
-  "include": [
-    "next-env.d.ts",
-    "**/*.ts",
-    "**/*.tsx",
-    ".next/types/**/*.ts",
-    "src/types/**/*.d.ts",
-    ".next/dev/types/**/*.ts"
-  ],
-  "exclude": [
-    "node_modules"
-  ]
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "exclude": ["node_modules"]
 }
