@@ -1,0 +1,10 @@
+**/node_modules
+**/.next
+.git
+.gitignore
+nextjs-app-velzon-backup/
+Sf-gto/
+pgdata/
+gto_postgres_data/
+gto_redis_data/
+sentineliq_pgdata/
