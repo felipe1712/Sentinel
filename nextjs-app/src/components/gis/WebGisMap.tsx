@@ -76,6 +76,10 @@ export const WebGisMap: React.FC<WebGisMapProps> = ({
     tileLayerRef.current = tileLayer;
     mapInstanceRef.current = map;
 
+    setTimeout(() => {
+      map.invalidateSize();
+    }, 250);
+
     return () => {
       map.remove();
       mapInstanceRef.current = null;
@@ -271,7 +275,7 @@ export const WebGisMap: React.FC<WebGisMapProps> = ({
   }, [geoData, choroplethMode, selectedYear, electionType, baseBoundary, electoralCache, selectedMunicipio, swingYears]);
 
   return (
-    <div className="position-relative w-100 h-100 rounded-3 overflow-hidden shadow-sm border border-gray-200" style={{ minHeight: "580px" }}>
+    <div className="position-relative w-100 rounded-3 overflow-hidden shadow-sm border border-gray-200" style={{ width: "100%", height: "650px", minHeight: "650px" }}>
       {loadingGeo && (
         <div
           className="position-absolute top-0 start-0 w-100 h-100 d-flex flex-column align-items-center justify-content-center bg-white"
@@ -283,7 +287,7 @@ export const WebGisMap: React.FC<WebGisMapProps> = ({
       )}
 
       {/* Contenedor del Mapa Leaflet */}
-      <div ref={mapContainerRef} className="w-100 h-100" style={{ minHeight: "580px" }} />
+      <div ref={mapContainerRef} className="w-100 h-100" style={{ width: "100%", height: "650px", minHeight: "650px" }} />
 
       {/* 1. HUD Fijo Superior Izquierdo: Ficha Rápida al Vuelo (Sin solapar el cursor) */}
       <div

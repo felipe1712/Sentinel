@@ -4,6 +4,7 @@ import "react-calendar/dist/Calendar.css";
 import "swiper/css";
 import "swiper/css/bundle";
 import "leaflet/dist/leaflet.css";
+import "bootstrap/dist/css/bootstrap.min.css";
 
 // globals
 import "./globals.css";

@@ -46,10 +46,9 @@ export default function SituacionalMap({ onSelectMunicipio }: SituacionalMapProp
 
       mapInstanceRef.current = map;
 
-      // Add CartoDB Voyager / Positron LIGHT tile layer
-      L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>',
-        subdomains: "abcd",
+      // Add ArcGIS Light Gray Base tile layer (No API Key Required)
+      L.tileLayer("https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}", {
+        attribution: '&copy; Esri &copy; OpenStreetMap contributors',
         maxZoom: 19,
       }).addTo(map);
 
@@ -120,7 +119,7 @@ export default function SituacionalMap({ onSelectMunicipio }: SituacionalMapProp
     <div
       ref={mapRef}
       className="w-100 bg-white"
-      style={{ height: "460px", minHeight: "460px", zIndex: 1 }}
+      style={{ width: "100%", height: "460px", minHeight: "460px", zIndex: 1 }}
     />
   );
 }
