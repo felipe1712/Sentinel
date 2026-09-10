@@ -20,7 +20,13 @@ export default function MunicipiosPage() {
       try {
         const resp = await api.get("/municipios");
         if (resp.data && Array.isArray(resp.data) && resp.data.length > 0) {
-          setMunicipios(resp.data);
+          // Aislamiento estricto: solo aceptar municipios cuyo código INEGI inicie con la entidad soberana activa
+          const validMunicipios = resp.data.filter((m: MunicipioItem) =>
+            m.clave && m.clave.startsWith(cfg.inegiCode)
+          );
+          if (validMunicipios.length > 0) {
+            setMunicipios(validMunicipios);
+          }
         }
       } catch (e) {
         console.warn(`Usando catálogo soberano completo de municipios de ${cfg.shortName}`);
