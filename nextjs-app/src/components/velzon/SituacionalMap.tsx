@@ -87,8 +87,10 @@ export default function SituacionalMap({
         .get("/events/live?hours=36&limit=100")
         .then((r) => r.data)
         .catch(() => []),
-    ]).then(([L, geojsonData, liveEvents]) => {
+    ]).then(([leafletMod, geojsonData, liveEvents]) => {
       if (!isMounted || !mapRef.current) return;
+
+      const L = (leafletMod as any).default || leafletMod;
 
       // 1. Construir índice de alertas por municipio
       const alertsByMun: Record<string, AlertData> = {};
@@ -302,6 +304,14 @@ export default function SituacionalMap({
         }).addTo(map);
 
         geojsonLayerRef.current = geojsonLayer;
+
+        try {
+          if (geojsonLayer.getBounds && geojsonLayer.getBounds().isValid()) {
+            map.fitBounds(geojsonLayer.getBounds(), { padding: [12, 12] });
+          }
+        } catch {
+          // ignore
+        }
       }
 
       setTimeout(() => {
