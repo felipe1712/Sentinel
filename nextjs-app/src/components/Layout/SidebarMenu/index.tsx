@@ -12,7 +12,7 @@ interface SidebarMenuProps {
 
 const SidebarMenu: React.FC<SidebarMenuProps> = ({ toggleActive }) => {
   const pathname = usePathname();
-  const { isGobernador, isJefeOficina } = useRole();
+  const { isSuperAdmin } = useRole();
   const stateCfg = getStateConfig();
 
   const isActive = (path: string) => {
@@ -138,52 +138,48 @@ const SidebarMenu: React.FC<SidebarMenuProps> = ({ toggleActive }) => {
         </nav>
 
         {/* SECCION: OPERACION & FUENTES */}
-        {!isGobernador && (
-          <>
-            <span className="block font-bold uppercase text-gray-400 dark:text-gray-500 px-3 mb-2 text-[11px] tracking-wider">
-              Operación & Fuentes
+        <span className="block font-bold uppercase text-gray-400 dark:text-gray-500 px-3 mb-2 text-[11px] tracking-wider">
+          Operación & Fuentes
+        </span>
+        <nav className="space-y-1 mb-6">
+          <Link href="/fuentes" className={linkClass("/fuentes")}>
+            <span className="flex items-center gap-2.5">
+              <i className="ri-rss-line text-[18px]"></i>
+              <span>Source Manager & ARGOS</span>
             </span>
-            <nav className="space-y-1 mb-6">
-              <Link href="/fuentes" className={linkClass("/fuentes")}>
-                <span className="flex items-center gap-2.5">
-                  <i className="ri-rss-line text-[18px]"></i>
-                  <span>Source Manager & ARGOS</span>
-                </span>
-              </Link>
+          </Link>
 
-              <Link href="/fuentes/telegram" className={linkClass("/fuentes/telegram")}>
-                <span className="flex items-center gap-2.5">
-                  <i className="ri-telegram-line text-[18px] text-[#229ED9]"></i>
-                  <span>Canales Telegram</span>
-                </span>
-              </Link>
+          <Link href="/fuentes/telegram" className={linkClass("/fuentes/telegram")}>
+            <span className="flex items-center gap-2.5">
+              <i className="ri-telegram-line text-[18px] text-[#229ED9]"></i>
+              <span>Canales Telegram</span>
+            </span>
+          </Link>
 
-              <Link href="/fuentes/twitter" className={linkClass("/fuentes/twitter")}>
-                <span className="flex items-center gap-2.5">
-                  <i className="ri-twitter-x-line text-[18px]"></i>
-                  <span>Monitor X / Twitter</span>
-                </span>
-              </Link>
+          <Link href="/fuentes/twitter" className={linkClass("/fuentes/twitter")}>
+            <span className="flex items-center gap-2.5">
+              <i className="ri-twitter-x-line text-[18px]"></i>
+              <span>Monitor X / Twitter</span>
+            </span>
+          </Link>
 
-              <Link href="/ciberseguridad" className={linkClass("/ciberseguridad")}>
-                <span className="flex items-center gap-2.5">
-                  <i className="ri-shield-keyhole-line text-[18px]"></i>
-                  <span>Audit SpiderFoot</span>
-                </span>
-              </Link>
+          <Link href="/ciberseguridad" className={linkClass("/ciberseguridad")}>
+            <span className="flex items-center gap-2.5">
+              <i className="ri-shield-keyhole-line text-[18px]"></i>
+              <span>Audit SpiderFoot</span>
+            </span>
+          </Link>
 
-              <Link href="/reportes" className={linkClass("/reportes")}>
-                <span className="flex items-center gap-2.5">
-                  <i className="ri-printer-line text-[18px]"></i>
-                  <span>Reportes PDF</span>
-                </span>
-              </Link>
-            </nav>
-          </>
-        )}
+          <Link href="/reportes" className={linkClass("/reportes")}>
+            <span className="flex items-center gap-2.5">
+              <i className="ri-printer-line text-[18px]"></i>
+              <span>Reportes PDF</span>
+            </span>
+          </Link>
+        </nav>
 
-        {/* SECCION: ADMINISTRACION */}
-        {isJefeOficina && (
+        {/* SECCION: ADMINISTRACION (EXCLUSIVA SUPERADMINISTRADOR) */}
+        {isSuperAdmin && (
           <>
             <span className="block font-bold uppercase text-gray-400 dark:text-gray-500 px-3 mb-2 text-[11px] tracking-wider">
               Administración

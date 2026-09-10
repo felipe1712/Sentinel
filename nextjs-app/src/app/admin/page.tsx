@@ -27,6 +27,14 @@ interface PromptConfig {
 const DEFAULT_GTO_USERS: UserItem[] = [
   {
     id: "u1_gto",
+    name: "Ing. Roberto Solís",
+    email: "admin.seguridad@guanajuato.gob.mx",
+    cargo: "Superadministrador de Sistemas & Ciberseguridad GTO",
+    role: "superadmin",
+    active: true,
+  },
+  {
+    id: "u2_gto",
     name: "Libia Dennise García Muñoz Ledo",
     email: "gobernadora@guanajuato.gob.mx",
     cargo: "Gobernadora Constitucional del Estado de Guanajuato",
@@ -34,26 +42,18 @@ const DEFAULT_GTO_USERS: UserItem[] = [
     active: true,
   },
   {
-    id: "u2_gto",
+    id: "u3_gto",
     name: "Mtro. Jorge Daniel Jiménez Lona",
     email: "secretario.gobierno@guanajuato.gob.mx",
-    cargo: "Secretario de Gobierno del Estado de Guanajuato",
-    role: "jefe_oficina",
-    active: true,
-  },
-  {
-    id: "u3_gto",
-    name: "Mtro. Mauro González Martínez",
-    email: "seguridad@fspe.gob.mx",
-    cargo: "Secretario de Seguridad y Paz del Estado de Guanajuato",
-    role: "asesor",
+    cargo: "Secretario de Gobierno / Personal de Gabinete",
+    role: "gabinete",
     active: true,
   },
   {
     id: "u4_gto",
     name: "Lic. Carlos Mendoza",
     email: "analista.inteligencia@guanajuato.gob.mx",
-    cargo: "Director de Inteligencia Situacional y Fuentes",
+    cargo: "Analista de Inteligencia Territorial & OSINT",
     role: "analista",
     active: true,
   },
@@ -62,6 +62,14 @@ const DEFAULT_GTO_USERS: UserItem[] = [
 const DEFAULT_QRO_USERS: UserItem[] = [
   {
     id: "u1_qro",
+    name: "Ing. Fernando Morales",
+    email: "admin.ti@queretaro.gob.mx",
+    cargo: "Superadministrador de Plataforma Querétaro",
+    role: "superadmin",
+    active: true,
+  },
+  {
+    id: "u2_qro",
     name: "Mauricio Kuri González",
     email: "gobernador@queretaro.gob.mx",
     cargo: "Gobernador Constitucional del Estado de Querétaro",
@@ -69,26 +77,18 @@ const DEFAULT_QRO_USERS: UserItem[] = [
     active: true,
   },
   {
-    id: "u2_qro",
+    id: "u3_qro",
     name: "Mtro. Alejandro Morales",
     email: "jefe.oficina@queretaro.gob.mx",
-    cargo: "Jefe de la Oficina de la Gubernatura",
-    role: "jefe_oficina",
-    active: true,
-  },
-  {
-    id: "u3_qro",
-    name: "Lic. Carlos Arredondo",
-    email: "asesor.politico@queretaro.gob.mx",
-    cargo: "Asesor Principal de Estrategia Política",
-    role: "asesor",
+    cargo: "Jefe de Oficina / Personal de Gabinete",
+    role: "gabinete",
     active: true,
   },
   {
     id: "u4_qro",
     name: "Dra. Sofía Hinojosa",
     email: "analista.inteligencia@queretaro.gob.mx",
-    cargo: "Directora de Análisis e Inteligencia Situacional",
+    cargo: "Analista Senior de Inteligencia Situacional",
     role: "analista",
     active: true,
   },
@@ -422,16 +422,23 @@ export default function AdminPage() {
                       <td>
                         <span
                           className={`badge px-3 py-1 fs-11 fw-bold ${
-                            u.role === "gobernador"
+                            u.role === "superadmin"
+                              ? "bg-purple-600 text-white"
+                              : u.role === "gobernador"
+                              ? "bg-amber-600 text-white"
+                              : u.role === "gabinete"
                               ? "bg-primary text-white"
-                              : u.role === "jefe_oficina"
-                              ? "bg-dark text-white"
-                              : u.role === "asesor"
-                              ? "bg-info text-white"
-                              : "bg-secondary text-white"
+                              : "bg-success text-white"
                           }`}
+                          style={u.role === "superadmin" ? { backgroundColor: "#9333ea" } : u.role === "gobernador" ? { backgroundColor: "#d97706" } : {}}
                         >
-                          {u.role.toUpperCase()}
+                          {u.role === "superadmin"
+                            ? "SUPERADMIN"
+                            : u.role === "gobernador"
+                            ? "GOBERNADOR"
+                            : u.role === "gabinete"
+                            ? "GABINETE"
+                            : "ANALISTA"}
                         </span>
                       </td>
                       <td className="text-end pe-4">

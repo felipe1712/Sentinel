@@ -40,7 +40,7 @@ export interface FuenteItem {
 }
 
 export interface StateConfig {
-  key: "gto" | "qro";
+  key: string;
   stateId: string;
   name: string;
   shortName: string;
@@ -361,18 +361,69 @@ export const GUANAJUATO_CONFIG: StateConfig = {
   ],
 };
 
-export function getStateConfig(): StateConfig {
+// Catálogo extensible de Estados registrados en SentinelIQ
+export const STATE_CATALOG: Record<string, StateConfig> = {
+  gto: GUANAJUATO_CONFIG,
+  qro: QUERETARO_CONFIG,
+};
+
+export function getAllSupportedStates(): StateConfig[] {
+  return Object.values(STATE_CATALOG);
+}
+
+export function getStateConfigByKey(stateKey?: string): StateConfig | null {
+  if (!stateKey) return null;
+  const normalized = stateKey.toLowerCase().trim();
+  return STATE_CATALOG[normalized] || null;
+}
+
+export function getStateConfig(overrideKey?: string): StateConfig {
+  if (overrideKey && STATE_CATALOG[overrideKey.toLowerCase()]) {
+    return STATE_CATALOG[overrideKey.toLowerCase()];
+  }
+
   if (typeof window !== "undefined") {
+    // 1. Verificar si hay un usuario logueado con state_key
+    try {
+      const userStr = localStorage.getItem("sentineliq_user");
+      if (userStr) {
+        const u = JSON.parse(userStr);
+        if (u?.state_key && STATE_CATALOG[u.state_key.toLowerCase()]) {
+          // Si estamos en un puerto/host explícito de otro estado, prevalece el host para control de jurisdicción
+          const host = window.location.hostname.toLowerCase();
+          const port = window.location.port;
+          if ((host.startsWith("gto.") || host.includes("guanajuato") || port === "3005") && u.state_key !== "gto") {
+            // El host es Guanajuato, se devolverá Guanajuato para que el guardia detecte el conflicto
+            return GUANAJUATO_CONFIG;
+          }
+          if ((host.startsWith("qro.") || host.includes("queretaro") || port === "3000") && u.state_key !== "qro") {
+            return QUERETARO_CONFIG;
+          }
+          return STATE_CATALOG[u.state_key.toLowerCase()];
+        }
+      }
+    } catch (e) {
+      // ignore
+    }
+
+    // 2. Detección por Hostname / Puerto
     const host = window.location.hostname.toLowerCase();
-    if (host.startsWith("gto.") || host.includes("guanajuato") || host.includes(":3005")) {
+    const port = window.location.port;
+    if (host.startsWith("gto.") || host.includes("guanajuato") || port === "3005") {
       return GUANAJUATO_CONFIG;
+    }
+    if (host.startsWith("qro.") || host.includes("queretaro") || port === "3000") {
+      return QUERETARO_CONFIG;
     }
   }
 
-  const envStateKey = process.env.NEXT_PUBLIC_STATE_KEY || process.env.STATE_KEY;
-  if (envStateKey === "gto") {
-    return GUANAJUATO_CONFIG;
+  // 3. Detección por Variable de Entorno
+  const envStateKey = (process.env.NEXT_PUBLIC_STATE_KEY || process.env.STATE_KEY || "").toLowerCase();
+  if (envStateKey && STATE_CATALOG[envStateKey]) {
+    return STATE_CATALOG[envStateKey];
   }
 
-  return QUERETARO_CONFIG;
+  // Por defecto Guanajuato (o Querétaro según configuración base)
+  return GUANAJUATO_CONFIG;
 }
+

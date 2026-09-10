@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import SidebarMenu from "@/components/Layout/SidebarMenu";
 import Header from "@/components/Layout/Header";
 import Footer from "@/components/Layout/Footer";
+import StateAccessGuard from "@/components/auth/StateAccessGuard";
 
 interface LayoutProviderProps {
   children: ReactNode;
@@ -19,24 +20,27 @@ const LayoutProvider: React.FC<LayoutProviderProps> = ({ children }) => {
     setActive(!active);
   };
 
-  const isAuthPage = [
-    "/authentication/sign-in/",
-    "/authentication/sign-up/",
-    "/authentication/forgot-password/",
-    "/authentication/reset-password/",
-    "/authentication/confirm-email/",
-    "/authentication/lock-screen/",
-    "/authentication/logout/",
-    "/coming-soon/",
-    "/",
-    "/front-pages/features/",
-    "/front-pages/team/",
-    "/front-pages/faq/",
-    "/front-pages/contact/",
-  ].includes(pathname);
+  const isAuthPage =
+    pathname === "/login" ||
+    pathname === "/login/" ||
+    [
+      "/authentication/sign-in/",
+      "/authentication/sign-up/",
+      "/authentication/forgot-password/",
+      "/authentication/reset-password/",
+      "/authentication/confirm-email/",
+      "/authentication/lock-screen/",
+      "/authentication/logout/",
+      "/coming-soon/",
+      "/",
+      "/front-pages/features/",
+      "/front-pages/team/",
+      "/front-pages/faq/",
+      "/front-pages/contact/",
+    ].includes(pathname);
 
   return (
-    <>
+    <StateAccessGuard>
       <div
         className={`main-content-wrap transition-all ${active ? "active" : ""}`}
       >
@@ -54,8 +58,9 @@ const LayoutProvider: React.FC<LayoutProviderProps> = ({ children }) => {
           {!isAuthPage && <Footer />}
         </div>
       </div>
-    </>
+    </StateAccessGuard>
   );
 };
+
 
 export default LayoutProvider;
