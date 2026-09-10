@@ -1,15 +1,15 @@
 -- ==============================================================================
--- SentinelIQ: Seed de Fuentes Vivas (Telegram, X / Twitter, Oficiales)
+-- SentinelIQ: Seed de Fuentes Vivas (Telegram, Redes Sociales, Oficiales)
 -- y Eventos Dinámicos de las Últimas 36 Horas
 -- ==============================================================================
 
 -- 1. FUENTES VIVAS PARA GUANAJUATO (Clave INEGI 11)
 INSERT INTO sources (id, state_id, type, identifier, name, credibility, active) VALUES
-('77777777-7777-7777-7777-777777777711', '00000000-0000-0000-0000-000000000011', 'telegram', '@AlertaBajioOficial', 'Canal Alerta Bajío & Seguridad Operativa', 'alerta_ciudadana', true),
+('77777777-7777-7777-7777-777777777711', '00000000-0000-0000-0000-000000000011', 'telegram', '@AlertaBajioOficial', 'Canal Alerta Bajío & Seguridad Operativa', 'no_verificado', true),
 ('77777777-7777-7777-7777-777777777712', '00000000-0000-0000-0000-000000000011', 'telegram', '@NoticiasGTO', 'Red de Corresponsales Noticias GTO en Vivo', 'verificado', true),
-('77777777-7777-7777-7777-777777777713', '00000000-0000-0000-0000-000000000011', 'telegram', '@VialidadLeonGTO', 'Monitoreo Vial y Emergencias Metrópoli León', 'alerta_ciudadana', true),
-('77777777-7777-7777-7777-777777777714', '00000000-0000-0000-0000-000000000011', 'twitter', '@FSPE_Gto', 'Fuerzas de Seguridad Pública del Estado (FSPE)', 'oficial', true),
-('77777777-7777-7777-7777-777777777715', '00000000-0000-0000-0000-000000000011', 'twitter', '@PeriodismoBajio', 'Agencia Informativa & Periodismo Regional Bajío', 'verificado', true),
+('77777777-7777-7777-7777-777777777713', '00000000-0000-0000-0000-000000000011', 'telegram', '@VialidadLeonGTO', 'Monitoreo Vial y Emergencias Metrópoli León', 'no_verificado', true),
+('77777777-7777-7777-7777-777777777714', '00000000-0000-0000-0000-000000000011', 'social', '@FSPE_Gto', 'Fuerzas de Seguridad Pública del Estado (FSPE)', 'oficial', true),
+('77777777-7777-7777-7777-777777777715', '00000000-0000-0000-0000-000000000011', 'social', '@PeriodismoBajio', 'Agencia Informativa & Periodismo Regional Bajío', 'verificado', true),
 ('77777777-7777-7777-7777-777777777716', '00000000-0000-0000-0000-000000000011', 'api_federal', 'PC_Estatal_GTO', 'Coordinación Estatal de Protección Civil GTO', 'oficial', true),
 ('77777777-7777-7777-7777-777777777717', '00000000-0000-0000-0000-000000000011', 'api_federal', 'CONAGUA_Lerma_Santiago', 'Servicio Hidrometeorológico y Cuencas CONAGUA', 'oficial', true)
 ON CONFLICT (id) DO UPDATE 
@@ -18,9 +18,9 @@ SET name = EXCLUDED.name, identifier = EXCLUDED.identifier, type = EXCLUDED.type
 -- 2. FUENTES VIVAS PARA QUERÉTARO (Clave INEGI 22)
 INSERT INTO sources (id, state_id, type, identifier, name, credibility, active) VALUES
 ('77777777-7777-7777-7777-777777777721', '11111111-1111-1111-1111-111111111111', 'telegram', '@NoticiasQueretaroHoy', 'Canal Noticias Querétaro Hoy', 'verificado', true),
-('77777777-7777-7777-7777-777777777722', '11111111-1111-1111-1111-111111111111', 'telegram', '@AlertaQroVial', 'Alerta Vial y Movilidad Urbana Querétaro', 'alerta_ciudadana', true),
-('77777777-7777-7777-7777-777777777723', '11111111-1111-1111-1111-111111111111', 'twitter', '@POES_Qro', 'Policía Estatal Querétaro (PoEs)', 'oficial', true),
-('77777777-7777-7777-7777-777777777724', '11111111-1111-1111-1111-111111111111', 'twitter', '@CIAS_Queretaro', 'Centro de Información y Análisis para la Seguridad (CIAS)', 'oficial', true)
+('77777777-7777-7777-7777-777777777722', '11111111-1111-1111-1111-111111111111', 'telegram', '@AlertaQroVial', 'Alerta Vial y Movilidad Urbana Querétaro', 'no_verificado', true),
+('77777777-7777-7777-7777-777777777723', '11111111-1111-1111-1111-111111111111', 'social', '@POES_Qro', 'Policía Estatal Querétaro (PoEs)', 'oficial', true),
+('77777777-7777-7777-7777-777777777724', '11111111-1111-1111-1111-111111111111', 'social', '@CIAS_Queretaro', 'Centro de Información y Análisis para la Seguridad (CIAS)', 'oficial', true)
 ON CONFLICT (id) DO UPDATE 
 SET name = EXCLUDED.name, identifier = EXCLUDED.identifier, type = EXCLUDED.type, credibility = EXCLUDED.credibility;
 
@@ -30,61 +30,62 @@ INSERT INTO raw_events (id, source_id, state_id, raw_text, ingested_at) VALUES
   '99999999-0000-0000-0000-000000000001',
   '77777777-7777-7777-7777-777777777711',
   '00000000-0000-0000-0000-000000000011',
-  '⚠️ #URGENTE_CELAYA [Telegram @AlertaBajioOficial - 08:12 hrs] Reportan fuerte movilización de corporaciones estatales y federales en el entronque de salida hacia Villagrán. Camión de transporte pesado detenido cruzado preventivamente. FSPE mantiene perímetro asegurado. Tráfico totalmente detenido en dirección poniente. Eviten la zona.',
+  '⚠️ #URGENTE_CELAYA [Telegram @AlertaBajioOficial] Reportan fuerte movilización de corporaciones estatales y federales en el entronque de salida hacia Villagrán. Camión de transporte pesado detenido cruzado preventivamente. FSPE mantiene perímetro asegurado. Tráfico totalmente detenido en dirección poniente. Eviten la zona.',
   NOW() - INTERVAL '45 minutes'
 ),
 (
   '99999999-0000-0000-0000-000000000002',
   '77777777-7777-7777-7777-777777777714',
   '00000000-0000-0000-0000-000000000011',
-  '🚨 COMUNICADO OFICIAL [@FSPE_Gto en X - 08:35 hrs]: En coordinación con la @GN_MEXICO_ y @SEDENAmx, personal de las Fuerzas de Seguridad Pública del Estado mantiene bajo control el tramo Celaya - Villagrán tras reporte de conato de bloqueo. Se restablece la circulación de manera paulatina. No se reportan personas lesionadas.',
+  '🚨 COMUNICADO OFICIAL [@FSPE_Gto en X]: En coordinación con la @GN_MEXICO_ y @SEDENAmx, personal de las Fuerzas de Seguridad Pública del Estado mantiene bajo control el tramo Celaya - Villagrán tras reporte de conato de bloqueo. Se restablece la circulación de manera paulatina. No se reportan personas lesionadas.',
   NOW() - INTERVAL '25 minutes'
 ),
 (
   '99999999-0000-0000-0000-000000000003',
   '77777777-7777-7777-7777-777777777713',
   '00000000-0000-0000-0000-000000000011',
-  '🚗💨 #ReporteVialLeon [Telegram @VialidadLeonGTO - 06:40 hrs] Carambola sobre Blvd. Adolfo López Mateos a la altura de Poliforum León. 3 vehículos involucrados. Servicios de emergencia ya en sitio. Reducción a 1 carril central, fila vehicular alcanza la glorieta del Estadio León.',
+  '🚗💨 #ReporteVialLeon [Telegram @VialidadLeonGTO] Carambola sobre Blvd. Adolfo López Mateos a la altura de Poliforum León. 3 vehículos involucrados. Servicios de emergencia ya en sitio. Reducción a 1 carril central, fila vehicular alcanza la glorieta del Estadio León.',
   NOW() - INTERVAL '2 hours 15 minutes'
 ),
 (
   '99999999-0000-0000-0000-000000000004',
   '77777777-7777-7777-7777-777777777716',
   '00000000-0000-0000-0000-000000000011',
-  '🌧️ BOLETÍN PREVENTIVO [PC_Estatal_GTO - 04:10 hrs]: Coordinación Estatal de Protección Civil informa: Por lluvias en zona serrana, la Presa de la Olla registra 88% de capacidad. Se inician maniobras preventivas de desfogue controlado. Niveles de Río Guanajuato estables en cauce. Se exhorta a la población a seguir recomendaciones oficiales.',
+  '🌧️ BOLETÍN PREVENTIVO [PC_Estatal_GTO]: Coordinación Estatal de Protección Civil informa: Por lluvias en zona serrana, la Presa de la Olla registra 88% de capacidad. Se inician maniobras preventivas de desfogue controlado. Niveles de Río Guanajuato estables en cauce. Se exhorta a la población a seguir recomendaciones oficiales.',
   NOW() - INTERVAL '4 hours 50 minutes'
 ),
 (
   '99999999-0000-0000-0000-000000000005',
   '77777777-7777-7777-7777-777777777712',
   '00000000-0000-0000-0000-000000000011',
-  '🔴 #IRAPUATO [Telegram @NoticiasGTO - Ayer 21:15 hrs] Operativo de inspección sorpresa a centros nocturnos y establecimientos de giros negros en zona norte de Irapuato. Participan FSPE y fiscalización municipal. 2 clausuras preventivas por falta de permisos. Saldo blanco.',
+  '🔴 #IRAPUATO [Telegram @NoticiasGTO] Operativo de inspección sorpresa a centros nocturnos y establecimientos de giros negros en zona norte de Irapuato. Participan FSPE y fiscalización municipal. 2 clausuras preventivas por falta de permisos. Saldo blanco.',
   NOW() - INTERVAL '12 hours'
 ),
 (
   '99999999-0000-0000-0000-000000000006',
   '77777777-7777-7777-7777-777777777715',
   '00000000-0000-0000-0000-000000000011',
-  '📢 [@PeriodismoBajio en X - Ayer 17:30 hrs] Sindicato del Clúster Automotriz y representantes empresariales en Guanajuato Puerto Interior (Silao) firman acuerdo preliminar de revisión salarial sin emplazamiento a huelga. Se pacta mesa de seguimiento mensual con la Secretaría de Economía.',
+  '📢 [@PeriodismoBajio en X] Sindicato del Clúster Automotriz y representantes empresariales en Guanajuato Puerto Interior (Silao) firman acuerdo preliminar de revisión salarial sin emplazamiento a huelga. Se pacta mesa de seguimiento mensual con la Secretaría de Economía.',
   NOW() - INTERVAL '16 hours'
 ),
 (
   '99999999-0000-0000-0000-000000000007',
   '77777777-7777-7777-7777-777777777711',
   '00000000-0000-0000-0000-000000000011',
-  '⚡ #SALAMANCA [Telegram @AlertaBajioOficial - Ayer 11:00 hrs] Reporte ciudadano de conato de fuga en línea secundaria de ducto industrial en zona conurbada Salamanca - Juventino Rosas. Bomberos de Pemex y Protección Civil atendieron y controlaron sin afectación a comunidades.',
+  '⚡ #SALAMANCA [Telegram @AlertaBajioOficial] Reporte ciudadano de conato de fuga en línea secundaria de ducto industrial en zona conurbada Salamanca - Juventino Rosas. Bomberos de Pemex y Protección Civil atendieron y controlaron sin afectación a comunidades.',
   NOW() - INTERVAL '22 hours'
 ),
 (
   '99999999-0000-0000-0000-000000000008',
   '77777777-7777-7777-7777-777777777717',
   '00000000-0000-0000-0000-000000000011',
-  '📊 INFORME HIDROLÓGICO [CONAGUA_Lerma_Santiago - Hace 28 hrs]: Balance de almacenamiento en cuencas de Guanajuato: Presa Solís en 74%, Presa Allende en 68%, Presa Purísima en 81%. Sin riesgo de desbordamiento en municipios de la cuenca baja.',
+  '📊 INFORME HIDROLÓGICO [CONAGUA_Lerma_Santiago]: Balance de almacenamiento en cuencas de Guanajuato: Presa Solís en 74%, Presa Allende en 68%, Presa Purísima en 81%. Sin riesgo de desbordamiento en municipios de la cuenca baja.',
   NOW() - INTERVAL '28 hours'
 )
 ON CONFLICT (id) DO UPDATE SET raw_text = EXCLUDED.raw_text;
 
 -- 4. EVENTOS PROCESADOS ASOCIADOS A FUENTES Y TEXTOS CRUDOS (GUANAJUATO, ÚLTIMAS 36H)
+-- Todas las filas tienen exactamente 16 columnas
 INSERT INTO events (id, state_id, source_id, raw_event_id, category, severity, title, summary, ai_summary, political_relevance, location_text, lat, lng, municipio, status, occurred_at) VALUES
 (
   '88888888-0000-0000-0000-000000000001',
@@ -106,6 +107,7 @@ INSERT INTO events (id, state_id, source_id, raw_event_id, category, severity, t
 ),
 (
   '88888888-0000-0000-0000-000000000002',
+  '00000000-0000-0000-0000-000000000011',
   '77777777-7777-7777-7777-777777777714',
   '99999999-0000-0000-0000-000000000002',
   'seguridad',
@@ -123,6 +125,7 @@ INSERT INTO events (id, state_id, source_id, raw_event_id, category, severity, t
 ),
 (
   '88888888-0000-0000-0000-000000000003',
+  '00000000-0000-0000-0000-000000000011',
   '77777777-7777-7777-7777-777777777713',
   '99999999-0000-0000-0000-000000000003',
   'proteccion_civil',
@@ -140,6 +143,7 @@ INSERT INTO events (id, state_id, source_id, raw_event_id, category, severity, t
 ),
 (
   '88888888-0000-0000-0000-000000000004',
+  '00000000-0000-0000-0000-000000000011',
   '77777777-7777-7777-7777-777777777716',
   '99999999-0000-0000-0000-000000000004',
   'proteccion_civil',
@@ -157,6 +161,7 @@ INSERT INTO events (id, state_id, source_id, raw_event_id, category, severity, t
 ),
 (
   '88888888-0000-0000-0000-000000000005',
+  '00000000-0000-0000-0000-000000000011',
   '77777777-7777-7777-7777-777777777712',
   '99999999-0000-0000-0000-000000000005',
   'seguridad',
@@ -174,6 +179,7 @@ INSERT INTO events (id, state_id, source_id, raw_event_id, category, severity, t
 ),
 (
   '88888888-0000-0000-0000-000000000006',
+  '00000000-0000-0000-0000-000000000011',
   '77777777-7777-7777-7777-777777777715',
   '99999999-0000-0000-0000-000000000006',
   'politico',
@@ -191,6 +197,7 @@ INSERT INTO events (id, state_id, source_id, raw_event_id, category, severity, t
 ),
 (
   '88888888-0000-0000-0000-000000000007',
+  '00000000-0000-0000-0000-000000000011',
   '77777777-7777-7777-7777-777777777711',
   '99999999-0000-0000-0000-000000000007',
   'proteccion_civil',
@@ -208,6 +215,7 @@ INSERT INTO events (id, state_id, source_id, raw_event_id, category, severity, t
 ),
 (
   '88888888-0000-0000-0000-000000000008',
+  '00000000-0000-0000-0000-000000000011',
   '77777777-7777-7777-7777-777777777717',
   '99999999-0000-0000-0000-000000000008',
   'economia',
@@ -224,7 +232,8 @@ INSERT INTO events (id, state_id, source_id, raw_event_id, category, severity, t
   NOW() - INTERVAL '28 hours'
 )
 ON CONFLICT (id) DO UPDATE 
-SET source_id = EXCLUDED.source_id,
+SET state_id = EXCLUDED.state_id,
+    source_id = EXCLUDED.source_id,
     raw_event_id = EXCLUDED.raw_event_id,
     title = EXCLUDED.title,
     summary = EXCLUDED.summary,
@@ -248,6 +257,6 @@ INSERT INTO cabinet_snapshots (state_id, semaforos, key_points, alert_level, cre
     {"id": 2, "titulo": "Protocolo Preventivo en Presa de la Olla", "impacto": "Alto", "atencion": "Programada", "descripcion": "Revisión técnica de niveles pluviales con Protección Civil Municipal y Estatal."},
     {"id": 3, "titulo": "Seguimiento a Acuerdos de Puerto Interior", "impacto": "Medio", "atencion": "Estratégica", "descripcion": "Consolidación del diálogo entre Secretaría de Gobierno y representaciones laborales."}
   ]',
-  'ALERTA PREVENTIVA',
+  'ALERTA',
   NOW()
 ) ON CONFLICT DO NOTHING;
