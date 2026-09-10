@@ -383,17 +383,28 @@ export function getStateConfig(overrideKey?: string): StateConfig {
   }
 
   if (typeof window !== "undefined") {
+    // 0. Si el Superadministrador Global seleccionó explícitamente un estado activo
+    try {
+      const activeState = localStorage.getItem("sentineliq_active_state");
+      if (activeState && STATE_CATALOG[activeState.toLowerCase()]) {
+        return STATE_CATALOG[activeState.toLowerCase()];
+      }
+    } catch (e) {
+      // ignore
+    }
+
     // 1. Verificar si hay un usuario logueado con state_key
     try {
       const userStr = localStorage.getItem("sentineliq_user");
       if (userStr) {
         const u = JSON.parse(userStr);
-        if (u?.state_key && STATE_CATALOG[u.state_key.toLowerCase()]) {
+        if (u?.email?.toLowerCase() === "admin@sentineliq.com.mx" || u?.state_key === "global") {
+          // Para el superadministrador global, si no hay estado activo previo, respetar la detección de host o default
+        } else if (u?.state_key && STATE_CATALOG[u.state_key.toLowerCase()]) {
           // Si estamos en un puerto/host explícito de otro estado, prevalece el host para control de jurisdicción
           const host = window.location.hostname.toLowerCase();
           const port = window.location.port;
           if ((host.startsWith("gto.") || host.includes("guanajuato") || port === "3005") && u.state_key !== "gto") {
-            // El host es Guanajuato, se devolverá Guanajuato para que el guardia detecte el conflicto
             return GUANAJUATO_CONFIG;
           }
           if ((host.startsWith("qro.") || host.includes("queretaro") || port === "3000") && u.state_key !== "qro") {

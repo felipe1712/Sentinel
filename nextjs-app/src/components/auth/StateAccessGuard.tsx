@@ -48,6 +48,18 @@ export default function StateAccessGuard({ children }: StateAccessGuardProps) {
   }
 
   // 2. Control de Aislamiento Territorial / Jurisdicción
+  // Si es Superadministrador Global, cuenta con acreditación federal multiestado
+  const isGlobalSuperAdmin = Boolean(
+    user &&
+      (user.email?.toLowerCase() === "admin@sentineliq.com.mx" ||
+        user.state_key === "global" ||
+        user.state_key === "*")
+  );
+
+  if (isGlobalSuperAdmin) {
+    return <>{children}</>;
+  }
+
   // Comprobar si el usuario pertenece al Estado actual de la plataforma
   const userStateKey = user?.state_key?.toLowerCase().trim();
   const currentStateKey = stateCfg.key.toLowerCase().trim();

@@ -1,25 +1,18 @@
 "use client";
 
 import React, { useEffect } from "react";
-import { getStateConfig } from "@/lib/stateConfig";
-import { useRole, Role } from "@/hooks/useRole";
+import { getStateConfig, getAllSupportedStates } from "@/lib/stateConfig";
+import { useRole } from "@/hooks/useRole";
+import ProfileMenu from "./ProfileMenu";
 
 interface HeaderProps {
   toggleActive: () => void;
 }
 
-const roleLabels: Record<Role, { title: string; badge: string; color: string }> = {
-  gobernador: { title: "C. Gobernador", badge: "Mando Ejecutivo", color: "bg-amber-500" },
-  jefe_oficina: { title: "Jefe de Oficina", badge: "Administración", color: "bg-primary-600" },
-  superadmin: { title: "Super Administrador", badge: "Acceso Total", color: "bg-purple-600" },
-  asesor: { title: "Asesor Estratégico", badge: "Estrategia", color: "bg-blue-600" },
-  analista: { title: "Analista de Inteligencia", badge: "Operación", color: "bg-emerald-600" },
-};
-
 const Header: React.FC<HeaderProps> = ({ toggleActive }) => {
   const stateCfg = getStateConfig();
-  const { role } = useRole();
-  const currentInfo = roleLabels[role] || roleLabels.gobernador;
+  const { isGlobalSuperAdmin, switchGlobalState } = useRole();
+  const allStates = getAllSupportedStates();
 
   useEffect(() => {
     const elementId = document.getElementById("header");
@@ -70,21 +63,30 @@ const Header: React.FC<HeaderProps> = ({ toggleActive }) => {
           </div>
         </div>
 
-        {/* Right: Clean Institutional Badge (Sin botones de configuración) */}
-        <div className="flex items-center">
-          <div className="flex items-center gap-2.5 px-3 py-1.5 rounded-lg bg-gray-50 dark:bg-[#15203c] border border-gray-100 dark:border-gray-800 shadow-xs">
-            <div className={`w-7 h-7 rounded-full ${currentInfo.color} flex items-center justify-center text-white font-black text-xs shadow-xs`}>
-              {currentInfo.title.charAt(0)}
-            </div>
-            <div className="hidden sm:block text-left">
-              <span className="block font-bold text-xs text-gray-900 dark:text-white leading-tight">
-                {currentInfo.title}
+        {/* Right: State Selector (Para Superadmin Global) & Profile Menu */}
+        <div className="flex items-center gap-3">
+          {isGlobalSuperAdmin && (
+            <div className="flex items-center gap-1.5 bg-sky-50 dark:bg-sky-950/60 border border-sky-300 dark:border-sky-800 rounded-xl px-2.5 py-1.5 shadow-xs">
+              <i className="ri-building-4-line text-sky-600 text-sm"></i>
+              <span className="text-[11px] font-bold text-sky-800 dark:text-sky-300 hidden sm:inline">
+                Estado:
               </span>
-              <span className="block text-[10px] font-medium text-gray-500 dark:text-gray-400 leading-tight">
-                {currentInfo.badge}
-              </span>
+              <select
+                value={stateCfg.key}
+                onChange={(e) => switchGlobalState(e.target.value)}
+                className="bg-transparent text-xs font-black text-sky-900 dark:text-sky-200 outline-none cursor-pointer"
+                title="Cambiar estado para visualizar"
+              >
+                {allStates.map((s) => (
+                  <option key={s.key} value={s.key} className="text-gray-900 bg-white dark:bg-slate-900 dark:text-white">
+                    {s.shortName} ({s.key.toUpperCase()})
+                  </option>
+                ))}
+              </select>
             </div>
-          </div>
+          )}
+
+          <ProfileMenu />
         </div>
       </div>
     </header>

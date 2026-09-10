@@ -10,6 +10,7 @@ import {
   Role,
   getDefaultUsersForState,
   PREDEFINED_USERS_BY_STATE,
+  GLOBAL_SUPERADMIN_USER,
 } from "@/hooks/useRole";
 import {
   getStateConfig,
@@ -45,8 +46,12 @@ export default function LoginPage() {
   const handleLoginWithProfile = (profile: UserProfile) => {
     setErrorMessage(null);
 
-    // Validación de aislamiento de estado estricto
-    if (profile.state_key.toLowerCase() !== stateCfg.key.toLowerCase()) {
+    // Si es Superadministrador Global (admin@sentineliq.com.mx), tiene acceso directo a cualquier estado
+    const isGlobal =
+      profile.email?.toLowerCase() === "admin@sentineliq.com.mx" ||
+      profile.state_key === "global";
+
+    if (!isGlobal && profile.state_key.toLowerCase() !== stateCfg.key.toLowerCase()) {
       const foreignState = getStateConfigByKey(profile.state_key)?.name || profile.state_key.toUpperCase();
       setErrorMessage(
         `Acceso Denegado por Jurisdicción Estatal: El usuario "${profile.name}" está dado de alta en ${foreignState}. No puede ingresar a la plataforma de ${stateCfg.name}.`
@@ -68,7 +73,13 @@ export default function LoginPage() {
       return;
     }
 
-    // Buscar si coincide con algún usuario de este estado
+    // 1. Caso especial: Superadministrador Global
+    if (email.toLowerCase().trim() === "admin@sentineliq.com.mx") {
+      handleLoginWithProfile(GLOBAL_SUPERADMIN_USER);
+      return;
+    }
+
+    // 2. Buscar si coincide con algún usuario de este estado
     const found = stateUsers.find(
       (u) => u.email.toLowerCase() === email.toLowerCase()
     );

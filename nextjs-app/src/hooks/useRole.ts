@@ -123,9 +123,22 @@ export const PREDEFINED_USERS_BY_STATE: Record<string, UserProfile[]> = {
   ],
 };
 
+// Usuario Superadministrador Global con acceso a todas las entidades
+export const GLOBAL_SUPERADMIN_USER: UserProfile = {
+  id: "u_global_superadmin",
+  name: "Superadministrador Global",
+  email: "admin@sentineliq.com.mx",
+  cargo: "Dirección de Plataforma SentinelIQ Multi-Estado",
+  role: "superadmin",
+  state_key: "global",
+  active: true,
+};
+
 export function getDefaultUsersForState(stateKey: string): UserProfile[] {
   const normalized = stateKey.toLowerCase().trim();
-  return PREDEFINED_USERS_BY_STATE[normalized] || [];
+  const list = PREDEFINED_USERS_BY_STATE[normalized] || [];
+  // Asegurar que el superadministrador global esté disponible en ambos estados
+  return [GLOBAL_SUPERADMIN_USER, ...list];
 }
 
 export function getStoredUser(): UserProfile | null {
@@ -170,16 +183,27 @@ export function useRole() {
   }, []);
 
   const role: Role | null = user?.role || null;
+  const isGlobalSuperAdmin = Boolean(
+    user && (user.email?.toLowerCase() === "admin@sentineliq.com.mx" || user.state_key === "global" || user.state_key === "*")
+  );
+
+  const switchGlobalState = (targetStateKey: string) => {
+    if (typeof window === "undefined") return;
+    localStorage.setItem("sentineliq_active_state", targetStateKey.toLowerCase());
+    window.location.reload();
+  };
 
   return {
     user,
     role,
     isSuperAdmin: role === "superadmin",
+    isGlobalSuperAdmin,
     isGabinete: role === "gabinete",
     isGobernador: role === "gobernador",
     isAnalista: role === "analista",
     isJefeOficina: role === "superadmin" || role === "gabinete",
-    isAuthenticated: Boolean(user && user.id && user.state_key),
+    isAuthenticated: Boolean(user && user.id && (user.state_key || isGlobalSuperAdmin)),
+    switchGlobalState,
     loaded,
     logout,
   };

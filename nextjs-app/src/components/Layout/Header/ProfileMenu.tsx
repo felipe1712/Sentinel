@@ -14,7 +14,7 @@ import {
 import { getStateConfig, getAllSupportedStates } from "@/lib/stateConfig";
 
 const ProfileMenu: React.FC = () => {
-  const { user, role, isSuperAdmin } = useRole();
+  const { user, role, isSuperAdmin, isGlobalSuperAdmin, switchGlobalState } = useRole();
   const [active, setActive] = useState<boolean>(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const stateCfg = getStateConfig();
@@ -117,8 +117,37 @@ const ProfileMenu: React.FC = () => {
             </div>
           </div>
 
-          {/* Prueba de Jurisdicción Cruzada */}
-          {otherStates.length > 0 && (
+          {/* Selector de Estado Activo para Superadministrador Global */}
+          {isGlobalSuperAdmin && (
+            <div className="px-4 py-2 bg-sky-50/70 dark:bg-sky-950/40 border-t border-b border-sky-100 dark:border-sky-900/50">
+              <span className="text-[10px] font-bold text-sky-700 dark:text-sky-300 uppercase tracking-wider block mb-1.5 flex items-center gap-1">
+                <i className="ri-building-4-line"></i>
+                <span>Visualizar Estado:</span>
+              </span>
+              <div className="grid grid-cols-2 gap-1.5">
+                {getAllSupportedStates().map((st) => {
+                  const isCurrent = stateCfg.key === st.key;
+                  return (
+                    <button
+                      key={st.key}
+                      type="button"
+                      onClick={() => switchGlobalState(st.key)}
+                      className={`px-2 py-1.5 rounded-lg text-xs font-bold transition-all text-center ${
+                        isCurrent
+                          ? "bg-sky-600 text-white shadow-xs"
+                          : "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-sky-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700"
+                      }`}
+                    >
+                      {st.shortName}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Prueba de Jurisdicción Cruzada (solo para usuarios locales) */}
+          {!isGlobalSuperAdmin && otherStates.length > 0 && (
             <div className="px-4 py-2 bg-red-50/50 dark:bg-red-950/20 border-t border-b border-red-100 dark:border-red-900/30">
               <span className="text-[10px] font-bold text-red-500 uppercase tracking-wider block mb-1">
                 Prueba de Aislamiento Territorial
