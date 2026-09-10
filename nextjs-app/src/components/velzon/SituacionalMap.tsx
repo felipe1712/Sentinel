@@ -67,9 +67,14 @@ export default function SituacionalMap({
           border: none !important;
           box-shadow: none !important;
           padding: 0 !important;
+          white-space: normal !important;
+          pointer-events: none !important;
         }
         .sentinel-map-tooltip::before {
           display: none !important;
+        }
+        .leaflet-tooltip-pane {
+          z-index: 650 !important;
         }
       `;
       document.head.appendChild(style);
@@ -251,17 +256,21 @@ export default function SituacionalMap({
 
             // Tooltip interactivo HUD Ejecutivo al hacer Hover
             const tooltipHtml = `
-              <div style="font-family: system-ui, -apple-system, sans-serif; min-width: 250px; max-width: 320px; background: rgba(15, 23, 42, 0.96); color: #f8fafc; border-radius: 8px; padding: 10px 12px; box-shadow: 0 12px 28px rgba(0,0,0,0.45); border: 1px solid rgba(255,255,255,0.18);">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 5px;">
-                  <strong style="font-size: 14px; font-weight: 800; color: #ffffff;">${alert.nombre}</strong>
-                  <span style="font-size: 10px; font-weight: 800; padding: 2px 7px; border-radius: 4px; background: ${badgeBg}; color: #ffffff; text-transform: uppercase;">${alert.levelLabel}</span>
+              <div style="box-sizing: border-box; width: 285px; max-width: 295px; background: rgba(15, 23, 42, 0.97); backdrop-filter: blur(8px); color: #f8fafc; border-radius: 10px; padding: 12px 14px; box-shadow: 0 16px 36px rgba(0,0,0,0.55); border: 1px solid rgba(255,255,255,0.2); white-space: normal; word-break: break-word; overflow: hidden; font-family: system-ui, -apple-system, sans-serif;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 6px; border-bottom: 1px solid rgba(255,255,255,0.12); padding-bottom: 6px;">
+                  <div style="font-size: 13px; font-weight: 800; color: #ffffff; line-height: 1.3; word-break: break-word; flex: 1; min-width: 0;">
+                    ${alert.nombre}
+                  </div>
+                  <span style="font-size: 9px; font-weight: 800; padding: 3px 6px; border-radius: 4px; background: ${badgeBg}; color: #ffffff; text-transform: uppercase; white-space: nowrap; flex-shrink: 0; letter-spacing: 0.3px;">
+                    ${alert.levelLabel}
+                  </span>
                 </div>
-                <div style="font-size: 11px; color: #94a3b8; margin-bottom: 6px;">
+                <div style="font-size: 11px; color: #94a3b8; margin-bottom: 8px; font-weight: 500;">
                   <span>${alert.region}</span> &middot; <span>Clave ${alert.clave}</span>
                 </div>
-                <div style="background: rgba(255,255,255,0.06); border-radius: 6px; padding: 7px; margin-bottom: 6px; border-left: 3px solid ${alert.color};">
-                  <span style="color: #38bdf8; font-size: 10px; text-transform: uppercase; font-weight: 800; display: block; margin-bottom: 2px;">Alerta Más Importante (36h):</span>
-                  <div style="font-size: 12px; font-weight: 600; color: #f1f5f9; line-height: 1.35;">
+                <div style="background: rgba(255,255,255,0.06); border-radius: 6px; padding: 8px 10px; margin-bottom: 8px; border-left: 3px solid ${alert.color}; box-sizing: border-box;">
+                  <span style="color: #38bdf8; font-size: 10px; text-transform: uppercase; font-weight: 800; display: block; margin-bottom: 3px; letter-spacing: 0.4px;">Alerta Más Importante (36h):</span>
+                  <div style="font-size: 12px; font-weight: 600; color: #f1f5f9; line-height: 1.4; word-break: break-word;">
                     ${alert.topAlertTitle}
                   </div>
                 </div>
@@ -274,7 +283,8 @@ export default function SituacionalMap({
 
             layer.bindTooltip(tooltipHtml, {
               sticky: true,
-              direction: "top",
+              direction: "auto",
+              offset: [18, -25],
               className: "sentinel-map-tooltip",
               opacity: 1,
             });
