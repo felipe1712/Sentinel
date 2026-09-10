@@ -72,6 +72,15 @@ export default function GabineteView() {
     }
     load();
 
+    // Si viene con parámetro en la URL ?municipio=X desde otra pantalla
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const urlMun = params.get("municipio");
+      if (urlMun) {
+        handleSelectMunicipio(urlMun);
+      }
+    }
+
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.ctrlKey && e.altKey && e.key.toLowerCase() === "c") {
         e.preventDefault();
@@ -186,13 +195,20 @@ export default function GabineteView() {
         {/* Izquierda (60%): Mapa Situacional Interactivo Modo Claro */}
         <div className="col-lg-7">
           <div className="card bg-white border-0 overflow-hidden shadow-sm h-100 rounded-3">
-            <div className="card-header bg-white border-bottom py-3">
+            <div className="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
               <h4 className="card-title mb-0 fw-extrabold text-dark fs-16" style={{ color: "#0f172a" }}>
-                <i className="ri-map-pin-2-fill text-danger me-2"></i> Mapa de Calor {stateCfg.shortName}
+                <i className="ri-map-pin-2-fill text-danger me-2"></i> Mapa de Alertas y Delineación Municipal ({stateCfg.shortName})
               </h4>
+              <span className="badge bg-light text-dark border fw-bold fs-11">
+                <i className="ri-cursor-line me-1 text-primary"></i>Pasa el cursor o haz clic en un polígono
+              </span>
             </div>
             <div className="card-body p-0 bg-white position-relative">
-              <SituacionalMap onSelectMunicipio={handleSelectMunicipio} />
+              <SituacionalMap
+                height="500px"
+                selectedMunicipio={selectedDetail?.type === "municipio" ? selectedDetail.title : null}
+                onSelectMunicipio={handleSelectMunicipio}
+              />
             </div>
             <div className="card-footer bg-white border-top p-3 d-flex flex-wrap gap-2 justify-content-center">
               {stateCfg.municipios.slice(0, 4).map((m, idx) => (

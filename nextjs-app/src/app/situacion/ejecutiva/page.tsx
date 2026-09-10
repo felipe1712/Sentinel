@@ -2,8 +2,14 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { getStateConfig, StateConfig } from "@/lib/stateConfig";
 import RealtimeLiveFeed from "@/components/feed/RealtimeLiveFeed";
+
+const SituacionalMap = dynamic(
+  () => import("@/components/velzon/SituacionalMap"),
+  { ssr: false, loading: () => <div className="p-5 text-center text-dark fs-16 fw-bold">Cargando Mapa Situacional...</div> }
+);
 
 export default function SituacionEjecutivaGobernadorPage() {
   const [stateCfg, setStateCfg] = useState<StateConfig>(getStateConfig());
@@ -98,6 +104,36 @@ export default function SituacionEjecutivaGobernadorPage() {
               </div>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Mapa Delineado Situacional de Alertas Municipales (46 Municipios) */}
+      <div className="card bg-white border-0 shadow-sm mb-4 rounded-4 overflow-hidden border-top border-4 border-primary">
+        <div className="card-header bg-white border-bottom p-3 p-md-4 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2">
+          <div>
+            <span className="badge bg-primary text-white text-uppercase px-3 py-1 fs-11 fw-bold mb-1 shadow-sm">
+              Semáforo Territorial · {stateCfg.name}
+            </span>
+            <h5 className="fw-extrabold text-dark mb-0 fs-18" style={{ color: "#0f172a" }}>
+              Monitoreo Poligonal y Alertas Municipales en Vivo ({stateCfg.totalMunicipios} Municipios)
+            </h5>
+          </div>
+          <div className="d-flex align-items-center gap-2">
+            <span className="text-muted fs-12 fw-semibold d-none d-md-inline">
+              <i className="ri-cursor-line me-1 text-primary"></i>Pasa el cursor para ver la alerta prioritaria del municipio
+            </span>
+            <Link href="/gabinete" className="btn btn-outline-primary btn-sm fw-bold">
+              <i className="ri-tv-2-line me-1"></i> Modo Proyector
+            </Link>
+          </div>
+        </div>
+        <div className="card-body p-0 bg-white position-relative">
+          <SituacionalMap
+            height="480px"
+            onSelectMunicipio={(mun) => {
+              window.location.href = `/gabinete?municipio=${encodeURIComponent(mun)}`;
+            }}
+          />
         </div>
       </div>
 

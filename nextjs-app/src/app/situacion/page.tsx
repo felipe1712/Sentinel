@@ -106,13 +106,20 @@ export default function SituacionPage() {
         {/* Cuadrante 2: Mapa Situacional Interactivo Claro */}
         <div className="col-lg-6">
           <div className="card bg-white border-0 shadow-sm h-100 overflow-hidden rounded-3">
-            <div className="card-header bg-white border-bottom py-3">
+            <div className="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
               <h6 className="card-title mb-0 fw-extrabold text-dark fs-15" style={{ color: "#0f172a" }}>
-                2. Mapa de Calor Municipal ({stateCfg.shortName})
+                2. Mapa de Alertas y Delineación Municipal ({stateCfg.shortName})
               </h6>
+              <span className="badge bg-light text-dark border fw-bold fs-10">
+                Pasa el cursor o clic para inspeccionar
+              </span>
             </div>
             <div className="card-body p-0 position-relative bg-white">
-              <SituacionalMap />
+              <SituacionalMap
+                onSelectMunicipio={(mun) => {
+                  window.location.href = `/gabinete?municipio=${encodeURIComponent(mun)}`;
+                }}
+              />
             </div>
           </div>
         </div>
