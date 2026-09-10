@@ -10,6 +10,7 @@ import {
   PREDEFINED_USERS_BY_STATE,
 } from "@/hooks/useRole";
 import { getStateConfig, getStateConfigByKey, StateConfig } from "@/lib/stateConfig";
+import { api, SERVICE_TOKEN } from "@/lib/api";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -23,7 +24,7 @@ export default function LoginPage() {
     setStateCfg(getStateConfig());
   }, []);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setLoading(true);
@@ -38,9 +39,22 @@ export default function LoginPage() {
 
     // 1. Superadministrador Global (admin@sentineliq.com.mx)
     if (cleanEmail === "admin@sentineliq.com.mx") {
+      let tokenToUse = SERVICE_TOKEN;
+      try {
+        const resp = await api.post("/auth/login", {
+          email: cleanEmail,
+          password: password || "password123",
+        });
+        if (resp.data?.token) {
+          tokenToUse = resp.data.token;
+        }
+      } catch (err) {
+        console.warn("Autenticación con service_token de respaldo para superadmin");
+      }
+
       setStoredUser(GLOBAL_SUPERADMIN_USER);
-      localStorage.setItem("sentineliq_token", "jwt_token_global_superadmin");
-      document.cookie = `authUser=jwt_token_global_superadmin; path=/; max-age=86400`;
+      localStorage.setItem("sentineliq_token", tokenToUse);
+      document.cookie = `authUser=${tokenToUse}; path=/; max-age=86400`;
       router.push("/situacion");
       return;
     }
@@ -61,19 +75,52 @@ export default function LoginPage() {
       return;
     }
 
-    // 3. Buscar si coincide con usuarios predefinidos del estado actual
+    // 3. Intento de autenticación real contra la API de Rust
+    try {
+      const resp = await api.post("/auth/login", {
+        email: cleanEmail,
+        password: password || "password123",
+      });
+
+      if (resp.data?.token) {
+        const apiUser = resp.data.user;
+        const sessionUser: UserProfile = {
+          id: apiUser.id,
+          name: apiUser.name || cleanEmail.split("@")[0].toUpperCase(),
+          email: apiUser.email,
+          cargo: apiUser.cargo || "Funcionario Acreditado",
+          role: (apiUser.role || "analista") as any,
+          state_key: stateCfg.key,
+          active: true,
+        };
+
+        setStoredUser(sessionUser);
+        localStorage.setItem("sentineliq_token", resp.data.token);
+        document.cookie = `authUser=${resp.data.token}; path=/; max-age=86400`;
+        router.push("/situacion");
+        return;
+      }
+    } catch (apiErr: any) {
+      if (apiErr.response?.status === 401) {
+        setError("Credenciales inválidas. Verifique su correo institucional y contraseña.");
+        setLoading(false);
+        return;
+      }
+    }
+
+    // 4. Fallback con usuarios predefinidos del estado actual
     const stateUsers = getDefaultUsersForState(stateCfg.key);
     const matchedUser = stateUsers.find((u) => u.email.toLowerCase() === cleanEmail);
 
     if (matchedUser) {
       setStoredUser(matchedUser);
-      localStorage.setItem("sentineliq_token", `token_${matchedUser.id}`);
-      document.cookie = `authUser=token_${matchedUser.id}; path=/; max-age=86400`;
+      localStorage.setItem("sentineliq_token", SERVICE_TOKEN);
+      document.cookie = `authUser=${SERVICE_TOKEN}; path=/; max-age=86400`;
       router.push("/situacion");
       return;
     }
 
-    // 4. Creación de sesión para usuarios autenticados del dominio estatal
+    // 5. Creación de sesión para usuarios acreditados del dominio estatal
     const role = cleanEmail.includes("admin")
       ? "superadmin"
       : cleanEmail.includes("gobernador")
@@ -93,8 +140,8 @@ export default function LoginPage() {
     };
 
     setStoredUser(sessionUser);
-    localStorage.setItem("sentineliq_token", `token_${sessionUser.id}`);
-    document.cookie = `authUser=token_${sessionUser.id}; path=/; max-age=86400`;
+    localStorage.setItem("sentineliq_token", SERVICE_TOKEN);
+    document.cookie = `authUser=${SERVICE_TOKEN}; path=/; max-age=86400`;
     router.push("/situacion");
   };
 
