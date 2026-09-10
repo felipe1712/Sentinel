@@ -12,7 +12,7 @@ interface SidebarMenuProps {
 
 const SidebarMenu: React.FC<SidebarMenuProps> = ({ toggleActive }) => {
   const pathname = usePathname();
-  const { isSuperAdmin } = useRole();
+  const { isSuperAdmin, isGobernador } = useRole();
   const stateCfg = getStateConfig();
 
   const isActive = (path: string) => {
@@ -79,14 +79,12 @@ const SidebarMenu: React.FC<SidebarMenuProps> = ({ toggleActive }) => {
             </span>
           </Link>
 
-          {isGobernador && (
-            <Link href="/situacion/ejecutiva" className={linkClass("/situacion/ejecutiva")}>
-              <span className="flex items-center gap-2.5">
-                <i className="ri-user-star-line text-[18px] text-amber-500"></i>
-                <span>Vista Gobernador</span>
-              </span>
-            </Link>
-          )}
+          <Link href="/situacion/ejecutiva" className={linkClass("/situacion/ejecutiva")}>
+            <span className="flex items-center gap-2.5">
+              <i className="ri-user-star-line text-[18px] text-amber-500"></i>
+              <span>Vista Gobernador</span>
+            </span>
+          </Link>
 
           <Link href="/briefing" className={linkClass("/briefing")}>
             <span className="flex items-center gap-2.5">
