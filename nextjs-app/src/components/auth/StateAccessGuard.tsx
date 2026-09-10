@@ -1,6 +1,6 @@
 "use client";
 
-import React, { ReactNode } from "react";
+import React, { ReactNode, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useRole, logout, ROLE_LABELS } from "@/hooks/useRole";
 import { getStateConfig, getStateConfigByKey } from "@/lib/stateConfig";
@@ -21,12 +21,19 @@ export default function StateAccessGuard({ children }: StateAccessGuardProps) {
     pathname === "/login/" ||
     pathname.startsWith("/authentication/");
 
+  // Redirigir de manera segura dentro de useEffect si no está autenticado
+  useEffect(() => {
+    if (loaded && !isAuthenticated && !isAuthRoute) {
+      router.replace("/login");
+    }
+  }, [loaded, isAuthenticated, isAuthRoute, router]);
+
   if (!loaded) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-[#070b14]">
+      <div className="min-h-screen flex items-center justify-center bg-[#0b1120] text-white">
         <div className="text-center p-6">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mb-3"></div>
-          <p className="text-xs text-gray-500 font-semibold tracking-wider uppercase">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500 mb-3"></div>
+          <p className="text-xs text-gray-400 font-semibold tracking-wider uppercase">
             Verificando credenciales de seguridad...
           </p>
         </div>
@@ -34,17 +41,23 @@ export default function StateAccessGuard({ children }: StateAccessGuardProps) {
     );
   }
 
-  // 1. Si no está autenticado y no está en ruta de login -> Redirigir a login
-  if (!isAuthenticated && !isAuthRoute) {
-    if (typeof window !== "undefined") {
-      router.push("/login");
-    }
-    return null;
-  }
-
   // Si está en ruta de login, permitir renderizar directamente
   if (isAuthRoute) {
     return <>{children}</>;
+  }
+
+  // Si no está autenticado, renderizar pantalla de transición mientras useEffect redirige
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#0b1120] text-white">
+        <div className="text-center p-6">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500 mb-3"></div>
+          <p className="text-xs text-gray-400 font-semibold tracking-wider uppercase">
+            Redirigiendo al acceso institucional...
+          </p>
+        </div>
+      </div>
+    );
   }
 
   // 2. Control de Aislamiento Territorial / Jurisdicción

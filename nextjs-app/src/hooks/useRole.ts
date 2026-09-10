@@ -202,7 +202,7 @@ export function useRole() {
     isGobernador: role === "gobernador",
     isAnalista: role === "analista",
     isJefeOficina: role === "superadmin" || role === "gabinete",
-    isAuthenticated: Boolean(user && user.id && (user.state_key || isGlobalSuperAdmin)),
+    isAuthenticated: Boolean(user && (user.id || user.email || user.name) && role),
     switchGlobalState,
     loaded,
     logout,
