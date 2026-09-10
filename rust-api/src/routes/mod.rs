@@ -40,6 +40,7 @@ pub fn create_router(pool: PgPool) -> Router {
         .route("/briefings/:id/deliver", post(briefings::deliver_briefing))
         // Events
         .route("/events", get(events::list_events).post(events::create_event))
+        .route("/events/live", get(events::list_live_events))
         .route("/events/stream", get(events::sse_events_stream))
         .route("/events/:id", get(events::get_event))
         // WebGIS Electoral Routes

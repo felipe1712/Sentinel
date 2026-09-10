@@ -13,6 +13,8 @@ const SituacionalMap = dynamic(
   { ssr: false, loading: () => <div className="p-5 text-center text-dark fs-16 fw-bold">Cargando Mapa del Estado...</div> }
 );
 
+import RealtimeLiveFeed, { EnrichedEvent } from "@/components/feed/RealtimeLiveFeed";
+
 interface DrilldownItem {
   type: "municipio" | "area";
   title: string;
@@ -23,7 +25,7 @@ interface DrilldownItem {
   description: string;
   relevance: number;
   actions: string[];
-  timeline: { time: string; text: string }[];
+  timeline: { time: string; text: string; source?: string; raw?: string; severity?: string }[];
 }
 
 export default function GabineteView() {
@@ -80,8 +82,32 @@ export default function GabineteView() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  const handleSelectMunicipio = (nombre: string) => {
+  const handleSelectMunicipio = async (nombre: string) => {
     const mMatch = stateCfg.municipios.find((item) => item.nombre.toLowerCase().includes(nombre.toLowerCase())) || stateCfg.municipios[0];
+
+    // Cargar eventos vivos capturados por Telegram, X y fuentes oficiales en las últimas 36 horas
+    let liveTimeline: { time: string; text: string; source?: string; raw?: string; severity?: string }[] = [];
+    try {
+      const resp = await api.get(`/events/live?municipio=${encodeURIComponent(mMatch.nombre)}&hours=36&limit=6`);
+      if (resp.data && Array.isArray(resp.data) && resp.data.length > 0) {
+        liveTimeline = resp.data.map((ev: EnrichedEvent) => ({
+          time: new Date(ev.occurred_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+          text: ev.title,
+          source: ev.source_identifier ? `${ev.source_type === "telegram" ? "Telegram" : ev.source_type === "twitter" ? "X" : "Oficial"} · ${ev.source_identifier}` : ev.source_name || "Despacho Central",
+          raw: ev.raw_text || ev.summary,
+          severity: ev.severity,
+        }));
+      }
+    } catch {
+      // Continuar con fallback si el endpoint no está disponible
+    }
+
+    if (liveTimeline.length === 0) {
+      liveTimeline = [
+        { time: "05:30 AM", text: "Briefing matutino registra condiciones bajo control." },
+        { time: "08:00 AM", text: `Inspección operativa y monitoreo de la región ${mMatch.region}.` },
+      ];
+    }
 
     setSelectedDetail({
       type: "municipio",
@@ -97,10 +123,7 @@ export default function GabineteView() {
         "Mantener comunicación constante con la alcaldía municipal.",
         "Verificar disponibilidad de unidades de protección civil.",
       ],
-      timeline: [
-        { time: "05:30 AM", text: "Briefing 05:30 AM registra condiciones bajo control." },
-        { time: "08:00 AM", text: `Inspección operativa de la región ${mMatch.region}.` },
-      ],
+      timeline: liveTimeline,
     });
 
     setTimeout(() => {
@@ -315,11 +338,25 @@ export default function GabineteView() {
 
                   <div className="timeline-widget mb-4">
                     {selectedDetail.timeline.map((item, idx) => (
-                      <div key={idx} className="d-flex mb-3 align-items-start">
-                        <span className="badge bg-primary text-white fs-11 me-3 py-1 px-2 font-monospace shadow-sm">
-                          {item.time}
-                        </span>
-                        <div className="fs-13 text-dark fw-bold" style={{ color: "#0f172a" }}>{item.text}</div>
+                      <div key={idx} className="p-3 mb-2 rounded-2 bg-white border border-gray-200 shadow-sm">
+                        <div className="d-flex align-items-center justify-content-between mb-1">
+                          <span className="badge bg-primary text-white fs-11 font-monospace shadow-sm">
+                            {item.time}
+                          </span>
+                          {item.source && (
+                            <span className="badge bg-secondary-subtle text-dark fs-10 fw-bold border">
+                              {item.source}
+                            </span>
+                          )}
+                        </div>
+                        <div className="fs-13 text-dark fw-bold mb-1" style={{ color: "#0f172a" }}>
+                          {item.text}
+                        </div>
+                        {item.raw && (
+                          <div className="p-2 rounded bg-light border text-muted font-monospace fs-11 mt-1" style={{ whiteSpace: "pre-wrap" }}>
+                            {item.raw}
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -338,6 +375,11 @@ export default function GabineteView() {
           </div>
         </div>
       )}
+
+      {/* Feed en Vivo de Inteligencia y Fuentes en Sala de Gabinete */}
+      <div className="mt-4">
+        <RealtimeLiveFeed maxItems={6} showFilters={true} />
+      </div>
     </div>
   );
 }

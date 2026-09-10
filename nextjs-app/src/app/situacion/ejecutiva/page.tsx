@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { getStateConfig, StateConfig } from "@/lib/stateConfig";
+import RealtimeLiveFeed from "@/components/feed/RealtimeLiveFeed";
 
 export default function SituacionEjecutivaGobernadorPage() {
   const [stateCfg, setStateCfg] = useState<StateConfig>(getStateConfig());
@@ -98,6 +99,15 @@ export default function SituacionEjecutivaGobernadorPage() {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Radar de Alertas Tempranas OSINT (Últimas 36 Horas) */}
+      <div className="mb-4">
+        <RealtimeLiveFeed
+          maxItems={4}
+          showFilters={false}
+          onlyHighRelevance={true}
+        />
       </div>
 
       {/* Prioridades Estratégicas del Día Dinámicas */}

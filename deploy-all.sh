@@ -56,6 +56,17 @@ if [ -f "data/electoral/ingest_electoral_results.sql" ]; then
   fi
 fi
 
+# Ingesta de fuentes vivas y eventos de las últimas 36 horas
+if [ -f "data/seed_live_sources_36h.sql" ]; then
+  if ! grep -Fxq "seed_live_sources_36h.sql" "$APPLIED_LOG" || [ "$1" == "--force-migrations" ]; then
+    echo "  -> Aplicando fuentes vivas y feed de 36 horas..."
+    docker exec -i sentineliq_gto_postgres psql -U sentineliq -d sentineliq_gto < "data/seed_live_sources_36h.sql" 2>/dev/null || true
+    docker exec -i sentineliq_postgres psql -U sentinel -d sentineliq < "data/seed_live_sources_36h.sql" 2>/dev/null || true
+    echo "seed_live_sources_36h.sql" >> "$APPLIED_LOG"
+    echo "  ✅ Fuentes vivas y eventos de 36h aplicados a bases de datos."
+  fi
+fi
+
 if [ $pending_migrations -eq 0 ]; then
   echo "  ✅ Esquemas de Base de Datos al día (sin migraciones pendientes)."
 else

@@ -7,6 +7,7 @@ import SemaforoCard from "@/components/velzon/SemaforoCard";
 import SeverityBadge from "@/components/velzon/SeverityBadge";
 import api from "@/lib/api";
 import { getStateConfig, StateConfig } from "@/lib/stateConfig";
+import RealtimeLiveFeed from "@/components/feed/RealtimeLiveFeed";
 
 // Dynamically import SituacionalMap
 const SituacionalMap = dynamic(
@@ -117,50 +118,9 @@ export default function SituacionPage() {
         </div>
 
         {/* Cuadrante 3: Alertas Prioritarias Modo Claro */}
-        <div className="col-lg-6">
-          <div className="card bg-white border-0 shadow-sm h-100 rounded-3">
-            <div className="card-header bg-white border-bottom py-3">
-              <h6 className="card-title mb-0 fw-extrabold text-dark fs-15" style={{ color: "#0f172a" }}>
-                3. Alertas de Severidad Recientes
-              </h6>
-            </div>
-            <div className="card-body p-0 bg-white">
-              <div className="table-responsive">
-                <table className="table table-hover align-middle mb-0">
-                  <thead className="bg-light text-dark border-bottom">
-                    <tr>
-                      <th className="text-dark fw-bold">Severidad</th>
-                      <th className="text-dark fw-bold">Incidente</th>
-                      <th className="text-dark fw-bold">Municipio</th>
-                      <th className="text-dark fw-bold">Relevancia</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {events.length > 0 ? (
-                      events.map((ev) => (
-                        <tr key={ev.id}>
-                          <td><SeverityBadge severity={ev.severity} /></td>
-                          <td className="fw-bold fs-13 text-dark" style={{ color: "#0f172a" }}>{ev.title}</td>
-                          <td className="fs-12 text-dark fw-semibold" style={{ color: "#334155" }}>{ev.municipio || stateCfg.capital}</td>
-                          <td>
-                            <span className="badge bg-primary-subtle text-primary fw-bold">
-                              {ev.political_relevance || 8}/10
-                            </span>
-                          </td>
-                        </tr>
-                      ))
-                    ) : (
-                      <tr>
-                        <td colSpan={4} className="text-center py-4 text-dark fw-bold fs-13">
-                          No hay alertas críticas en las últimas 24 horas. Operación normal en los {stateCfg.totalMunicipios} municipios.
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
+        {/* Sección Destacada: Feed Multicanal de Fuentes Vivas en Tiempo Real (Últimas 36h) */}
+        <div className="col-12">
+          <RealtimeLiveFeed maxItems={15} showFilters={true} />
         </div>
 
         {/* Cuadrante 4: Puntos del Briefing Matutino Modo Claro */}
