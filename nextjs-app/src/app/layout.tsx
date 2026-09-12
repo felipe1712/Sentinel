@@ -31,7 +31,7 @@ export default function RootLayout({
   return (
     <html lang="en" dir="ltr">
       <body
-        className={`${inter.variable} antialiased`}
+        className={`${inter.variable} antialiased bg-[#0b1120] text-white m-0 p-0`}
       >
         <LayoutProvider>{children}</LayoutProvider>
       </body>

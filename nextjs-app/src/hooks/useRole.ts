@@ -159,11 +159,15 @@ export function setStoredUser(user: UserProfile | null): void {
   } else {
     localStorage.setItem("sentineliq_user", JSON.stringify(user));
   }
+  window.dispatchEvent(new Event("sentineliq_auth_change"));
 }
 
 export function logout(): void {
   if (typeof window === "undefined") return;
   localStorage.removeItem("sentineliq_user");
+  localStorage.removeItem("sentineliq_token");
+  document.cookie = "authUser=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+  window.dispatchEvent(new Event("sentineliq_auth_change"));
   window.location.href = "/login";
 }
 
@@ -179,7 +183,11 @@ export function useRole() {
       setUser(getStoredUser());
     };
     window.addEventListener("storage", handleStorageChange);
-    return () => window.removeEventListener("storage", handleStorageChange);
+    window.addEventListener("sentineliq_auth_change", handleStorageChange);
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+      window.removeEventListener("sentineliq_auth_change", handleStorageChange);
+    };
   }, []);
 
   const role: Role | null = user?.role || null;

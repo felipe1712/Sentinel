@@ -21,17 +21,14 @@ const LayoutProvider: React.FC<LayoutProviderProps> = ({ children }) => {
   };
 
   const isAuthPage =
+    !pathname ||
     pathname === "/login" ||
     pathname === "/login/" ||
+    pathname.startsWith("/login") ||
+    pathname.startsWith("/authentication/") ||
     [
-      "/authentication/sign-in/",
-      "/authentication/sign-up/",
-      "/authentication/forgot-password/",
-      "/authentication/reset-password/",
-      "/authentication/confirm-email/",
-      "/authentication/lock-screen/",
-      "/authentication/logout/",
       "/coming-soon/",
+      "/coming-soon",
       "/",
       "/front-pages/features/",
       "/front-pages/team/",
@@ -39,23 +36,27 @@ const LayoutProvider: React.FC<LayoutProviderProps> = ({ children }) => {
       "/front-pages/contact/",
     ].includes(pathname);
 
+  if (isAuthPage) {
+    return (
+      <StateAccessGuard>
+        <div className="w-full min-h-screen p-0 m-0 bg-[#0b1120]">
+          {children}
+        </div>
+      </StateAccessGuard>
+    );
+  }
+
   return (
     <StateAccessGuard>
       <div
         className={`main-content-wrap transition-all ${active ? "active" : ""}`}
       >
-        {!isAuthPage && (
-          <>
-            <SidebarMenu toggleActive={toggleActive} />
-
-            <Header toggleActive={toggleActive} />
-          </>
-        )}
+        <SidebarMenu toggleActive={toggleActive} />
+        <Header toggleActive={toggleActive} />
 
         <div className="main-content transition-all flex flex-col overflow-hidden min-h-screen">
           {children}
-
-          {!isAuthPage && <Footer />}
+          <Footer />
         </div>
       </div>
     </StateAccessGuard>
