@@ -72,7 +72,17 @@ api.interceptors.request.use((config) => {
     config.headers["X-Service-Token"] = SERVICE_TOKEN;
 
     // Encabezados de contexto de estado para selección dinámica en backend
-    const activeState = localStorage.getItem("sentineliq_active_state") || "gto";
+    const hostname = window.location.hostname.toLowerCase();
+    const port = window.location.port;
+    let activeState = "gto";
+    if (hostname.startsWith("qro.") || hostname.includes("queretaro") || port === "3004") {
+      activeState = "qro";
+    } else if (hostname.startsWith("gto.") || hostname.includes("guanajuato") || port === "3005") {
+      activeState = "gto";
+    } else {
+      activeState = localStorage.getItem("sentineliq_active_state") || "gto";
+    }
+
     config.headers["X-State-Key"] = activeState;
     if (activeState === "gto") {
       config.headers["X-State-ID"] = "00000000-0000-0000-0000-000000000011";

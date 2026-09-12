@@ -197,7 +197,33 @@ export function useRole() {
 
   const switchGlobalState = (targetStateKey: string) => {
     if (typeof window === "undefined") return;
-    localStorage.setItem("sentineliq_active_state", targetStateKey.toLowerCase());
+    const targetKey = targetStateKey.toLowerCase().trim();
+    localStorage.setItem("sentineliq_active_state", targetKey);
+
+    const hostname = window.location.hostname.toLowerCase();
+    const pathname = window.location.pathname;
+    const search = window.location.search;
+
+    // En entorno de producción SentinelIQ: redirigir al subdominio del estado
+    if (hostname.includes("sentineliq.com.mx")) {
+      const targetSubdomain = targetKey === "qro" ? "qro" : "gto";
+      const currentSubdomain = hostname.split(".")[0];
+      if (currentSubdomain !== targetSubdomain) {
+        window.location.href = `https://${targetSubdomain}.sentineliq.com.mx${pathname}${search}`;
+        return;
+      }
+    } else if (hostname === "localhost" || hostname === "127.0.0.1") {
+      const port = window.location.port;
+      if (targetKey === "qro" && port === "3005") {
+        window.location.href = `http://${hostname}:3004${pathname}${search}`;
+        return;
+      }
+      if (targetKey === "gto" && (port === "3004" || port === "3000")) {
+        window.location.href = `http://${hostname}:3005${pathname}${search}`;
+        return;
+      }
+    }
+
     window.location.reload();
   };
 

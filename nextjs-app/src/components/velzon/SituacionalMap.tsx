@@ -83,9 +83,11 @@ export default function SituacionalMap({
     let isMounted = true;
 
     // Cargar dependencias y datos en paralelo
+    const geojsonPath = stateCfg.key === "qro" ? "/data/qro_municipios.geojson" : "/data/gto_municipios.geojson";
+
     Promise.all([
       import("leaflet"),
-      fetch("/data/gto_municipios.geojson")
+      fetch(geojsonPath)
         .then((r) => (r.ok ? r.json() : null))
         .catch(() => null),
       api
@@ -207,7 +209,7 @@ export default function SituacionalMap({
       // 3. Renderizar Polígonos GeoJSON con Delineamiento y Coloreado
       if (geojsonData && geojsonData.features) {
         const getStyle = (feature: any) => {
-          const rawName = feature.properties?.nombre || "";
+          const rawName = feature.properties?.nombre || feature.properties?.NAME_2 || "";
           const key = cleanString(rawName);
           const alert = alertsByMun[key] || {
             color: "#475569",
@@ -232,12 +234,12 @@ export default function SituacionalMap({
         const geojsonLayer = L.geoJSON(geojsonData, {
           style: getStyle,
           onEachFeature: (feature: any, layer: any) => {
-            const rawName = feature.properties?.nombre || "";
+            const rawName = feature.properties?.nombre || feature.properties?.NAME_2 || "";
             const key = cleanString(rawName);
             const alert = alertsByMun[key] || {
               nombre: rawName,
-              clave: String(feature.properties?.municipio || ""),
-              region: "Estado de Guanajuato",
+              clave: String(feature.properties?.municipio || feature.properties?.clave || ""),
+              region: stateCfg.name,
               level: "calma",
               levelLabel: "Sin Alertas Activas",
               color: "#475569",

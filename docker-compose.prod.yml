@@ -89,6 +89,10 @@ services:
     ports:
       - "127.0.0.1:3004:3000"
     environment:
+      NODE_ENV: "production"
+      PORT: 3000
+      STATE_KEY: "qro"
+      NEXT_PUBLIC_STATE_KEY: "qro"
       NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-https://qro.sentineliq.com.mx/api}
       ARGOS_URL: ${ARGOS_URL:-https://argos.sentineliq.com.mx}
       ARGOS_SERVICE_TOKEN: ${ARGOS_SERVICE_TOKEN:-sentineliq_argos_token_shared_sec_2026}

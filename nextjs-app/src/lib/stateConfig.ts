@@ -410,7 +410,18 @@ export function getStateConfig(overrideKey?: string): StateConfig {
   }
 
   if (typeof window !== "undefined") {
-    // 0. Si el Superadministrador Global seleccionó explícitamente un estado activo
+    // 0. Detección prioritaria por Hostname / Puerto (subdominios explícitos)
+    const host = window.location.hostname.toLowerCase();
+    const port = window.location.port;
+
+    if (host.startsWith("qro.") || host.includes("queretaro") || port === "3004") {
+      return QUERETARO_CONFIG;
+    }
+    if (host.startsWith("gto.") || host.includes("guanajuato") || port === "3005") {
+      return GUANAJUATO_CONFIG;
+    }
+
+    // 1. Si el Superadministrador Global seleccionó un estado activo en dominio genérico o localhost
     try {
       const activeState = localStorage.getItem("sentineliq_active_state");
       if (activeState && STATE_CATALOG[activeState.toLowerCase()]) {
@@ -420,38 +431,17 @@ export function getStateConfig(overrideKey?: string): StateConfig {
       // ignore
     }
 
-    // 1. Verificar si hay un usuario logueado con state_key
+    // 2. Verificar si hay un usuario logueado con state_key
     try {
       const userStr = localStorage.getItem("sentineliq_user");
       if (userStr) {
         const u = JSON.parse(userStr);
-        if (u?.email?.toLowerCase() === "admin@sentineliq.com.mx" || u?.state_key === "global") {
-          // Para el superadministrador global, si no hay estado activo previo, respetar la detección de host o default
-        } else if (u?.state_key && STATE_CATALOG[u.state_key.toLowerCase()]) {
-          // Si estamos en un puerto/host explícito de otro estado, prevalece el host para control de jurisdicción
-          const host = window.location.hostname.toLowerCase();
-          const port = window.location.port;
-          if ((host.startsWith("gto.") || host.includes("guanajuato") || port === "3005") && u.state_key !== "gto") {
-            return GUANAJUATO_CONFIG;
-          }
-          if ((host.startsWith("qro.") || host.includes("queretaro") || port === "3000") && u.state_key !== "qro") {
-            return QUERETARO_CONFIG;
-          }
+        if (u?.state_key && STATE_CATALOG[u.state_key.toLowerCase()]) {
           return STATE_CATALOG[u.state_key.toLowerCase()];
         }
       }
     } catch (e) {
       // ignore
-    }
-
-    // 2. Detección por Hostname / Puerto
-    const host = window.location.hostname.toLowerCase();
-    const port = window.location.port;
-    if (host.startsWith("gto.") || host.includes("guanajuato") || port === "3005") {
-      return GUANAJUATO_CONFIG;
-    }
-    if (host.startsWith("qro.") || host.includes("queretaro") || port === "3000") {
-      return QUERETARO_CONFIG;
     }
   }
 
