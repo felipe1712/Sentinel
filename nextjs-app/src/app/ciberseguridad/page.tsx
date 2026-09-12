@@ -1,12 +1,20 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import api from "@/lib/api";
+import { getStateConfig, StateConfig } from "@/lib/stateConfig";
 
 export default function CiberseguridadPage() {
-  const [target, setTarget] = useState("queretaro.gob.mx");
+  const [stateCfg, setStateCfg] = useState<StateConfig>(getStateConfig());
+  const [target, setTarget] = useState(() => (getStateConfig().key === "gto" ? "guanajuato.gob.mx" : "queretaro.gob.mx"));
   const [scanResult, setScanResult] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const cfg = getStateConfig();
+    setStateCfg(cfg);
+    setTarget(cfg.key === "gto" ? "guanajuato.gob.mx" : "queretaro.gob.mx");
+  }, []);
 
   const handleScan = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -18,7 +26,7 @@ export default function CiberseguridadPage() {
       setScanResult({
         target,
         status: "Completado con éxito",
-        message: "Escaneo completado sin vulnerabilidades críticas. 0 fugas de credenciales en dominios del Estado de Querétaro.",
+        message: `Escaneo completado sin vulnerabilidades críticas. 0 fugas de credenciales en dominios del ${stateCfg.name}.`,
       });
     } finally {
       setLoading(false);
@@ -30,7 +38,7 @@ export default function CiberseguridadPage() {
       <div className="d-flex flex-column flex-md-row align-items-md-center justify-content-between mb-4 gap-3">
         <div>
           <span className="badge bg-primary text-white text-uppercase px-3 py-1 fs-11 fw-bold mb-1 shadow-sm">
-            Seguridad Digital · Estado de Querétaro
+            Seguridad Digital · {stateCfg.name}
           </span>
           <h4 className="fw-extrabold text-dark mb-1 fs-24" style={{ color: "#0f172a" }}>
             Auditoría de Infraestructura con SpiderFoot OSINT
@@ -50,7 +58,7 @@ export default function CiberseguridadPage() {
                 className="form-control bg-white text-dark fw-bold border-gray-300 fs-14"
                 value={target}
                 onChange={(e) => setTarget(e.target.value)}
-                placeholder="Ej. queretaro.gob.mx"
+                placeholder={stateCfg.key === "gto" ? "Ej. guanajuato.gob.mx" : "Ej. queretaro.gob.mx"}
               />
             </div>
             <div className="col-md-3">

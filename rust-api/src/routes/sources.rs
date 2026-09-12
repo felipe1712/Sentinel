@@ -96,25 +96,28 @@ pub async fn search_telegram_channels(
 ) -> Result<Json<serde_json::Value>, AppError> {
     auth.require_role(&["analista", "jefe_oficina", "superadmin"])?;
 
+    let is_gto = payload.state_key.as_deref() == Some("gto");
     let clean_q = payload.query.replace(" ", "").to_lowercase();
-    let state_suffix = if payload.state_key.as_deref() == Some("gto") { "Gto" } else { "Qro" };
+    let state_suffix = if is_gto { "Gto" } else { "Qro" };
+    let police_corp = if is_gto { "FSPE" } else { "PoEs" };
+    let region_label = if is_gto { "Bajío" } else { "Querétaro" };
 
     Ok(Json(json!([
         {
             "username": format!("@{}_{}", clean_q, state_suffix),
-            "title": format!("Noticias {} & Estado", payload.query),
+            "title": format!("Noticias {} & {}", payload.query, region_label),
             "subscribers": 28400,
             "relevance_score": 98,
             "category": "seguridad_y_vialidad",
             "description": format!("Canal de monitoreo en tiempo real, alertas de seguridad y noticias locales de {}.", payload.query)
         },
         {
-            "username": format!("@Alertas_{}Bajio", clean_q),
-            "title": format!("Alertas de Seguridad {} — Bajío", payload.query),
+            "username": format!("@Alertas_{}{}", clean_q, state_suffix),
+            "title": format!("Alertas de Seguridad {} — {}", payload.query, region_label),
             "subscribers": 19500,
             "relevance_score": 94,
             "category": "seguridad_publica",
-            "description": format!("Reportes comunitarios, operativos FSPE/PoEs e incidentes viales en {}.", payload.query)
+            "description": format!("Reportes comunitarios, operativos {} e incidentes viales en {}.", police_corp, payload.query)
         },
         {
             "username": format!("@{}_InformaOficial", clean_q),
@@ -133,12 +136,14 @@ pub async fn search_twitter_accounts(
 ) -> Result<Json<serde_json::Value>, AppError> {
     auth.require_role(&["analista", "jefe_oficina", "superadmin"])?;
 
+    let is_gto = payload.state_key.as_deref() == Some("gto");
     let clean_q = payload.query.replace("@", "").replace(" ", "");
-    let state_name = if payload.state_key.as_deref() == Some("gto") { "Guanajuato" } else { "Querétaro" };
+    let state_name = if is_gto { "Guanajuato" } else { "Querétaro" };
+    let state_suffix = if is_gto { "Gto" } else { "Qro" };
 
     Ok(Json(json!([
         {
-            "handle": format!("@{}_Gto", clean_q),
+            "handle": format!("@{}_{}", clean_q, state_suffix),
             "name": format!("{} Oficial {}", payload.query, state_name),
             "followers": 142000,
             "relevance_score": 98,

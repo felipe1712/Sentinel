@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import api from "@/lib/api";
+import { getStateConfig, StateConfig } from "@/lib/stateConfig";
 
 const getFormattedDate = (daysOffset: number = 0) => {
   const d = new Date();
@@ -10,7 +11,34 @@ const getFormattedDate = (daysOffset: number = 0) => {
   return d.toLocaleDateString("es-MX", { day: "numeric", month: "long", year: "numeric" });
 };
 
-const DEFAULT_DOSSIERS = [
+const DEFAULT_DOSSIERS_GTO = [
+  {
+    id: "dos_gto_01",
+    title: "Dossier Estratégico · Gira de Trabajo Corredor Industrial León - Silao",
+    type: "Gira Municipal",
+    bluf: "Análisis situacional metropolitano: movilidad sobre Eje Metropolitano, enlace con FSPE y proyectos del Clúster Automotriz Puerto Interior.",
+    confidence: "Alta (98%)",
+    date: getFormattedDate(0),
+  },
+  {
+    id: "dos_gto_02",
+    title: "Dossier de Seguridad · Coordinación Operativa Celaya - Laja Bajío",
+    type: "Seguridad & Justicia",
+    bluf: "Evaluación del despliegue de Fuerzas de Seguridad Pública del Estado y blindaje carretero en accesos interestatales.",
+    confidence: "Muy Alta (99%)",
+    date: getFormattedDate(0),
+  },
+  {
+    id: "dos_gto_03",
+    title: "Dossier Hidrológico · Monitoreo y Capacidad de Embalses Cuenca Lerma",
+    type: "Protección Civil & Agua",
+    bluf: "Balance hídrico en Presa de la Olla, Solís y Purísima; protocolos preventivos y acuerdos con distritos de riego.",
+    confidence: "Alta (95%)",
+    date: getFormattedDate(1),
+  },
+];
+
+const DEFAULT_DOSSIERS_QRO = [
   {
     id: "dos_qro_01",
     title: "Dossier Estratégico · Gira de Trabajo Santiago de Querétaro",
@@ -38,9 +66,16 @@ const DEFAULT_DOSSIERS = [
 ];
 
 export default function DossiersPage() {
-  const [dossiers, setDossiers] = useState<any[]>(DEFAULT_DOSSIERS);
+  const [stateCfg, setStateCfg] = useState<StateConfig>(getStateConfig());
+  const [dossiers, setDossiers] = useState<any[]>(() =>
+    getStateConfig().key === "gto" ? DEFAULT_DOSSIERS_GTO : DEFAULT_DOSSIERS_QRO
+  );
 
   useEffect(() => {
+    const cfg = getStateConfig();
+    setStateCfg(cfg);
+    setDossiers(cfg.key === "gto" ? DEFAULT_DOSSIERS_GTO : DEFAULT_DOSSIERS_QRO);
+
     async function load() {
       try {
         const resp = await api.get("/dossiers");
@@ -48,7 +83,7 @@ export default function DossiersPage() {
           setDossiers(resp.data);
         }
       } catch (e) {
-        console.warn("Usando catálogo soberano de dossiers de Querétaro con fechas dinámicas");
+        console.warn(`Usando catálogo soberano de dossiers de ${cfg.name}`);
       }
     }
     load();
@@ -60,7 +95,7 @@ export default function DossiersPage() {
       <div className="d-flex flex-column flex-md-row align-items-md-center justify-content-between mb-4 gap-3">
         <div>
           <span className="badge bg-primary text-white text-uppercase px-3 py-1 fs-11 fw-bold mb-2 shadow-sm">
-            Gubernatura del Estado de Querétaro
+            {stateCfg.governorTitle}
           </span>
           <h4 className="fw-extrabold text-dark mb-1 fs-24" style={{ color: "#0f172a" }}>
             Dossiers Ejecutivos de Inteligencia

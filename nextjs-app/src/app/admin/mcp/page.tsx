@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import { getStateConfig, StateConfig } from "@/lib/stateConfig";
 
 interface McpTool {
   id: string;
@@ -13,72 +14,81 @@ interface McpTool {
   latencyMs: number;
 }
 
+const getInitialTools = (shortName: string): McpTool[] => [
+  {
+    id: "intel_earthquakes",
+    name: "Sismos & Actividad Telúrica",
+    category: "proteccion_civil",
+    description: "Monitoreo sismológico SSN / USGS en México y estados vecinos.",
+    active: true,
+    lastRun: "Hace 5 min",
+    latencyMs: 140,
+  },
+  {
+    id: "intel_disaster_alerts",
+    name: "Alertas GDACS & Desastres",
+    category: "proteccion_civil",
+    description: "Alertas globales y regionales de emergencias meteorológicas e inundaciones.",
+    active: true,
+    lastRun: "Hace 10 min",
+    latencyMs: 310,
+  },
+  {
+    id: "intel_unrest_events",
+    name: "Disturbios & Inestabilidad Social",
+    category: "seguridad",
+    description: "Registro de protestas, manifestaciones y cierres carreteros regional.",
+    active: true,
+    lastRun: "Hace 12 min",
+    latencyMs: 280,
+  },
+  {
+    id: "intel_instability_index",
+    name: "Índice de Inestabilidad Estatal",
+    category: "inteligencia",
+    description: `Cálculo sintético de riesgo político e inestabilidad para ${shortName}.`,
+    active: true,
+    lastRun: "Hace 2 min",
+    latencyMs: 95,
+  },
+  {
+    id: "intel_disease_outbreaks",
+    name: "Brotes & Emergencias Epidemiológicas",
+    category: "salud",
+    description: "Monitoreo OMS/OPS de enfermedades relevantes para la región.",
+    active: true,
+    lastRun: "Hace 30 min",
+    latencyMs: 420,
+  },
+  {
+    id: "intel_keyword_spikes",
+    name: "Detección de Spikes en Keywords",
+    category: "inteligencia",
+    description: "Picos anómalos de palabras clave en medios y redes locales.",
+    active: true,
+    lastRun: "Hace 8 min",
+    latencyMs: 180,
+  },
+  {
+    id: "intel_climate_anomalies",
+    name: "Anomalías Climáticas & Embalses",
+    category: "infraestructura",
+    description: `Niveles de sequía y monitoreo pluvial en embalses de ${shortName}.`,
+    active: true,
+    lastRun: "Hace 15 min",
+    latencyMs: 210,
+  },
+];
+
 export default function McpAdminPage() {
-  const [tools, setTools] = useState<McpTool[]>([
-    {
-      id: "intel_earthquakes",
-      name: "Sismos & Actividad Telúrica",
-      category: "proteccion_civil",
-      description: "Monitoreo sismológico SSN / USGS en México y estados vecinos.",
-      active: true,
-      lastRun: "Hace 5 min",
-      latencyMs: 140,
-    },
-    {
-      id: "intel_disaster_alerts",
-      name: "Alertas GDACS & Desastres",
-      category: "proteccion_civil",
-      description: "Alertas globales y regionales de emergencias meteorológicas e inundaciones.",
-      active: true,
-      lastRun: "Hace 10 min",
-      latencyMs: 310,
-    },
-    {
-      id: "intel_unrest_events",
-      name: "Disturbios & Inestabilidad Social",
-      category: "seguridad",
-      description: "Registro de protestas, manifestaciones y cierres carreteros regional.",
-      active: true,
-      lastRun: "Hace 12 min",
-      latencyMs: 280,
-    },
-    {
-      id: "intel_instability_index",
-      name: "Índice de Inestabilidad Estatal",
-      category: "inteligencia",
-      description: "Cálculo sintético de riesgo político e inestabilidad para Querétaro.",
-      active: true,
-      lastRun: "Hace 2 min",
-      latencyMs: 95,
-    },
-    {
-      id: "intel_disease_outbreaks",
-      name: "Brotes & Emergencias Epidemiológicas",
-      category: "salud",
-      description: "Monitoreo OMS/OPS de enfermedades relevantes para la región.",
-      active: true,
-      lastRun: "Hace 30 min",
-      latencyMs: 420,
-    },
-    {
-      id: "intel_keyword_spikes",
-      name: "Detección de Spikes en Keywords",
-      category: "inteligencia",
-      description: "Picos anómalos de palabras clave en medios y redes locales.",
-      active: true,
-      lastRun: "Hace 8 min",
-      latencyMs: 180,
-    },
-    {
-      id: "intel_climate_anomalies",
-      name: "Anomalías Climáticas & Embalses",
-      category: "infraestructura",
-      description: "Niveles de sequía y monitoreo pluvial en embalses de Querétaro.",
-      active: true,
-      lastRun: "Hace 15 min",
-      latencyMs: 210,
-    },
-  ]);
+  const [stateCfg, setStateCfg] = useState<StateConfig>(getStateConfig());
+  const [tools, setTools] = useState<McpTool[]>(() => getInitialTools(getStateConfig().shortName));
+
+  useEffect(() => {
+    const cfg = getStateConfig();
+    setStateCfg(cfg);
+    setTools(getInitialTools(cfg.shortName));
+  }, []);
 
   const [testResult, setTestResult] = useState<any>(null);
   const [testingTool, setTestingTool] = useState<string | null>(null);
@@ -91,11 +101,15 @@ export default function McpAdminPage() {
     setTestingTool(toolId);
     setTestResult(null);
     setTimeout(() => {
+      const region = stateCfg.key === "gto"
+        ? "Estado de Guanajuato y vecinos (Qro, Mich, Jal, SLP)"
+        : "Estado de Querétaro y vecinos (Gto, Hgo, EdoMex, SLP)";
+
       setTestResult({
         tool: toolId,
         status: "success",
         data: {
-          region: "Estado de Querétaro y vecinos (Gto, Hgo, EdoMex, SLP)",
+          region,
           records_evaluated: 48,
           summary: "Sin anomalías críticas detectadas en las últimas 6 horas.",
           mcp_server: "world-intel-mcp (local stdio/Qdrant)"
@@ -117,7 +131,7 @@ export default function McpAdminPage() {
             Administración de Servidores & Tools MCP
           </h4>
           <p className="text-dark fs-13 mb-0 fw-semibold" style={{ color: "#334155" }}>
-            Control de herramientas de inteligencia global que alimentan los briefings y dossiers del Gobernador.
+            Control de herramientas de inteligencia global que alimentan los briefings y dossiers de la {stateCfg.governorTitle}.
           </p>
         </div>
         <div className="d-flex gap-2">
@@ -157,7 +171,7 @@ export default function McpAdminPage() {
             ¿Qué es MCP y cómo se utiliza en SentinelIQ?
           </h6>
           <p className="fs-13 text-dark fw-semibold mb-0" style={{ color: "#0f172a" }}>
-            El <strong>Model Context Protocol (MCP)</strong> es el estándar de comunicación soberana entre modelos de IA (Claude 3.5 Sonnet) y fuentes de datos. SentinelIQ ejecuta localmente el servidor <code>world-intel-mcp</code> en la infraestructura de Querétaro, permitiendo consultar sismos, inundaciones, disturbios e índices de inestabilidad sin fuga de información a terceros.
+            El <strong>Model Context Protocol (MCP)</strong> es el estándar de comunicación soberana entre modelos de IA (Claude 3.5 Sonnet) y fuentes de datos. SentinelIQ ejecuta localmente el servidor <code>world-intel-mcp</code> en la infraestructura de {stateCfg.name}, permitiendo consultar sismos, inundaciones, disturbios e índices de inestabilidad sin fuga de información a terceros.
           </p>
         </div>
       </div>
@@ -166,7 +180,7 @@ export default function McpAdminPage() {
       <div className="card bg-white border-0 shadow-sm mb-4 rounded-3 overflow-hidden">
         <div className="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
           <h6 className="card-title mb-0 fw-extrabold text-dark fs-15" style={{ color: "#0f172a" }}>
-            7 Herramientas MCP Habilitadas para Querétaro
+            7 Herramientas MCP Habilitadas para {stateCfg.name}
           </h6>
           <span className="badge bg-primary text-white fs-11 fw-bold shadow-sm">Protección Civil · Seguridad · Salud</span>
         </div>

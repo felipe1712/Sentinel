@@ -6,9 +6,9 @@ import api from "@/lib/api";
 import { getStateConfig, StateConfig, FuenteItem } from "@/lib/stateConfig";
 import { registerMonitor, deleteMonitor, getArgosHealth, ArgosMonitor } from "@/lib/argos";
 
-const DEFAULT_ARGOS_MONITORS: ArgosMonitor[] = [
+const DEFAULT_ARGOS_MONITORS_GTO: ArgosMonitor[] = [
   {
-    id: "mon_01",
+    id: "mon_gto_01",
     state_id: "gto",
     network: "telegram",
     channel_id: "@AlertasCelayaBajio",
@@ -19,7 +19,7 @@ const DEFAULT_ARGOS_MONITORS: ArgosMonitor[] = [
     last_activity: "Hace 4 min",
   },
   {
-    id: "mon_02",
+    id: "mon_gto_02",
     state_id: "gto",
     network: "twitter",
     channel_id: "@FSPE_GtoOficial",
@@ -30,7 +30,7 @@ const DEFAULT_ARGOS_MONITORS: ArgosMonitor[] = [
     last_activity: "Hace 12 min",
   },
   {
-    id: "mon_03",
+    id: "mon_gto_03",
     state_id: "gto",
     network: "facebook",
     channel_id: "NoticiasLeonZM",
@@ -42,11 +42,49 @@ const DEFAULT_ARGOS_MONITORS: ArgosMonitor[] = [
   },
 ];
 
+const DEFAULT_ARGOS_MONITORS_QRO: ArgosMonitor[] = [
+  {
+    id: "mon_qro_01",
+    state_id: "qro",
+    network: "telegram",
+    channel_id: "@AlertaQroVial",
+    keywords: ["5 de febrero", "autopista 57", "vialidad"],
+    active: true,
+    posts_captured_today: 118,
+    relevance_rate: 96,
+    last_activity: "Hace 6 min",
+  },
+  {
+    id: "mon_qro_02",
+    state_id: "qro",
+    network: "twitter",
+    channel_id: "@POES_Qro",
+    keywords: ["PoEs", "operativo", "inspección"],
+    active: true,
+    posts_captured_today: 76,
+    relevance_rate: 98,
+    last_activity: "Hace 15 min",
+  },
+  {
+    id: "mon_qro_03",
+    state_id: "qro",
+    network: "facebook",
+    channel_id: "NoticiasQuerétaroZMQ",
+    keywords: ["clima", "obra", "movilidad"],
+    active: true,
+    posts_captured_today: 52,
+    relevance_rate: 91,
+    last_activity: "Hace 30 min",
+  },
+];
+
 export default function FuentesManagerPage() {
   const [stateCfg, setStateCfg] = useState<StateConfig>(getStateConfig());
   const [activeTab, setActiveTab] = useState<"fuentes" | "argos">("argos");
   const [fuentes, setFuentes] = useState<FuenteItem[]>([]);
-  const [argosMonitors, setArgosMonitors] = useState<ArgosMonitor[]>(DEFAULT_ARGOS_MONITORS);
+  const [argosMonitors, setArgosMonitors] = useState<ArgosMonitor[]>(() =>
+    getStateConfig().key === "gto" ? DEFAULT_ARGOS_MONITORS_GTO : DEFAULT_ARGOS_MONITORS_QRO
+  );
 
   // New Monitor Form state
   const [newNetwork, setNewNetwork] = useState("telegram");
@@ -57,6 +95,7 @@ export default function FuentesManagerPage() {
     const cfg = getStateConfig();
     setStateCfg(cfg);
     setFuentes(cfg.fuentes);
+    setArgosMonitors(cfg.key === "gto" ? DEFAULT_ARGOS_MONITORS_GTO : DEFAULT_ARGOS_MONITORS_QRO);
 
     async function load() {
       try {
@@ -247,7 +286,7 @@ export default function FuentesManagerPage() {
                   <input
                     type="text"
                     className="form-control form-control-sm bg-white text-dark fw-bold border-gray-300"
-                    placeholder="Ej. @AlertasCelayaBajio o @FSPE_GtoOficial"
+                    placeholder={stateCfg.key === "gto" ? "Ej. @AlertasCelayaBajio o @FSPE_GtoOficial" : "Ej. @AlertaQroVial o @POES_Qro"}
                     value={newChannel}
                     onChange={(e) => setNewChannel(e.target.value)}
                   />

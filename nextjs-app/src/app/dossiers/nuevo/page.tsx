@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import api from "@/lib/api";
+import { getStateConfig, StateConfig } from "@/lib/stateConfig";
 
 function NuevoDossierContent() {
   const router = useRouter();
@@ -10,11 +11,13 @@ function NuevoDossierContent() {
   const initialMunicipio = searchParams.get("municipio") || "";
   const initialNarrativa = searchParams.get("narrativa") || "";
 
+  const [stateCfg, setStateCfg] = useState<StateConfig>(getStateConfig());
   const [type, setType] = useState(initialNarrativa ? "narrativa" : "municipal");
   const [targetName, setTargetName] = useState(initialMunicipio || initialNarrativa || "");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    setStateCfg(getStateConfig());
     if (initialMunicipio) {
       setType("municipal");
       setTargetName(initialMunicipio);
@@ -24,16 +27,19 @@ function NuevoDossierContent() {
     }
   }, [initialMunicipio, initialNarrativa]);
 
+  const isGto = stateCfg.key === "gto";
+  const defaultFallbackId = isGto ? "dos_gto_01" : "dos_qro_01";
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      const blufText = `Análisis ejecutivo prioritario preparado para la evaluación de ${targetName || "la entidad señalada"}. Se identifican oportunidades de gestión y puntos de atención preventiva en el Estado de Querétaro.`;
+      const blufText = `Análisis ejecutivo prioritario preparado para la evaluación de ${targetName || "la entidad señalada"}. Se identifican oportunidades de gestión y puntos de atención preventiva en el ${stateCfg.name}.`;
       
       const contentJson = {
         situacion_actual: `Evaluación de indicadores y menciones mediáticas recientes sobre ${targetName}.`,
-        actores_clave: ["Autoridades municipales", "Líderes de comités vecinales", "Representantes de medios locales de Querétaro"],
+        actores_clave: ["Autoridades municipales", "Líderes de comités vecinales", `Representantes de medios locales de ${stateCfg.shortName}`],
         implicaciones_politicas: "Impacto favorable en la percepción pública mediante entregas de infraestructura estratégica y coordinación con el Gabinete Estatal.",
         escenarios: {
           optimista: "Consenso total en la agenda y acuerdos de colaboración mutua.",
@@ -41,7 +47,7 @@ function NuevoDossierContent() {
           pesimista: "Cuestionamiento por retrasos en vialidades secundarias."
         },
         recomendaciones: [
-          "Mantener discurso enfocado en la coordinación metropolitana de Querétaro.",
+          `Mantener discurso enfocado en la coordinación territorial de ${stateCfg.shortName}.`,
           "Anunciar paquete de inversión de protección civil para la temporada de lluvias."
         ]
       };
@@ -55,10 +61,10 @@ function NuevoDossierContent() {
         risk_level: "medio"
       });
 
-      router.push(`/dossiers/${resp.data.id || "dos_qro_01"}`);
+      router.push(`/dossiers/${resp.data.id || defaultFallbackId}`);
     } catch (err) {
       console.warn("Navegando a vista de dossier creado:");
-      router.push(`/dossiers/dos_qro_01`);
+      router.push(`/dossiers/${defaultFallbackId}`);
     } finally {
       setLoading(false);
     }
@@ -72,7 +78,7 @@ function NuevoDossierContent() {
             Generador de Dossiers Ejecutivos con IA (Claude 3.5 Sonnet)
           </h5>
           <p className="text-dark fs-12 mb-0 fw-semibold" style={{ color: "#334155" }}>
-            Oficina del Gobernador · Estado de Querétaro
+            {stateCfg.governorTitle}
           </p>
         </div>
         <div className="card-body p-4 p-md-5 bg-white">
@@ -80,7 +86,7 @@ function NuevoDossierContent() {
             <div className="mb-4">
               <label className="form-label fw-bold text-dark fs-13" style={{ color: "#0f172a" }}>Tipo de Dossier</label>
               <select className="form-select bg-white text-dark fw-bold border-gray-300" value={type} onChange={(e) => setType(e.target.value)}>
-                <option value="municipal">Dossier Municipal (Gira / Visita de Trabajo del Gobernador)</option>
+                <option value="municipal">Dossier Municipal (Gira / Visita de Trabajo del Ejecutivo)</option>
                 <option value="perfil">Dossier de Perfil (Reunión con Político / Empresario / Funcionario)</option>
                 <option value="incidente">Dossier de Incidente Crítico (Mesa de Crisis & Seguridad)</option>
                 <option value="narrativa">Dossier de Narrativa Mediática (Estrategia de Comunicación)</option>
@@ -92,7 +98,7 @@ function NuevoDossierContent() {
               <input
                 type="text"
                 className="form-control bg-white text-dark fw-bold border-gray-300 fs-14"
-                placeholder="Ej. Santiago de Querétaro / El Marqués / Proyecto Batán / Paseo 5 de Febrero"
+                placeholder={isGto ? "Ej. León / Celaya / Irapuato / Puerto Interior / FSPE" : "Ej. Santiago de Querétaro / El Marqués / Proyecto Batán / Paseo 5 de Febrero"}
                 value={targetName}
                 onChange={(e) => setTargetName(e.target.value)}
                 required

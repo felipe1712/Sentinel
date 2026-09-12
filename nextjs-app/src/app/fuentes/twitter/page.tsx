@@ -24,7 +24,7 @@ interface TwitterAccountResult {
 
 export default function TwitterSearchPage() {
   const [stateCfg, setStateCfg] = useState<StateConfig>(getStateConfig());
-  const [query, setQuery] = useState("FSPE Guanajuato");
+  const [query, setQuery] = useState(() => (getStateConfig().key === "gto" ? "FSPE Guanajuato" : "Policía Estatal Querétaro"));
   const [loading, setLoading] = useState(false);
   const [accounts, setAccounts] = useState<TwitterAccountResult[]>([]);
   const [connectedMap, setConnectedMap] = useState<Record<string, boolean>>({});
@@ -34,7 +34,9 @@ export default function TwitterSearchPage() {
   useEffect(() => {
     const cfg = getStateConfig();
     setStateCfg(cfg);
-    handleSearch(cfg.key === "gto" ? "FSPE Guanajuato" : "Policía Estatal Querétaro");
+    const initialQ = cfg.key === "gto" ? "FSPE Guanajuato" : "Policía Estatal Querétaro";
+    setQuery(initialQ);
+    handleSearch(initialQ);
   }, []);
 
   const handleSearch = async (searchQuery: string) => {

@@ -93,6 +93,88 @@ const DEFAULT_DOSSIER_MAP: Record<string, any> = {
         "Supervisar el mantenimiento vial de conectores entre la carretera 57 y los parques industriales."
       ]
     }
+  },
+  dos_gto_01: {
+    id: "dos_gto_01",
+    type: "Gira Municipal",
+    title: "Dossier Estratégico · Gira de Trabajo Corredor Industrial León - Silao",
+    bluf: "Análisis situacional metropolitano: movilidad sobre Eje Metropolitano, enlace con FSPE y proyectos del Clúster Automotriz Puerto Interior.",
+    date: getFormattedDate(0),
+    confidence: "Alta (98%)",
+    content: {
+      situacion_actual: "El corredor metropolitano León-Silao mantiene un aforo industrial constante con alta actividad logística en Guanajuato Puerto Interior. Se mantiene presencia permanente de las Fuerzas de Seguridad Pública del Estado (FSPE) en tramos intermunicipales.",
+      actores_clave: [
+        "Presidencia Municipal de León",
+        "Presidencia Municipal de Silao",
+        "Fuerzas de Seguridad Pública del Estado (FSPE)",
+        "Directiva de Guanajuato Puerto Interior (GPI)",
+        "Consejo Coordinador Empresarial de León"
+      ],
+      escenarios: {
+        optimista: "Consolidación de acuerdos de inversión y agilización vial en accesos a zonas fabriles.",
+        probable: "Mesa de seguimiento sobre movilidad y proyectos pluviales con cámaras empresariales.",
+        pesimista: "Lentitud de tráfico en horas pico sobre la carretera 45."
+      },
+      recomendaciones: [
+        "Reforzar el patrullaje de agilidad vial con FSPE en horas de cambio de turno.",
+        "Monitorear la mesa tripartita entre sindicatos, industria automotriz y Secretaría de Economía.",
+        "Supervisar el mantenimiento en drenajes y pasos a desnivel preventivos."
+      ]
+    }
+  },
+  dos_gto_02: {
+    id: "dos_gto_02",
+    type: "Seguridad & Coordinación",
+    title: "Dossier de Seguridad · Coordinación Operativa Celaya - Laja Bajío",
+    bluf: "Evaluación del despliegue de Fuerzas de Seguridad Pública del Estado y blindaje carretero en accesos interestatales.",
+    date: getFormattedDate(0),
+    confidence: "Muy Alta (99%)",
+    content: {
+      situacion_actual: "La región Laja-Bajío opera bajo esquema de mando coordinado entre FSPE, Guardia Nacional y SEDENA, priorizando la vigilancia continua en accesos a Celaya, Villagrán y Salamanca.",
+      actores_clave: [
+        "Secretaría de Seguridad y Paz de Guanajuato",
+        "Fuerzas de Seguridad Pública del Estado (FSPE)",
+        "Comandancia de la XII Región Militar",
+        "Secretaría de Gobierno del Estado"
+      ],
+      escenarios: {
+        optimista: "Mantenimiento del orden y saldo blanco sostenido en corredores estratégicos.",
+        probable: "Atención inmediata a conatos de afectación vial mediante presencia disuasiva.",
+        pesimista: "Rumores o noticias no verificadas en redes sociales vecinales."
+      },
+      recomendaciones: [
+        "Mantener vocería institucional ágil ante cualquier reporte en redes sociales.",
+        "Vigilar accesos a autopistas y casetas con sobrevuelos y patrullas terrestres.",
+        "Coordinar estrechamente con comités ciudadanos y sector comercial local."
+      ]
+    }
+  },
+  dos_gto_03: {
+    id: "dos_gto_03",
+    type: "Protección Civil & Agua",
+    title: "Dossier Hidrológico · Monitoreo y Capacidad de Embalses Cuenca Lerma",
+    bluf: "Balance hídrico en Presa de la Olla, Solís y Purísima; protocolos preventivos y acuerdos con distritos de riego.",
+    date: getFormattedDate(1),
+    confidence: "Alta (95%)",
+    content: {
+      situacion_actual: "Las presas principales del estado promedian 74% de almacenamiento, registrando desfogue controlado en Presa de la Olla tras precipitaciones serranas sin riesgo de desbordamiento.",
+      actores_clave: [
+        "Coordinación Estatal de Protección Civil GTO",
+        "Comisión Nacional del Agua (CONAGUA Lerma-Santiago)",
+        "Comisión Estatal del Agua de Guanajuato (CEAG)",
+        "Direcciones Municipales de Protección Civil"
+      ],
+      escenarios: {
+        optimista: "Preservación del recurso para el siguiente ciclo agrícola con cauces regulados.",
+        probable: "Continuación de desfogues programados y monitoreo preventivo en zonas bajas.",
+        pesimista: "Lluvias torrenciales atípicas que requieran incremento de desfogue."
+      },
+      recomendaciones: [
+        "Mantener coordinación permanente entre CEAG y distritos de riego.",
+        "Monitorear drenes y arroyos en zonas urbanas de Irapuato, Salamanca y León.",
+        "Emitir boletines informativos claros para evitar desinformación vecinal."
+      ]
+    }
   }
 };
 
@@ -112,11 +194,13 @@ export default function DossierDetailPage() {
           return;
         }
       } catch (err) {
-        console.warn("Usando catálogo soberano de dossiers de Querétaro");
+        console.warn("Usando catálogo soberano de dossiers de respaldo");
       }
 
       const key = String(id);
-      const fallback = DEFAULT_DOSSIER_MAP[key] || DEFAULT_DOSSIER_MAP["dos_qro_01"];
+      const isGto = typeof window !== "undefined" && window.location.hostname.startsWith("gto.");
+      const defaultKey = isGto ? "dos_gto_01" : "dos_qro_01";
+      const fallback = DEFAULT_DOSSIER_MAP[key] || DEFAULT_DOSSIER_MAP[defaultKey];
       setDossier(fallback);
       setLoading(false);
     }

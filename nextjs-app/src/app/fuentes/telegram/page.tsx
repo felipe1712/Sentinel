@@ -30,7 +30,7 @@ interface TelegramPostFeed {
 
 export default function TelegramSearchPage() {
   const [stateCfg, setStateCfg] = useState<StateConfig>(getStateConfig());
-  const [query, setQuery] = useState("Celaya");
+  const [query, setQuery] = useState(() => (getStateConfig().key === "gto" ? "Celaya" : "Querétaro"));
   const [loading, setLoading] = useState(false);
   const [channels, setChannels] = useState<TelegramChannelResult[]>([]);
   const [connectedMap, setConnectedMap] = useState<Record<string, boolean>>({});
@@ -43,6 +43,7 @@ export default function TelegramSearchPage() {
   useEffect(() => {
     const cfg = getStateConfig();
     setStateCfg(cfg);
+    setQuery(cfg.key === "gto" ? "Celaya" : "Querétaro");
 
     // Cargar persistencia de canales conectados
     const storageKey = `sentineliq_${cfg.key}_connected_tg_channels`;
@@ -154,7 +155,7 @@ export default function TelegramSearchPage() {
           subscribers: 45200,
           relevance_score: 98,
           category: "seguridad_publica",
-          description: `Monitoreo continuo de llamadas de emergencia, operativos FSPE/PoEs y alertas viales en ${searchQuery}.`,
+          description: `Monitoreo continuo de llamadas de emergencia, operativos ${isGuanajuato ? "FSPE" : "PoEs"} y alertas viales en ${searchQuery}.`,
         },
         {
           username: isGuanajuato ? "@NoticiasLeonGto" : "@PoliciaEstatalQRO",

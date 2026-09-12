@@ -2,18 +2,32 @@
 
 import React, { useEffect, useState } from "react";
 import api from "@/lib/api";
+import { getStateConfig, StateConfig } from "@/lib/stateConfig";
 
-const DEFAULT_REPORTS = [
-  { id: "rep1", type: "Diario", period: "19 de Agosto, 2026", generated_at: "2026-08-19T05:30:00Z", pdf_url: "#" },
-  { id: "rep2", type: "Semanal", period: "Semana 33 (12 - 18 Agosto, 2026)", generated_at: "2026-08-18T18:00:00Z", pdf_url: "#" },
-  { id: "rep3", type: "Especial Gira", period: "Gira Santiago de Querétaro", generated_at: "2026-08-17T09:15:00Z", pdf_url: "#" },
+const DEFAULT_REPORTS_GTO = [
+  { id: "rep_gto_1", type: "Diario", period: "19 de Agosto, 2026", generated_at: "2026-08-19T05:30:00Z", pdf_url: "#" },
+  { id: "rep_gto_2", type: "Semanal", period: "Semana 33 (12 - 18 Agosto, 2026)", generated_at: "2026-08-18T18:00:00Z", pdf_url: "#" },
+  { id: "rep_gto_3", type: "Especial Gira", period: "Gira Regional León - Celaya", generated_at: "2026-08-17T09:15:00Z", pdf_url: "#" },
+];
+
+const DEFAULT_REPORTS_QRO = [
+  { id: "rep_qro_1", type: "Diario", period: "19 de Agosto, 2026", generated_at: "2026-08-19T05:30:00Z", pdf_url: "#" },
+  { id: "rep_qro_2", type: "Semanal", period: "Semana 33 (12 - 18 Agosto, 2026)", generated_at: "2026-08-18T18:00:00Z", pdf_url: "#" },
+  { id: "rep_qro_3", type: "Especial Gira", period: "Gira Santiago de Querétaro - San Juan del Río", generated_at: "2026-08-17T09:15:00Z", pdf_url: "#" },
 ];
 
 export default function ReportesPage() {
-  const [reports, setReports] = useState<any[]>(DEFAULT_REPORTS);
+  const [stateCfg, setStateCfg] = useState<StateConfig>(getStateConfig());
+  const [reports, setReports] = useState<any[]>(() =>
+    getStateConfig().key === "gto" ? DEFAULT_REPORTS_GTO : DEFAULT_REPORTS_QRO
+  );
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    const cfg = getStateConfig();
+    setStateCfg(cfg);
+    setReports(cfg.key === "gto" ? DEFAULT_REPORTS_GTO : DEFAULT_REPORTS_QRO);
+
     async function load() {
       try {
         const resp = await api.get("/reports");
@@ -21,7 +35,7 @@ export default function ReportesPage() {
           setReports(resp.data);
         }
       } catch (e) {
-        console.warn("Usando historial de reportes de Querétaro");
+        console.warn(`Usando historial de reportes de ${cfg.name}`);
       }
     }
     load();
@@ -54,13 +68,13 @@ export default function ReportesPage() {
       <div className="d-flex flex-column flex-md-row align-items-md-center justify-content-between mb-4 gap-3">
         <div>
           <span className="badge bg-primary text-white text-uppercase px-3 py-1 fs-11 fw-bold mb-1 shadow-sm">
-            Exportación Oficial · Estado de Querétaro
+            Exportación Oficial · {stateCfg.name}
           </span>
           <h4 className="fw-extrabold text-dark mb-1 fs-24" style={{ color: "#0f172a" }}>
             Generación & Descarga de Reportes PDF Oficiales
           </h4>
           <p className="text-dark fs-13 mb-0 fw-semibold" style={{ color: "#334155" }}>
-            Exportación ejecutiva en plantilla oficial del Despacho del Gobernador (WeasyPrint).
+            Exportación ejecutiva en plantilla oficial de la {stateCfg.governorTitle} (WeasyPrint).
           </p>
         </div>
         <div className="d-flex gap-2">
