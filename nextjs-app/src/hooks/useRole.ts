@@ -121,6 +121,44 @@ export const PREDEFINED_USERS_BY_STATE: Record<string, UserProfile[]> = {
       active: true,
     },
   ],
+  pue: [
+    {
+      id: "u_pue_superadmin",
+      name: "Ing. Alejandro Ceballos",
+      email: "admin.ti@puebla.gob.mx",
+      cargo: "Superadministrador de Plataforma Puebla",
+      role: "superadmin",
+      state_key: "pue",
+      active: true,
+    },
+    {
+      id: "u_pue_gobernador",
+      name: "Alejandro Armenta Mier",
+      email: "gobernador@puebla.gob.mx",
+      cargo: "Gobernador Constitucional del Estado de Puebla",
+      role: "gobernador",
+      state_key: "pue",
+      active: true,
+    },
+    {
+      id: "u_pue_gabinete",
+      name: "Mtro. Javier Aquino Limón",
+      email: "gobernacion@puebla.gob.mx",
+      cargo: "Secretario de Gobernación del Estado de Puebla",
+      role: "gabinete",
+      state_key: "pue",
+      active: true,
+    },
+    {
+      id: "u_pue_analista",
+      name: "Lic. Mariana Domínguez",
+      email: "analista.inteligencia@puebla.gob.mx",
+      cargo: "Analista Senior de Inteligencia Situacional",
+      role: "analista",
+      state_key: "pue",
+      active: true,
+    },
+  ],
 };
 
 // Usuario Superadministrador Global con acceso a todas las entidades
@@ -206,20 +244,16 @@ export function useRole() {
 
     // En entorno de producción SentinelIQ: redirigir al subdominio del estado
     if (hostname.includes("sentineliq.com.mx")) {
-      const targetSubdomain = targetKey === "qro" ? "qro" : "gto";
+      const targetSubdomain = targetKey === "qro" ? "qro" : targetKey === "pue" ? "pue" : "gto";
       const currentSubdomain = hostname.split(".")[0];
       if (currentSubdomain !== targetSubdomain) {
         window.location.href = `https://${targetSubdomain}.sentineliq.com.mx${pathname}${search}`;
         return;
       }
     } else if (hostname === "localhost" || hostname === "127.0.0.1") {
-      const port = window.location.port;
-      if (targetKey === "qro" && port === "3005") {
-        window.location.href = `http://${hostname}:3004${pathname}${search}`;
-        return;
-      }
-      if (targetKey === "gto" && (port === "3004" || port === "3000")) {
-        window.location.href = `http://${hostname}:3005${pathname}${search}`;
+      const targetPort = targetKey === "qro" ? "3004" : targetKey === "pue" ? "3006" : "3005";
+      if (window.location.port !== targetPort) {
+        window.location.href = `http://${hostname}:${targetPort}${pathname}${search}`;
         return;
       }
     }

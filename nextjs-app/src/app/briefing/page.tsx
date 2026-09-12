@@ -3,11 +3,14 @@
 import React, { useEffect, useState } from "react";
 import api from "@/lib/api";
 import { getStateConfig, StateConfig } from "@/lib/stateConfig";
+import { getKapsoConfig, sendKapsoTextMessage } from "@/lib/kapso";
 
 export default function BriefingPage() {
   const [stateCfg, setStateCfg] = useState<StateConfig>(getStateConfig());
   const [briefing, setBriefing] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [sendingWa, setSendingWa] = useState(false);
+  const [waStatus, setWaStatus] = useState<{ success: boolean; message: string } | null>(null);
 
   useEffect(() => {
     const cfg = getStateConfig();
@@ -26,6 +29,69 @@ export default function BriefingPage() {
     loadBriefing();
   }, []);
 
+  const handleSendWhatsApp = async () => {
+    setSendingWa(true);
+    setWaStatus(null);
+    const kCfg = getKapsoConfig();
+
+    if (!kCfg.apiKey || !kCfg.phoneNumberId) {
+      setWaStatus({
+        success: false,
+        message: "Configure la API Key y Phone Number ID de Kapso en /admin/keys.",
+      });
+      setSendingWa(false);
+      return;
+    }
+
+    const summaryText =
+      briefing?.summary ||
+      `Monitoreo territorial de 36 horas en ${stateCfg.name}. Sin alertas rojas fuera de contención. Vigilancia prioritaria en ${stateCfg.municipios.slice(0, 3).map((m: any) => m.nombre).join(", ")}.`;
+
+    const body = `🛡️ *SENTINELIQ — BRIEFING MATUTINO EJECUTIVO*
+🏛️ *Territorio*: ${stateCfg.name}
+👤 *Destinatario*: ${stateCfg.governorTitle}
+⏰ *Corte*: 05:30 AM · ${new Date().toLocaleDateString("es-MX", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
+🔒 *Clasificación*: Alto Impacto / Confidencial
+
+*1. Resumen de Inteligencia:*
+${summaryText}
+
+*2. Puntos Prioritarios:*
+• ${stateCfg.prioridades[0]?.titulo || "Operativos de Seguridad"}: ${stateCfg.prioridades[0]?.descripcion || "Vigilancia reforzada"}
+• ${stateCfg.prioridades[1]?.titulo || "Monitoreo Institucional"}: ${stateCfg.prioridades[1]?.descripcion || "Coordinación con enlaces"}
+
+*3. Narrativas en Tendencia:*
+• ${stateCfg.narrativas[0]?.title || "Gobernanza territorial"}: Tendencia ${stateCfg.narrativas[0]?.trend || "estable"}
+
+🌐 *Portal Soberano*: https://${stateCfg.key}.sentineliq.com.mx/briefing`;
+
+    try {
+      const res = await sendKapsoTextMessage({
+        to: kCfg.defaultRecipient,
+        body,
+      });
+
+      if (res.success) {
+        setWaStatus({
+          success: true,
+          message: `Briefing entregado por WhatsApp vía Kapso a +${kCfg.defaultRecipient || "número registrado"}.`,
+        });
+      } else {
+        setWaStatus({
+          success: false,
+          message: `Error al enviar WhatsApp: ${res.error}`,
+        });
+      }
+    } catch (err: any) {
+      setWaStatus({
+        success: false,
+        message: err.message || "Error al conectar con la pasarela Kapso.",
+      });
+    } finally {
+      setSendingWa(false);
+    }
+  };
+
   return (
     <div className="pb-5 pt-4 pt-md-5 mt-2">
       {/* Title Header */}
@@ -41,15 +107,49 @@ export default function BriefingPage() {
             {briefing?.title || `Briefing Matutino Ejecutivo — ${stateCfg.name}`}
           </h3>
         </div>
-        <div className="d-flex gap-2">
+        <div className="d-flex flex-wrap gap-2">
           <button className="btn btn-outline-secondary btn-sm fw-bold" onClick={() => window.print()}>
             <i className="ri-printer-line me-1"></i> Imprimir Memo
+          </button>
+          <button
+            className="btn btn-success btn-sm fw-bold shadow-sm"
+            onClick={handleSendWhatsApp}
+            disabled={sendingWa}
+          >
+            {sendingWa ? (
+              <>
+                <span className="spinner-border spinner-border-sm me-1" role="status"></span>
+                Enviando WhatsApp...
+              </>
+            ) : (
+              <>
+                <i className="ri-whatsapp-fill me-1"></i> Enviar por WhatsApp
+              </>
+            )}
           </button>
           <button className="btn btn-primary btn-sm fw-bold shadow-sm">
             <i className="ri-send-plane-line me-1"></i> Enviar al Gabinete
           </button>
         </div>
       </div>
+
+      {/* Estado del envío por WhatsApp */}
+      {waStatus && (
+        <div
+          className={`alert ${waStatus.success ? "alert-success border-success" : "alert-danger border-danger"} d-flex align-items-center mb-4 rounded-3 border-start border-4 shadow-sm`}
+          role="alert"
+        >
+          <i
+            className={`${waStatus.success ? "ri-checkbox-circle-fill text-success" : "ri-error-warning-fill text-danger"} fs-24 me-3`}
+          ></i>
+          <div>
+            <strong className="d-block fs-14">
+              {waStatus.success ? "¡Entrega WhatsApp Exitosa!" : "Aviso de Envío"}
+            </strong>
+            <span className="fs-13">{waStatus.message}</span>
+          </div>
+        </div>
+      )}
 
       {/* 1. Resumen Ejecutivo Modo Claro */}
       <div className="card bg-white border-0 shadow-sm mb-4 border-start border-4 border-primary rounded-3 overflow-hidden">

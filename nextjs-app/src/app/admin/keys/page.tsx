@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import api from "@/lib/api";
 import { getStateConfig, StateConfig } from "@/lib/stateConfig";
+import { getKapsoConfig, saveKapsoConfig, testKapsoConnection, normalizePhoneNumber } from "@/lib/kapso";
 
 interface ApiKeyItem {
   id: string;
@@ -17,7 +18,7 @@ interface ApiKeyItem {
 
 export default function AdminKeysPage() {
   const [stateCfg, setStateCfg] = useState<StateConfig>(getStateConfig());
-  const [activeTab, setActiveTab] = useState<"all" | "telegram" | "twitter" | "claude" | "maps" | "argos">("maps");
+  const [activeTab, setActiveTab] = useState<"all" | "telegram" | "twitter" | "claude" | "maps" | "argos" | "whatsapp">("maps");
 
   // Form states with LocalStorage persistence
   const [tgApiId, setTgApiId] = useState("");
@@ -27,6 +28,13 @@ export default function AdminKeysPage() {
   const [maptilerKey, setMaptilerKey] = useState("");
   const [mapboxToken, setMapboxToken] = useState("");
   const [argosToken, setArgosToken] = useState("sentineliq_argos_token_shared_sec_2026");
+
+  // Kapso WhatsApp states
+  const [kapsoApiKey, setKapsoApiKey] = useState("");
+  const [kapsoPhoneId, setKapsoPhoneId] = useState("");
+  const [kapsoRecipient, setKapsoRecipient] = useState("");
+  const [testingKapso, setTestingKapso] = useState(false);
+  const [testKapsoResult, setTestKapsoResult] = useState<{ success: boolean; message: string } | null>(null);
 
   // Test & Status states
   const [savedSuccess, setSavedSuccess] = useState<string | null>(null);
@@ -56,6 +64,12 @@ export default function AdminKeysPage() {
     if (storedMapboxToken) setMapboxToken(storedMapboxToken);
     if (storedArgosToken) setArgosToken(storedArgosToken);
 
+    // Kapso WhatsApp Config
+    const kCfg = getKapsoConfig();
+    if (kCfg.apiKey) setKapsoApiKey(kCfg.apiKey);
+    if (kCfg.phoneNumberId) setKapsoPhoneId(kCfg.phoneNumberId);
+    if (kCfg.defaultRecipient) setKapsoRecipient(kCfg.defaultRecipient);
+
     setKeys([
       {
         id: "k1",
@@ -77,6 +91,15 @@ export default function AdminKeysPage() {
       },
       {
         id: "k3",
+        name: "Kapso WhatsApp Meta Cloud API",
+        service: "WhatsApp Executive Gateway",
+        maskedKey: kCfg.apiKey ? `${kCfg.apiKey.slice(0, 8)}••••••••••••` : "kapso_live_••••••••••••••••",
+        status: kCfg.apiKey && kCfg.phoneNumberId ? "active" : "warning",
+        lastUsed: "Listo para distribución ejecutiva",
+        description: `Entrega de alertas críticas y briefings por WhatsApp para ${cfg.name}.`,
+      },
+      {
+        id: "k4",
         name: "X / Twitter API v2 Bearer Token",
         service: "Twitter Stream API",
         maskedKey: storedTwToken ? `${storedTwToken.slice(0, 15)}••••••••••••` : "AAAAAAAAAAAAAAAAAAAA••••••••••••",
@@ -85,7 +108,7 @@ export default function AdminKeysPage() {
         description: `Monitoreo continuo de cuentas institucionales y tendencias de ${cfg.shortName}.`,
       },
       {
-        id: "k4",
+        id: "k5",
         name: "WebGIS Tile Provider (OpenStreetMap / Carto)",
         service: "WebGIS Electoral Engine",
         maskedKey: "OSM_CARTO_OPEN_SOURCE_FREE",
@@ -94,7 +117,7 @@ export default function AdminKeysPage() {
         description: "Mapas base libres y sin costo para el visor de análisis político-electoral.",
       },
       {
-        id: "k5",
+        id: "k6",
         name: "ARGOS Gateway Service Token",
         service: "ARGOS OSINT Ingestor",
         maskedKey: "sentineliq_argos_token_••••",
@@ -104,6 +127,33 @@ export default function AdminKeysPage() {
       },
     ]);
   }, []);
+
+  const handleSaveKapso = (e: React.FormEvent) => {
+    e.preventDefault();
+    saveKapsoConfig({
+      apiKey: kapsoApiKey,
+      phoneNumberId: kapsoPhoneId,
+      defaultRecipient: kapsoRecipient,
+    });
+    setSavedSuccess("Credenciales de WhatsApp (Kapso API) guardadas exitosamente.");
+    setTimeout(() => setSavedSuccess(null), 5000);
+  };
+
+  const handleTestKapso = async () => {
+    setTestingKapso(true);
+    setTestKapsoResult(null);
+    try {
+      const res = await testKapsoConnection(kapsoApiKey, kapsoPhoneId, kapsoRecipient);
+      setTestKapsoResult(res);
+    } catch (err: any) {
+      setTestKapsoResult({
+        success: false,
+        message: err.message || "Error al invocar la API de Kapso",
+      });
+    } finally {
+      setTestingKapso(false);
+    }
+  };
 
   const handleSaveTelegram = (e: React.FormEvent) => {
     e.preventDefault();
@@ -254,6 +304,12 @@ export default function AdminKeysPage() {
           onClick={() => setActiveTab("argos")}
         >
           <i className="ri-share-forward-fill me-1"></i> ARGOS Gateway
+        </button>
+        <button
+          className={`btn btn-sm fw-bold ${activeTab === "whatsapp" ? "btn-primary text-white shadow-sm" : "btn-outline-primary"}`}
+          onClick={() => setActiveTab("whatsapp")}
+        >
+          <i className="ri-whatsapp-fill me-1"></i> WhatsApp (Kapso)
         </button>
         <button
           className={`btn btn-sm fw-bold ${activeTab === "all" ? "btn-primary text-white shadow-sm" : "btn-outline-primary"}`}
@@ -587,6 +643,144 @@ export default function AdminKeysPage() {
                 <i className="ri-save-line me-1"></i> Sincronizar Token de ARGOS
               </button>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* TAB: WHATSAPP (KAPSO API) */}
+      {activeTab === "whatsapp" && (
+        <div className="card bg-white border-0 shadow-sm rounded-3 border-start border-4 border-success mb-4">
+          <div className="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+            <div className="d-flex align-items-center">
+              <i className="ri-whatsapp-fill fs-24 text-success me-2"></i>
+              <div>
+                <h5 className="card-title mb-0 fw-extrabold text-dark fs-16" style={{ color: "#0f172a" }}>
+                  Integración WhatsApp vía Kapso API (Meta Cloud API Proxy)
+                </h5>
+                <small className="text-dark fs-12 fw-semibold" style={{ color: "#475569" }}>
+                  Envío soberano de reportes, alertas de seguridad de 36 horas y briefings ejecutivos en PDF.
+                </small>
+              </div>
+            </div>
+            <a
+              href="https://docs.kapso.ai/docs/introduction"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn btn-outline-success btn-sm fw-bold shadow-sm"
+            >
+              <i className="ri-external-link-line me-1"></i> Docs Kapso
+            </a>
+          </div>
+          <div className="card-body p-4 bg-white">
+            <div className="alert alert-info d-flex align-items-center mb-4 rounded-3 border-start border-4 border-info">
+              <i className="ri-information-fill fs-24 me-3 text-info"></i>
+              <div className="fs-13">
+                <strong>Meta WhatsApp Cloud API v24.0 Proxy:</strong> SentinelIQ se conecta al endpoint
+                <code className="bg-light px-2 py-1 mx-1 text-dark rounded fw-bold">
+                  https://api.kapso.ai/meta/whatsapp/v24.0/&#123;phone_number_id&#125;/messages
+                </code>
+                usando el header de autorización <code className="bg-light px-2 py-1 text-dark rounded fw-bold">X-API-Key</code>.
+              </div>
+            </div>
+
+            <form onSubmit={handleSaveKapso}>
+              <div className="row g-3 mb-3">
+                <div className="col-md-6">
+                  <label className="form-label text-dark fw-bold fs-13" style={{ color: "#0f172a" }}>
+                    Kapso API Key (X-API-Key)
+                  </label>
+                  <input
+                    type="password"
+                    className="form-control form-control-lg bg-white text-dark fw-bold border-gray-300 fs-14"
+                    placeholder="kapso_live_xxxxxxxxxxxxxxxxxxxxxxxx"
+                    value={kapsoApiKey}
+                    onChange={(e) => setKapsoApiKey(e.target.value)}
+                  />
+                  <small className="text-muted fs-11 mt-1 d-block">
+                    Obtenida desde el portal de desarrolladores de Kapso (docs.kapso.ai).
+                  </small>
+                </div>
+
+                <div className="col-md-6">
+                  <label className="form-label text-dark fw-bold fs-13" style={{ color: "#0f172a" }}>
+                    Phone Number ID (Meta / Kapso)
+                  </label>
+                  <input
+                    type="text"
+                    className="form-control form-control-lg bg-white text-dark fw-bold border-gray-300 fs-14"
+                    placeholder="Ej. 104928374928174"
+                    value={kapsoPhoneId}
+                    onChange={(e) => setKapsoPhoneId(e.target.value)}
+                  />
+                  <small className="text-muted fs-11 mt-1 d-block">
+                    Identificador del número remitente registrado en WhatsApp Business API.
+                  </small>
+                </div>
+              </div>
+
+              <div className="mb-4">
+                <label className="form-label text-dark fw-bold fs-13" style={{ color: "#0f172a" }}>
+                  Teléfono Destino Predeterminado para Alertas Ejecutivas
+                </label>
+                <div className="input-group">
+                  <span className="input-group-text bg-light text-dark fw-bold">
+                    <i className="ri-phone-line me-1"></i> +
+                  </span>
+                  <input
+                    type="text"
+                    className="form-control form-control-lg bg-white text-dark fw-bold border-gray-300 fs-14"
+                    placeholder="524771234567 (10 dígitos en México o con código país)"
+                    value={kapsoRecipient}
+                    onChange={(e) => setKapsoRecipient(e.target.value)}
+                  />
+                </div>
+                <small className="text-muted fs-11 mt-1 d-block">
+                  Número de WhatsApp del Titular del Gabinete o Enlace Ejecutivo para recibir briefings diarios y alertas críticas.
+                </small>
+              </div>
+
+              <div className="d-flex flex-wrap gap-2 align-items-center">
+                <button type="submit" className="btn btn-success btn-md fw-bold text-white shadow-sm px-4">
+                  <i className="ri-save-line me-1"></i> Guardar Credenciales Kapso
+                </button>
+
+                <button
+                  type="button"
+                  className="btn btn-outline-success btn-md fw-bold shadow-sm px-4"
+                  onClick={handleTestKapso}
+                  disabled={testingKapso || !kapsoApiKey || !kapsoPhoneId || !kapsoRecipient}
+                >
+                  {testingKapso ? (
+                    <>
+                      <span className="spinner-border spinner-border-sm me-2" role="status"></span>
+                      Enviando mensaje de prueba...
+                    </>
+                  ) : (
+                    <>
+                      <i className="ri-send-plane-fill me-1"></i> Probar Conexión WhatsApp
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+
+            {testKapsoResult && (
+              <div
+                className={`alert ${testKapsoResult.success ? "alert-success border-success" : "alert-danger border-danger"} mt-4 rounded-3 border-start border-4 shadow-sm`}
+              >
+                <div className="d-flex align-items-center">
+                  <i
+                    className={`${testKapsoResult.success ? "ri-checkbox-circle-fill text-success" : "ri-error-warning-fill text-danger"} fs-24 me-3`}
+                  ></i>
+                  <div>
+                    <strong className="d-block fs-14">
+                      {testKapsoResult.success ? "¡Mensaje Enviado con Éxito!" : "Error al Conectar con Kapso"}
+                    </strong>
+                    <span className="fs-13">{testKapsoResult.message}</span>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}

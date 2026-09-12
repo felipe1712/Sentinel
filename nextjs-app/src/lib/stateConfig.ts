@@ -50,6 +50,7 @@ export interface StateConfig {
   capital: string;
   center: [number, number];
   zoom: number;
+  geojsonPath?: string;
   regions: string[];
   totalMunicipios: number;
   coberturaText: string;
@@ -79,6 +80,7 @@ export const QUERETARO_CONFIG: StateConfig = {
   capital: "Santiago de Querétaro",
   center: [20.5888, -100.3899],
   zoom: 10,
+  geojsonPath: "/data/qro_municipios.geojson",
   regions: ["TODOS", "ZMQ", "Semidesierto", "Sierra Gorda", "Sur"],
   totalMunicipios: 18,
   coberturaText: "18 / 18 Cobertura",
@@ -225,6 +227,7 @@ export const GUANAJUATO_CONFIG: StateConfig = {
   capital: "Guanajuato Capital",
   center: [21.0190, -101.2574],
   zoom: 9,
+  geojsonPath: "/data/gto_municipios.geojson",
   regions: ["TODOS", "León & Silao", "Corredor Laja-Bajío", "Norte & Turismo", "Sur"],
   totalMunicipios: 46,
   coberturaText: "46 / 46 Cobertura",
@@ -388,10 +391,102 @@ export const GUANAJUATO_CONFIG: StateConfig = {
   ],
 };
 
+export const PUEBLA_CONFIG: StateConfig = {
+  key: "pue",
+  stateId: "21212121-2121-2121-2121-212121212121",
+  name: "Estado de Puebla",
+  shortName: "Puebla",
+  inegiCode: "21",
+  governorTitle: "Oficina del Gobernador Constitucional del Estado de Puebla",
+  welcomeTitle: "Bienvenido, Señor Gobernador",
+  capital: "Heroica Puebla de Zaragoza",
+  center: [19.0414, -98.2063],
+  zoom: 8,
+  geojsonPath: "/data/pue_municipios.geojson",
+  regions: [
+    "TODOS",
+    "Metropolitana de Puebla",
+    "Sierra Norte",
+    "Sierra Nororiental",
+    "Tehuacán y Sierra Negra",
+    "Valle de Serdán",
+    "Angelópolis",
+    "Mixteca",
+  ],
+  totalMunicipios: 217,
+  coberturaText: "217 / 217 Cobertura",
+  prioridades: [
+    {
+      tag: "Prioridad 1 · Seguridad",
+      region: "Metropolitana de Puebla",
+      titulo: "Operativo de Paz Metropolitano",
+      descripcion: "Despliegue coordinado entre Policía Estatal, Guardia Nacional y corporaciones de Puebla Capital, San Pedro y San Andrés Cholula.",
+      border: "border-danger",
+      badgeBg: "bg-danger text-white",
+    },
+    {
+      tag: "Prioridad 2 · Autopistas",
+      region: "San Martín Texmelucan",
+      titulo: "Blindaje Logístico e Industrial",
+      descripcion: "Monitoreo permanente de transportes de carga y vigilancia tecnológica en accesos del arco poniente y autopista México-Puebla.",
+      border: "border-warning",
+      badgeBg: "bg-warning text-dark",
+    },
+    {
+      tag: "Prioridad 3 · Gobernabilidad",
+      region: "Tehuacán y Sierra Negra",
+      titulo: "Supervisión Hídrica y Enlace Comunitario",
+      descripcion: "Reunión de concertación con comités agrarios y atención a demandas comunitarias en la región sur y Tehuacán.",
+      border: "border-primary",
+      badgeBg: "bg-primary text-white",
+    },
+  ],
+  sintesisEjecutiva: "El Estado de Puebla mantiene estabilidad institucional y gobernabilidad plena en sus 217 municipios. Continúa el operativo metropolitano de seguridad y vigilancia estratégica en el corredor industrial Puebla-Tlaxcala y la autopista México-Puebla.",
+  narrativas: [
+    { id: "nar-pue-1", title: "Operativo Metropolitano de Seguridad Ciudadana", summary: "Refuerzo coordinado de patrullajes en Puebla Capital y zona conurbada.", category: "Seguridad", trend: "subiendo", volume_24h: 310, sentiment: "Positivo", region: "Metropolitana de Puebla" },
+    { id: "nar-pue-2", title: "Plan Estatal de Infraestructura Hídrica y Carretera", summary: "Inversión histórica en redes hidráulicas y caminos de la Sierra Norte y Mixteca.", category: "Infraestructura", trend: "estable", volume_24h: 185, sentiment: "Positivo", region: "Sierra Norte" },
+    { id: "nar-pue-3", title: "Monitoreo de Movilidad y Rutas de Abasto", summary: "Flujo vehicular regular en autopista México-Puebla y casetas principales.", category: "Movilidad", trend: "estable", volume_24h: 140, sentiment: "Neutral", region: "Valle de Serdán" },
+  ],
+  perfiles: [
+    { id: "p-pue-1", name: "Mtro. Francisco Sánchez González", cargo: "Secretario de Seguridad Pública del Estado", afiliacion: "Gabinete Estatal Puebla", risk: "Bajo", summary: "Mando al frente del operativo de pacificación y coordinación interinstitucional." },
+    { id: "p-pue-2", name: "Mtro. Javier Aquino Limón", cargo: "Secretario de Gobernación del Estado", afiliacion: "Gabinete Estatal Puebla", risk: "Bajo", summary: "Encargado de la política interna y diálogo permanente con los 217 presidentes municipales." },
+  ],
+  fuentes: [
+    { id: "f-pue-1", name: "Secretaría de Seguridad Pública Puebla", type: "Oficial", identifier: "@SSPGobPue", credibility: "Alta", active: true },
+    { id: "f-pue-2", name: "Periódico Central Puebla", type: "Prensa Digital", identifier: "periodico_central_pue", credibility: "Media-Alta", active: true },
+    { id: "f-pue-3", name: "El Sol de Puebla", type: "Prensa Escrita", identifier: "elsoldepuebla", credibility: "Alta", active: true },
+    { id: "f-pue-4", name: "Alerta Vial y Noticias Puebla", type: "Telegram OSINT", identifier: "alerta_puebla_seguridad", credibility: "Media", active: true },
+    { id: "f-pue-5", name: "Tribuna Noticias Puebla", type: "Radio & Digital", identifier: "tribuna_puebla", credibility: "Media-Alta", active: true },
+  ],
+  municipios: [
+    { clave: "21114", nombre: "Puebla Capital", region: "Metropolitana de Puebla", actividad_nivel: "alto", eventos_24h: 19, poblacion: "1,692,181", responsable_region: "Policía Estatal Metropolitana", lat: 19.0414, lng: -98.2063 },
+    { clave: "21156", nombre: "Tehuacán", region: "Tehuacán y Sierra Negra", actividad_nivel: "alto", eventos_24h: 12, poblacion: "327,312", responsable_region: "Sector Tehuacán", lat: 18.4633, lng: -97.3917 },
+    { clave: "21132", nombre: "San Martín Texmelucan", region: "Metropolitana de Puebla", actividad_nivel: "alto", eventos_24h: 15, poblacion: "155,738", responsable_region: "Sector Texmelucan", lat: 19.2844, lng: -98.4344 },
+    { clave: "21019", nombre: "Atlixco", region: "Angelópolis", actividad_nivel: "medio", eventos_24h: 7, poblacion: "141,793", responsable_region: "Sector Atlixco", lat: 18.9083, lng: -98.4322 },
+    { clave: "21140", nombre: "San Pedro Cholula", region: "Metropolitana de Puebla", actividad_nivel: "medio", eventos_24h: 6, poblacion: "138,433", responsable_region: "Sector Cholula", lat: 19.0606, lng: -98.3075 },
+    { clave: "21119", nombre: "San Andrés Cholula", region: "Metropolitana de Puebla", actividad_nivel: "medio", eventos_24h: 8, poblacion: "154,448", responsable_region: "Sector Cholula", lat: 19.0494, lng: -98.2978 },
+    { clave: "21015", nombre: "Amozoc", region: "Metropolitana de Puebla", actividad_nivel: "medio", eventos_24h: 7, poblacion: "125,876", responsable_region: "Sector Amozoc", lat: 19.0436, lng: -98.0436 },
+    { clave: "21071", nombre: "Huauchinango", region: "Sierra Norte", actividad_nivel: "medio", eventos_24h: 5, poblacion: "103,946", responsable_region: "Sector Huauchinango", lat: 20.1764, lng: -98.0531 },
+    { clave: "21186", nombre: "Teziutlán", region: "Sierra Nororiental", actividad_nivel: "medio", eventos_24h: 4, poblacion: "103,583", responsable_region: "Sector Teziutlán", lat: 19.8167, lng: -97.3600 },
+    { clave: "21085", nombre: "Izúcar de Matamoros", region: "Mixteca", actividad_nivel: "medio", eventos_24h: 5, poblacion: "82,809", responsable_region: "Sector Mixteca", lat: 18.6014, lng: -98.4636 },
+    { clave: "21041", nombre: "Cuautlancingo", region: "Metropolitana de Puebla", actividad_nivel: "medio", eventos_24h: 6, poblacion: "137,435", responsable_region: "Sector Metropolitano" },
+    { clave: "21164", nombre: "Tepeaca", region: "Valle de Serdán", actividad_nivel: "medio", eventos_24h: 6, poblacion: "84,270", responsable_region: "Sector Tepeaca" },
+    { clave: "21208", nombre: "Zacatlán", region: "Sierra Norte", actividad_nivel: "bajo", eventos_24h: 3, poblacion: "87,637", responsable_region: "Sector Sierra Norte" },
+    { clave: "21053", nombre: "Chignahuapan", region: "Sierra Norte", actividad_nivel: "bajo", eventos_24h: 2, poblacion: "66,483", responsable_region: "Sector Sierra Norte" },
+    { clave: "21003", nombre: "Acatlán de Osorio", region: "Mixteca", actividad_nivel: "bajo", eventos_24h: 1, poblacion: "37,955", responsable_region: "Sector Mixteca Sur" },
+    { clave: "21154", nombre: "Tecamachalco", region: "Valle de Serdán", actividad_nivel: "medio", eventos_24h: 5, poblacion: "80,771", responsable_region: "Sector Tecamachalco" },
+    { clave: "21094", nombre: "Libres", region: "Valle de Serdán", actividad_nivel: "bajo", eventos_24h: 2, poblacion: "37,257", responsable_region: "Sector Libres" },
+    { clave: "21197", nombre: "Xicotepec", region: "Sierra Norte", actividad_nivel: "bajo", eventos_24h: 2, poblacion: "81,455", responsable_region: "Sector Xicotepec" },
+    { clave: "21001", nombre: "Acajete", region: "Valle de Serdán", actividad_nivel: "bajo", eventos_24h: 1, poblacion: "72,894", responsable_region: "Sector Serdán" },
+    { clave: "21002", nombre: "Acateno", region: "Sierra Nororiental", actividad_nivel: "bajo", eventos_24h: 0, poblacion: "8,916", responsable_region: "Sector Teziutlán" },
+  ],
+};
+
 // Catálogo extensible de Estados registrados en SentinelIQ
 export const STATE_CATALOG: Record<string, StateConfig> = {
   gto: GUANAJUATO_CONFIG,
   qro: QUERETARO_CONFIG,
+  pue: PUEBLA_CONFIG,
 };
 
 export function getAllSupportedStates(): StateConfig[] {
@@ -419,6 +514,9 @@ export function getStateConfig(overrideKey?: string): StateConfig {
     }
     if (host.startsWith("gto.") || host.includes("guanajuato") || port === "3005") {
       return GUANAJUATO_CONFIG;
+    }
+    if (host.startsWith("pue.") || host.includes("puebla") || port === "3006") {
+      return PUEBLA_CONFIG;
     }
 
     // 1. Si el Superadministrador Global seleccionó un estado activo en dominio genérico o localhost

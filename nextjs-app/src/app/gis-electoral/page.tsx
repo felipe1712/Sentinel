@@ -102,10 +102,12 @@ export default function GisElectoralPage() {
   const [swingYears, setSwingYears] = useState<{ year1: number; year2: number } | undefined>();
 
   useEffect(() => {
-    setStateCfg(getStateConfig());
+    const cfg = getStateConfig();
+    setStateCfg(cfg);
 
-    // Cargar caché de resultados electorales
-    fetch("/data/electoral_results_cache.json")
+    // Cargar caché de resultados electorales según el estado activo
+    const cacheUrl = cfg.key === "pue" ? "/data/pue_electoral_results_cache.json" : "/data/electoral_results_cache.json";
+    fetch(cacheUrl)
       .then((res) => res.json())
       .then((data) => setElectoralCache(data))
       .catch((err) => console.warn("Usando catálogo base de resultados electorales:", err));
@@ -144,12 +146,17 @@ export default function GisElectoralPage() {
     setChoroplethMode("swing");
   };
 
+  const currentMunicipiosList =
+    stateCfg.municipios && stateCfg.municipios.length > 0
+      ? stateCfg.municipios.map((m: any, idx: number) => ({ id: Number(m.clave) || idx + 1, nombre: m.nombre }))
+      : MUNICIPIOS_GTO;
+
   return (
     <div className="pb-5">
       {/* Header de la Sección WebGIS */}
       <div className="mb-3">
         <h4 className="fw-extrabold text-dark mb-0 fs-24" style={{ color: "#0f172a" }}>
-          Visor Geográfico Electoral de Guanajuato
+          Visor Geográfico Electoral de {stateCfg.name}
         </h4>
       </div>
 
@@ -165,7 +172,7 @@ export default function GisElectoralPage() {
         onSelectChoroplethMode={setChoroplethMode}
         selectedMunicipio={selectedMunicipio}
         onSelectMunicipio={setSelectedMunicipio}
-        municipiosList={MUNICIPIOS_GTO}
+        municipiosList={currentMunicipiosList}
         onOpenUploadModal={() => setIsUploadModalOpen(true)}
         onOpenSwingModal={() => setIsSwingModalOpen(true)}
       />
@@ -196,7 +203,7 @@ export default function GisElectoralPage() {
             sectionResult={selectedSectionResult}
             associatedEvents={[]}
             selectedYear={selectedYear}
-            totalSectionsCount={3357}
+            totalSectionsCount={stateCfg.key === "pue" ? 2847 : 3357}
             selectedMunicipio={selectedMunicipio}
             municipiosList={MUNICIPIOS_GTO}
             electoralCache={electoralCache}

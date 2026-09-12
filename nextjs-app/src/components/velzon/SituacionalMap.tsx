@@ -83,7 +83,7 @@ export default function SituacionalMap({
     let isMounted = true;
 
     // Cargar dependencias y datos en paralelo
-    const geojsonPath = stateCfg.key === "qro" ? "/data/qro_municipios.geojson" : "/data/gto_municipios.geojson";
+    const geojsonPath = stateCfg.geojsonPath || (stateCfg.key === "qro" ? "/data/qro_municipios.geojson" : stateCfg.key === "pue" ? "/data/pue_municipios.geojson" : "/data/gto_municipios.geojson");
 
     Promise.all([
       import("leaflet"),

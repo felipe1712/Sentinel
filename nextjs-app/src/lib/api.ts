@@ -16,7 +16,10 @@ export function getApiBaseUrl(): string {
       return `${window.location.origin}/api`;
     }
 
-    // En desarrollo local (si corre en puerto 3005 para Guanajuato o 3004 para QRO):
+    // En desarrollo local (si corre en puerto 3005 para Guanajuato, 3004 para QRO, o 3006 para Puebla):
+    if (window.location.port === "3006") {
+      return "http://localhost:8087";
+    }
     if (window.location.port === "3005") {
       return "http://localhost:8086";
     }
@@ -47,6 +50,8 @@ api.interceptors.request.use((config) => {
       const hostname = window.location.hostname;
       if (hostname.includes("sentineliq.com.mx") || (hostname !== "localhost" && hostname !== "127.0.0.1")) {
         config.baseURL = `${window.location.origin}/api`;
+      } else if (window.location.port === "3006") {
+        config.baseURL = "http://localhost:8087";
       } else if (window.location.port === "3005") {
         config.baseURL = "http://localhost:8086";
       } else {
@@ -77,6 +82,8 @@ api.interceptors.request.use((config) => {
     let activeState = "gto";
     if (hostname.startsWith("qro.") || hostname.includes("queretaro") || port === "3004") {
       activeState = "qro";
+    } else if (hostname.startsWith("pue.") || hostname.includes("puebla") || port === "3006") {
+      activeState = "pue";
     } else if (hostname.startsWith("gto.") || hostname.includes("guanajuato") || port === "3005") {
       activeState = "gto";
     } else {
@@ -88,6 +95,8 @@ api.interceptors.request.use((config) => {
       config.headers["X-State-ID"] = "00000000-0000-0000-0000-000000000011";
     } else if (activeState === "qro") {
       config.headers["X-State-ID"] = "11111111-1111-1111-1111-111111111111";
+    } else if (activeState === "pue") {
+      config.headers["X-State-ID"] = "21212121-2121-2121-2121-212121212121";
     }
   }
   return config;

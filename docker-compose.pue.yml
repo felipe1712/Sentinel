@@ -1,0 +1,84 @@
+version: '3.8'
+
+services:
+  # ---------------------------------------------------------------------------
+  # 1. PostgreSQL + PostGIS (Puebla Dedicated DB on Port 5435)
+  # ---------------------------------------------------------------------------
+  sentineliq-pue-postgres:
+    image: postgis/postgis:15-3.3
+    container_name: sentineliq_pue_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-sentineliq}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-sentineliq_pass_2026}
+      POSTGRES_DB: ${POSTGRES_DB:-sentineliq_pue}
+    ports:
+      - "127.0.0.1:5435:5432"
+    volumes:
+      - pue_postgres_data:/var/lib/postgresql/data
+
+  # ---------------------------------------------------------------------------
+  # 2. Redis Cache & Job Broker (Puebla Dedicated Redis on Port 6382)
+  # ---------------------------------------------------------------------------
+  sentineliq-pue-redis:
+    image: redis:7-alpine
+    container_name: sentineliq_pue_redis
+    restart: always
+    command: redis-server --appendonly yes
+    ports:
+      - "127.0.0.1:6382:6379"
+    volumes:
+      - pue_redis_data:/data
+
+  # ---------------------------------------------------------------------------
+  # 3. Rust API Backend (Axum 0.7 - Puebla Instance on Port 8087)
+  # ---------------------------------------------------------------------------
+  sentineliq-pue-rust-api:
+    build:
+      context: ./rust-api
+      dockerfile: ../docker/Dockerfile.rust
+    container_name: sentineliq_pue_rust_api
+    restart: always
+    ports:
+      - "127.0.0.1:8087:8080"
+    environment:
+      DATABASE_URL: "postgres://${POSTGRES_USER:-sentineliq}:${POSTGRES_PASSWORD:-sentineliq_pass_2026}@sentineliq-pue-postgres:5432/${POSTGRES_DB:-sentineliq_pue}"
+      REDIS_URL: "redis://sentineliq-pue-redis:6379"
+      STATE_KEY: "pue"
+      INEGI_STATE_CODE: "21"
+      STATE_NAME: "Estado de Puebla"
+      ARGOS_URL: ${ARGOS_URL:-https://argos.sentineliq.com.mx}
+      ARGOS_SERVICE_TOKEN: ${ARGOS_SERVICE_TOKEN:-sentineliq_argos_token_shared_sec_2026}
+      NATIONAL_VIEW_ENABLED: "true"
+      PLATFORM_DOMAIN: "sentineliq.com.mx"
+      PORT: 8080
+      RUST_LOG: "info"
+    depends_on:
+      - sentineliq-pue-postgres
+      - sentineliq-pue-redis
+
+  # ---------------------------------------------------------------------------
+  # 4. Next.js Frontend Dashboard (Puebla Web App on Port 3006)
+  # ---------------------------------------------------------------------------
+  sentineliq-pue-nextjs:
+    build:
+      context: ./nextjs-app
+      dockerfile: ../docker/Dockerfile.nextjs
+    container_name: sentineliq_pue_nextjs
+    restart: always
+    ports:
+      - "127.0.0.1:3006:3000"
+    environment:
+      NODE_ENV: "production"
+      PORT: 3000
+      STATE_KEY: "pue"
+      NEXT_PUBLIC_STATE_KEY: "pue"
+      NEXT_PUBLIC_API_URL: "https://pue.sentineliq.com.mx/api"
+      ARGOS_URL: ${ARGOS_URL:-https://argos.sentineliq.com.mx}
+      ARGOS_SERVICE_TOKEN: ${ARGOS_SERVICE_TOKEN:-sentineliq_argos_token_shared_sec_2026}
+      NATIONAL_VIEW_ENABLED: "true"
+      PLATFORM_DOMAIN: "sentineliq.com.mx"
+
+volumes:
+  pue_postgres_data:
+  pue_redis_data:

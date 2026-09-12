@@ -5,6 +5,7 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { BaseLayerType, ChoroplethMode, ElectoralResult, GisEventItem } from "@/lib/electoralTypes";
 import { getPartyColor, getParticipationColor, getMarginColor, getSwingColor } from "@/lib/gisColors";
+import { getStateConfig } from "@/lib/stateConfig";
 
 interface WebGisMapProps {
   baseBoundary: BaseLayerType;
@@ -57,11 +58,11 @@ export const WebGisMap: React.FC<WebGisMapProps> = ({
   useEffect(() => {
     if (!mapContainerRef.current || mapInstanceRef.current) return;
 
-    // Centrado en el Estado de Guanajuato (Lat 21.0190, Lon -101.2574)
+    const stateCfg = getStateConfig();
     const map = L.map(mapContainerRef.current, {
-      center: [21.019, -101.2574],
-      zoom: 9,
-      minZoom: 7,
+      center: stateCfg.center || [21.019, -101.2574],
+      zoom: stateCfg.zoom || 9,
+      minZoom: 6,
       maxZoom: 18,
       zoomControl: false,
     });
@@ -92,13 +93,18 @@ export const WebGisMap: React.FC<WebGisMapProps> = ({
     tileLayerRef.current.setUrl(TILE_URLS[tileProvider] || TILE_URLS.carto);
   }, [tileProvider]);
 
-  // 3. Cargar GeoJSON según la Capa Base Seleccionada
+  // 3. Cargar GeoJSON según la Capa Base Seleccionada y Estado Activo
   useEffect(() => {
     setLoadingGeo(true);
+    const stateCfg = getStateConfig();
     let filePath = "/data/gto_secciones.geojson";
-    if (baseBoundary === "municipios") filePath = "/data/gto_municipios.geojson";
-    if (baseBoundary === "distritos_locales") filePath = "/data/gto_distritos_locales.geojson";
-    if (baseBoundary === "distritos_federales") filePath = "/data/gto_distritos_federales.geojson";
+    if (stateCfg.key === "pue") {
+      filePath = "/data/pue_municipios.geojson";
+    } else {
+      if (baseBoundary === "municipios") filePath = "/data/gto_municipios.geojson";
+      if (baseBoundary === "distritos_locales") filePath = "/data/gto_distritos_locales.geojson";
+      if (baseBoundary === "distritos_federales") filePath = "/data/gto_distritos_federales.geojson";
+    }
 
     fetch(filePath)
       .then((res) => res.json())
@@ -138,7 +144,9 @@ export const WebGisMap: React.FC<WebGisMapProps> = ({
       );
     } else if (baseBoundary === "municipios") {
       const mpioId = String(props.municipio || props.id || "");
+      const munName = props.nombre || props.NAME_2 || "";
       return (
+        electoralCache.municipios?.[electionType]?.[yr]?.[munName] ||
         electoralCache.municipios?.[electionType]?.[yr]?.[mpioId] ||
         null
       );

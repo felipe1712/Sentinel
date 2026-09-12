@@ -40,8 +40,8 @@ export const Sidebar: React.FC = () => {
             </Link>
           </li>
 
-          {/* WebGIS Político-Electoral (Exclusivo Guanajuato) */}
-          {stateCfg.key === "gto" && (
+          {/* WebGIS Político-Electoral (Guanajuato y Puebla) */}
+          {(stateCfg.key === "gto" || stateCfg.key === "pue") && (
             <li className="nav-item">
               <Link href="/gis-electoral" className={`nav-link ${isActive("/gis-electoral") ? "active fw-bold text-primary" : "text-dark"}`}>
                 <i className="ri-map-2-line me-2 text-primary"></i> 
