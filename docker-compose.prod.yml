@@ -1,3 +1,5 @@
+name: sentineliq-qro
+
 services:
   sentineliq-postgres:
     image: postgis/postgis:15-3.3
