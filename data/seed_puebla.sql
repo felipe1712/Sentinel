@@ -4,6 +4,63 @@
 -- State ID: 21212121-2121-2121-2121-212121212121
 -- ==============================================================================
 
+-- 0. REGISTRO DEL ESTADO DE PUEBLA (Clave INEGI 21)
+INSERT INTO states (id, name, clave_inegi, polygon, nombre_dependencia, color_primario)
+VALUES (
+  '21212121-2121-2121-2121-212121212121',
+  'Estado de Puebla',
+  '21',
+  '{"type": "Polygon", "coordinates": [[[-98.7, 18.0], [-96.7, 18.0], [-96.7, 20.8], [-98.7, 20.8], [-98.7, 18.0]]]}',
+  'Despacho del Gobernador del Estado de Puebla',
+  '#6a1b9a'
+) ON CONFLICT (clave_inegi) DO UPDATE
+SET name = EXCLUDED.name, nombre_dependencia = EXCLUDED.nombre_dependencia, color_primario = EXCLUDED.color_primario;
+
+-- 0.1 USUARIOS INICIALES PARA PUEBLA
+INSERT INTO users (id, state_id, email, hashed_pwd, role, name, cargo, active) VALUES
+(
+  '21212121-0000-0000-0000-000000000001',
+  '21212121-2121-2121-2121-212121212121',
+  'admin.ti@puebla.gob.mx',
+  '$2b$12$K89938/i/XW.S8T0tTfKEO88O1Tf4qR543.W2b4yQ6Q4s/s.K/16W',
+  'superadmin',
+  'Ing. Alejandro Ceballos',
+  'Superadministrador de Plataforma Puebla',
+  true
+),
+(
+  '21212121-0000-0000-0000-000000000002',
+  '21212121-2121-2121-2121-212121212121',
+  'gobernador@puebla.gob.mx',
+  '$2b$12$K89938/i/XW.S8T0tTfKEO88O1Tf4qR543.W2b4yQ6Q4s/s.K/16W',
+  'gobernador',
+  'Alejandro Armenta Mier',
+  'Gobernador Constitucional del Estado de Puebla',
+  true
+),
+(
+  '21212121-0000-0000-0000-000000000003',
+  '21212121-2121-2121-2121-212121212121',
+  'gobernacion@puebla.gob.mx',
+  '$2b$12$K89938/i/XW.S8T0tTfKEO88O1Tf4qR543.W2b4yQ6Q4s/s.K/16W',
+  'jefe_oficina',
+  'Mtro. Javier Aquino Limón',
+  'Secretario de Gobernación del Estado de Puebla',
+  true
+),
+(
+  '21212121-0000-0000-0000-000000000004',
+  '21212121-2121-2121-2121-212121212121',
+  'analista.inteligencia@puebla.gob.mx',
+  '$2b$12$K89938/i/XW.S8T0tTfKEO88O1Tf4qR543.W2b4yQ6Q4s/s.K/16W',
+  'analista',
+  'Lic. Mariana Domínguez',
+  'Analista Senior de Inteligencia Situacional',
+  true
+)
+ON CONFLICT (email) DO UPDATE
+SET state_id = EXCLUDED.state_id, role = EXCLUDED.role, name = EXCLUDED.name, cargo = EXCLUDED.cargo;
+
 -- 1. FUENTES VIVAS PARA PUEBLA (Clave INEGI 21)
 INSERT INTO sources (id, state_id, type, identifier, name, credibility, active) VALUES
 ('77777777-7777-7777-7777-777777777731', '21212121-2121-2121-2121-212121212121', 'telegram', '@AlertaPueblaSeguridad', 'Canal Alerta Puebla Seguridad & Vigilancia', 'no_verificado', true),
