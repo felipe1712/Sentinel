@@ -163,43 +163,35 @@ def main():
                 muni_lookup[idx + 1] = name
     print(f"🗺️ Municipios catalogados desde GeoJSON: {len(muni_lookup)}")
 
-    # 1. Construir lookup global de Sección -> (Municipio, Distrito Local, Distrito Federal)
+    # 1. Construir lookup global desde Shapefiles oficiales del INE
     sec_to_mun = {}
+    sec_to_mun_id = {}
     sec_to_dl = {}
     sec_to_df = {}
+    muni_name_to_id = {}
 
-    print("🔍 Construyendo catálogo seccional territorial desde pestañas gubernamentales y federales...")
+    print("🔍 Construyendo catálogo seccional territorial desde Shapefiles INE...")
     try:
-        df_g21_meta = pd.read_excel(xl, sheet_name="Gubernatura 2021", header=0)
-        for _, r in df_g21_meta[["SECCION", "MUNICIPIO", "DISTRITO"]].dropna().iterrows():
-            s = int(r["SECCION"])
-            m = str(r["MUNICIPIO"]).strip().title()
-            dl = int(r["DISTRITO"]) if str(r["DISTRITO"]).isdigit() else 1
-            sec_to_mun[s] = m
-            sec_to_dl[s] = dl
-    except Exception as e:
-        print(f"Advertencia leyendo meta G21: {e}")
+        import shapefile
+        muni_sf = shapefile.Reader("data/ShapeF/Puebla/MUNICIPIO.shp", encoding="utf-8")
+        muni_map = {}
+        for r in muni_sf.records():
+            mid = int(r["municipio"])
+            raw_nom = str(r["nombre"]).strip().replace("\ufffd", "Ñ").replace("CAADA", "CAÑADA")
+            muni_map[mid] = raw_nom
+            muni_name_to_id[raw_nom] = mid
+            muni_name_to_id[raw_nom.upper()] = mid
 
-    try:
-        df_g18_meta = pd.read_excel(xl, sheet_name="Gubernatura 2018", header=0)
-        for _, r in df_g18_meta[["SECCION", "MUNICIPIO", "DISTRITO LOCAL"]].dropna().iterrows():
-            s = int(r["SECCION"])
-            if s not in sec_to_mun:
-                sec_to_mun[s] = str(r["MUNICIPIO"]).strip().title()
-            if s not in sec_to_dl:
-                dl = int(r["DISTRITO LOCAL"]) if str(r["DISTRITO LOCAL"]).isdigit() else 1
-                sec_to_dl[s] = dl
+        sec_sf = shapefile.Reader("data/ShapeF/Puebla/SECCION.shp", encoding="utf-8")
+        for r in sec_sf.records():
+            s = int(r["seccion"])
+            mid = int(r["municipio"])
+            sec_to_mun[s] = muni_map.get(mid, f"Municipio {mid}")
+            sec_to_mun_id[s] = mid
+            sec_to_dl[s] = int(r["distrito_l"])
+            sec_to_df[s] = int(r["distrito_f"])
     except Exception as e:
-        print(f"Advertencia leyendo meta G18: {e}")
-
-    try:
-        df_d24_meta = pd.read_excel(xl, sheet_name="Diputaciones 2024", header=6)
-        for _, r in df_d24_meta[["SECCION", "ID_DISTRITO_FEDERAL"]].dropna().iterrows():
-            s = int(r["SECCION"])
-            df_num = int(r["ID_DISTRITO_FEDERAL"]) if str(r["ID_DISTRITO_FEDERAL"]).isdigit() else 1
-            sec_to_df[s] = df_num
-    except Exception as e:
-        print(f"Advertencia leyendo meta D24: {e}")
+        print(f"Advertencia leyendo shapefiles INE: {e}")
 
     print(f"  • {len(sec_to_mun)} secciones mapeadas a Municipio.")
     print(f"  • {len(sec_to_dl)} secciones mapeadas a Distrito Local.")
@@ -492,6 +484,9 @@ def main():
                 master_cache["municipios"][etype][yr_str][mun_name] = m_item
                 master_cache["municipios"][etype][yr_str][norm_text(mun_name)] = m_item
                 master_cache["municipios"][etype][yr_str][mun_name.upper()] = m_item
+                mid = muni_name_to_id.get(mun_name) or muni_name_to_id.get(mun_name.upper())
+                if mid:
+                    master_cache["municipios"][etype][yr_str][str(mid)] = m_item
 
         # Calcular totales agregados por distrito local
         for dl_str, stats in dist_loc_acc.items():
