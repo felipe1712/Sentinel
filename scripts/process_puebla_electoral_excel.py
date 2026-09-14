@@ -19,6 +19,7 @@ import json
 from pathlib import Path
 import pandas as pd
 import numpy as np
+import unicodedata
 
 if sys.platform == "win32":
     try:
@@ -162,6 +163,67 @@ def main():
                 muni_lookup[idx + 1] = name
     print(f"🗺️ Municipios catalogados desde GeoJSON: {len(muni_lookup)}")
 
+    # 1. Construir lookup global de Sección -> (Municipio, Distrito Local, Distrito Federal)
+    sec_to_mun = {}
+    sec_to_dl = {}
+    sec_to_df = {}
+
+    print("🔍 Construyendo catálogo seccional territorial desde pestañas gubernamentales y federales...")
+    try:
+        df_g21_meta = pd.read_excel(xl, sheet_name="Gubernatura 2021", header=0)
+        for _, r in df_g21_meta[["SECCION", "MUNICIPIO", "DISTRITO"]].dropna().iterrows():
+            s = int(r["SECCION"])
+            m = str(r["MUNICIPIO"]).strip().title()
+            dl = int(r["DISTRITO"]) if str(r["DISTRITO"]).isdigit() else 1
+            sec_to_mun[s] = m
+            sec_to_dl[s] = dl
+    except Exception as e:
+        print(f"Advertencia leyendo meta G21: {e}")
+
+    try:
+        df_g18_meta = pd.read_excel(xl, sheet_name="Gubernatura 2018", header=0)
+        for _, r in df_g18_meta[["SECCION", "MUNICIPIO", "DISTRITO LOCAL"]].dropna().iterrows():
+            s = int(r["SECCION"])
+            if s not in sec_to_mun:
+                sec_to_mun[s] = str(r["MUNICIPIO"]).strip().title()
+            if s not in sec_to_dl:
+                dl = int(r["DISTRITO LOCAL"]) if str(r["DISTRITO LOCAL"]).isdigit() else 1
+                sec_to_dl[s] = dl
+    except Exception as e:
+        print(f"Advertencia leyendo meta G18: {e}")
+
+    try:
+        df_d24_meta = pd.read_excel(xl, sheet_name="Diputaciones 2024", header=6)
+        for _, r in df_d24_meta[["SECCION", "ID_DISTRITO_FEDERAL"]].dropna().iterrows():
+            s = int(r["SECCION"])
+            df_num = int(r["ID_DISTRITO_FEDERAL"]) if str(r["ID_DISTRITO_FEDERAL"]).isdigit() else 1
+            sec_to_df[s] = df_num
+    except Exception as e:
+        print(f"Advertencia leyendo meta D24: {e}")
+
+    print(f"  • {len(sec_to_mun)} secciones mapeadas a Municipio.")
+    print(f"  • {len(sec_to_dl)} secciones mapeadas a Distrito Local.")
+    print(f"  • {len(sec_to_df)} secciones mapeadas a Distrito Federal.")
+
+    # Diccionario de alias canónicos
+    def norm_text(s):
+        if not s: return ""
+        return ''.join(c for c in unicodedata.normalize('NFD', str(s).upper().strip()) if unicodedata.category(c) != 'Mn')
+
+    ALIASES = {
+        "CANADA MORELOS": "Cañada Morelos",
+        "SAN ANTONIO CANADA": "San Antonio Cañada",
+        "IGNACIO ALLENDE": "General Felipe Ángeles",
+        "JALPAN": "Jalpan",
+        "XALPAN": "Jalpan",
+        "ATLEQUIZAYAN": "Atlequizayan",
+        "ATZITZINTLA": "Atzitzintla",
+        "ZONGOZOTLA": "Zongozotla",
+        "TUZAMAPAN DE GALEANA": "Tuzamapan de Galeana",
+        "LIBRES": "Libres",
+        "JOPALA": "Jopala",
+    }
+
     # Diccionario para almacenar la lista nominal por sección de los años 2018 y 2021
     ln_by_year_sec = {}
     all_processed = []
@@ -175,6 +237,10 @@ def main():
             "diputaciones": {"2024": {}, "2021": {}, "2018": {}},
         },
         "distritos_locales": {
+            "gubernatura": {"2021": {}, "2018": {}},
+            "diputaciones": {"2024": {}, "2021": {}, "2018": {}},
+        },
+        "distritos_federales": {
             "gubernatura": {"2021": {}, "2018": {}},
             "diputaciones": {"2024": {}, "2021": {}, "2018": {}},
         }
@@ -293,7 +359,8 @@ def main():
         # Llenar master_cache para WebGIS
         yr_str = str(year)
         mpio_acc = {}
-        dist_acc = {}
+        dist_loc_acc = {}
+        dist_fed_acc = {}
 
         for _, r in grouped.iterrows():
             sec = int(r["SECCION_INT"])
@@ -313,8 +380,15 @@ def main():
             v_opp = int(r["VOTOS_OPP_ALIANZA"])
             v_mc = int(r["VOTOS_MC"])
 
-            muni_val = str(r[muni_col]).strip() if muni_col and muni_col in r and pd.notna(r[muni_col]) else "Puebla"
-            dist_val = int(r[dist_col]) if dist_col and dist_col in r and pd.notna(r[dist_col]) and str(r[dist_col]).isdigit() else 1
+            # Resolver Municipio Canónico
+            raw_muni = sec_to_mun.get(sec) or (str(r[muni_col]).strip().title() if muni_col and muni_col in r and pd.notna(r[muni_col]) else "Puebla")
+            raw_upper = raw_muni.upper().strip()
+            canonical_muni = ALIASES.get(raw_upper, ALIASES.get(norm_text(raw_upper), raw_muni))
+            muni_val = canonical_muni
+
+            # Resolver Distritos
+            dl_val = sec_to_dl.get(sec) or (int(r[dist_col]) if dist_col and dist_col in r and pd.notna(r[dist_col]) and str(r[dist_col]).isdigit() else 1)
+            df_val = sec_to_df.get(sec) or (((dl_val - 1) % 16) + 1)
 
             item = {
                 "election_year": year,
@@ -322,8 +396,8 @@ def main():
                 "clave_seccion": sec,
                 "clave_municipio": 1,
                 "municipio_nombre": muni_val,
-                "distrito_local": dist_val,
-                "distrito_federal": dist_val,
+                "distrito_local": dl_val,
+                "distrito_federal": df_val,
                 "lista_nominal": ln,
                 "total_votos": tv,
                 "participacion_pct": part,
@@ -346,12 +420,35 @@ def main():
 
             # Acumular por municipio
             if muni_val not in mpio_acc:
-                mpio_acc[muni_val] = {"ln": 0, "tv": 0, "pan": 0, "opp": 0, "mc": 0}
+                mpio_acc[muni_val] = {"ln": 0, "tv": 0, "pan": 0, "opp": 0, "mc": 0, "sec_count": 0}
             mpio_acc[muni_val]["ln"] += ln
             mpio_acc[muni_val]["tv"] += tv
             mpio_acc[muni_val]["pan"] += v_pan
             mpio_acc[muni_val]["opp"] += v_opp
             mpio_acc[muni_val]["mc"] += v_mc
+            mpio_acc[muni_val]["sec_count"] += 1
+
+            # Acumular por distrito local
+            dl_str = str(dl_val)
+            if dl_str not in dist_loc_acc:
+                dist_loc_acc[dl_str] = {"ln": 0, "tv": 0, "pan": 0, "opp": 0, "mc": 0, "sec_count": 0}
+            dist_loc_acc[dl_str]["ln"] += ln
+            dist_loc_acc[dl_str]["tv"] += tv
+            dist_loc_acc[dl_str]["pan"] += v_pan
+            dist_loc_acc[dl_str]["opp"] += v_opp
+            dist_loc_acc[dl_str]["mc"] += v_mc
+            dist_loc_acc[dl_str]["sec_count"] += 1
+
+            # Acumular por distrito federal
+            df_str = str(df_val)
+            if df_str not in dist_fed_acc:
+                dist_fed_acc[df_str] = {"ln": 0, "tv": 0, "pan": 0, "opp": 0, "mc": 0, "sec_count": 0}
+            dist_fed_acc[df_str]["ln"] += ln
+            dist_fed_acc[df_str]["tv"] += tv
+            dist_fed_acc[df_str]["pan"] += v_pan
+            dist_fed_acc[df_str]["opp"] += v_opp
+            dist_fed_acc[df_str]["mc"] += v_mc
+            dist_fed_acc[df_str]["sec_count"] += 1
 
         # Calcular totales agregados por municipio
         for mun_name, stats in mpio_acc.items():
@@ -369,27 +466,120 @@ def main():
             m_spct = round((ms_v / tot * 100), 2) if tot > 0 else 0.0
             m_part = round((tot / stats["ln"] * 100), 2) if stats["ln"] > 0 else 0.0
 
-            if "municipios" in master_cache and etype in master_cache["municipios"] and yr_str in master_cache["municipios"][etype]:
-                master_cache["municipios"][etype][yr_str][mun_name] = {
-                    "election_year": year,
-                    "election_type": etype,
-                    "nombre": mun_name,
-                    "lista_nominal": stats["ln"],
-                    "total_votos": tot,
-                    "participacion_pct": m_part,
-                    "ganador_partido": mw_p,
-                    "ganador_votos": mw_v,
-                    "ganador_pct": m_wpct,
-                    "segundo_partido": ms_p,
-                    "segundo_votos": ms_v,
-                    "segundo_pct": m_spct,
-                    "margen_victoria_pct": round(m_wpct - m_spct, 2),
-                    "votos_partidos": {
-                        pan_label: r_pan,
-                        opp_label: r_opp,
-                        "MC": r_mc
-                    }
+            m_item = {
+                "election_year": year,
+                "election_type": etype,
+                "nombre": mun_name,
+                "secciones_count": stats["sec_count"],
+                "lista_nominal": stats["ln"],
+                "total_votos": tot,
+                "participacion_pct": m_part,
+                "ganador_partido": mw_p,
+                "ganador_votos": mw_v,
+                "ganador_pct": m_wpct,
+                "segundo_partido": ms_p,
+                "segundo_votos": ms_v,
+                "segundo_pct": m_spct,
+                "margen_victoria_pct": round(m_wpct - m_spct, 2),
+                "votos_partidos": {
+                    pan_label: r_pan,
+                    opp_label: r_opp,
+                    "MC": r_mc
                 }
+            }
+
+            if "municipios" in master_cache and etype in master_cache["municipios"] and yr_str in master_cache["municipios"][etype]:
+                master_cache["municipios"][etype][yr_str][mun_name] = m_item
+                master_cache["municipios"][etype][yr_str][norm_text(mun_name)] = m_item
+                master_cache["municipios"][etype][yr_str][mun_name.upper()] = m_item
+
+        # Calcular totales agregados por distrito local
+        for dl_str, stats in dist_loc_acc.items():
+            tot = stats["tv"]
+            r_pan = stats["pan"]
+            r_opp = stats["opp"]
+            r_mc = stats["mc"]
+
+            ranking = [(pan_label, r_pan), (opp_label, r_opp), ("MC", r_mc)]
+            ranking.sort(key=lambda x: x[1], reverse=True)
+            mw_p, mw_v = ranking[0]
+            ms_p, ms_v = ranking[1]
+
+            m_wpct = round((mw_v / tot * 100), 2) if tot > 0 else 0.0
+            m_spct = round((ms_v / tot * 100), 2) if tot > 0 else 0.0
+            m_part = round((tot / stats["ln"] * 100), 2) if stats["ln"] > 0 else 0.0
+
+            dl_item = {
+                "election_year": year,
+                "election_type": etype,
+                "distrito_local": int(dl_str),
+                "nombre": f"Distrito Local {dl_str}",
+                "secciones_count": stats["sec_count"],
+                "lista_nominal": stats["ln"],
+                "total_votos": tot,
+                "participacion_pct": m_part,
+                "ganador_partido": mw_p,
+                "ganador_votos": mw_v,
+                "ganador_pct": m_wpct,
+                "segundo_partido": ms_p,
+                "segundo_votos": ms_v,
+                "segundo_pct": m_spct,
+                "margen_victoria_pct": round(m_wpct - m_spct, 2),
+                "votos_partidos": {
+                    pan_label: r_pan,
+                    opp_label: r_opp,
+                    "MC": r_mc
+                }
+            }
+            if "distritos_locales" in master_cache and etype in master_cache["distritos_locales"] and yr_str in master_cache["distritos_locales"][etype]:
+                master_cache["distritos_locales"][etype][yr_str][dl_str] = dl_item
+
+        # Calcular totales agregados por distrito federal
+        for df_str, stats in dist_fed_acc.items():
+            tot = stats["tv"]
+            r_pan = stats["pan"]
+            r_opp = stats["opp"]
+            r_mc = stats["mc"]
+
+            ranking = [(pan_label, r_pan), (opp_label, r_opp), ("MC", r_mc)]
+            ranking.sort(key=lambda x: x[1], reverse=True)
+            mw_p, mw_v = ranking[0]
+            ms_p, ms_v = ranking[1]
+
+            m_wpct = round((mw_v / tot * 100), 2) if tot > 0 else 0.0
+            m_spct = round((ms_v / tot * 100), 2) if tot > 0 else 0.0
+            m_part = round((tot / stats["ln"] * 100), 2) if stats["ln"] > 0 else 0.0
+
+            df_item = {
+                "election_year": year,
+                "election_type": etype,
+                "distrito_federal": int(df_str),
+                "nombre": f"Distrito Federal {df_str}",
+                "secciones_count": stats["sec_count"],
+                "lista_nominal": stats["ln"],
+                "total_votos": tot,
+                "participacion_pct": m_part,
+                "ganador_partido": mw_p,
+                "ganador_votos": mw_v,
+                "ganador_pct": m_wpct,
+                "segundo_partido": ms_p,
+                "segundo_votos": ms_v,
+                "segundo_pct": m_spct,
+                "margen_victoria_pct": round(m_wpct - m_spct, 2),
+                "votos_partidos": {
+                    pan_label: r_pan,
+                    opp_label: r_opp,
+                    "MC": r_mc
+                }
+            }
+            if "distritos_federales" in master_cache and etype in master_cache["distritos_federales"] and yr_str in master_cache["distritos_federales"][etype]:
+                master_cache["distritos_federales"][etype][yr_str][df_str] = df_item
+
+        # Accesos directos de conveniencia a nivel raíz por año
+        if etype == "diputaciones" and yr_str == "2024":
+            master_cache["2024"] = master_cache["diputaciones"]["2024"]
+        elif yr_str not in master_cache:
+            master_cache[yr_str] = master_cache[etype][yr_str]
 
         # Resumen de la pestaña
         tot_pan = grouped["VOTOS_PAN_ALIANZA"].sum()
@@ -400,7 +590,7 @@ def main():
         print(f"     • {pan_label}: {tot_pan:,.0f} votos ({(tot_pan/tot_gral*100 if tot_gral>0 else 0):.2f}%)")
         print(f"     • {opp_label}: {tot_opp:,.0f} votos ({(tot_opp/tot_gral*100 if tot_gral>0 else 0):.2f}%)")
         print(f"     • MC: {tot_mc:,.0f} votos ({(tot_mc/tot_gral*100 if tot_gral>0 else 0):.2f}%)")
-        print(f"     • Total Votos: {tot_gral:,.0f} | Secciones: {len(grouped):,}")
+        print(f"     • Total Votos: {tot_gral:,.0f} | Secciones: {len(grouped):,} | Municipios: {len(mpio_acc):,}")
 
     # Guardar Cache JSON para WebGIS
     print(f"\n💾 Guardando Cache JSON en: {OUTPUT_CACHE_PATH}...")

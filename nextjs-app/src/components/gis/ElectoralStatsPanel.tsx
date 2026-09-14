@@ -2,6 +2,7 @@
 
 import React from "react";
 import { ElectoralResult, GisEventItem } from "@/lib/electoralTypes";
+import { StateConfig } from "@/lib/stateConfig";
 import { getPartyColor, PARTY_COLORS } from "@/lib/gisColors";
 
 interface StatsPanelProps {
@@ -15,6 +16,8 @@ interface StatsPanelProps {
   electoralCache: Record<string, Record<string, ElectoralResult>>;
   onClearSelection: () => void;
   onOpenDetailModal?: () => void;
+  stateCfg?: StateConfig;
+  baseBoundary?: string;
 }
 
 export const ElectoralStatsPanel: React.FC<StatsPanelProps> = ({
@@ -28,6 +31,8 @@ export const ElectoralStatsPanel: React.FC<StatsPanelProps> = ({
   electoralCache,
   onClearSelection,
   onOpenDetailModal,
+  stateCfg,
+  baseBoundary,
 }) => {
   const currentMpioObj = municipiosList.find((m) => m.id === selectedMunicipio);
 
@@ -69,7 +74,7 @@ export const ElectoralStatsPanel: React.FC<StatsPanelProps> = ({
               ? selectedSection.featureTitle || (selectedSection.seccion ? `Sección ${selectedSection.seccion}` : `Distrito ${selectedSection.id}`)
               : selectedMunicipio
               ? `Municipio: ${currentMpioObj?.nombre || selectedMunicipio}`
-              : "Resumen Estatal Guanajuato"}
+              : `Resumen Estatal ${stateCfg?.shortName || "Guanajuato"}`}
           </h6>
           {selectedSection?.featureSubtitle && (
             <small className="text-muted fs-11 d-block mt-1">

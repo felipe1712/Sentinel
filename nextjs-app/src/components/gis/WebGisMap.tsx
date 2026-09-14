@@ -5,7 +5,7 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { BaseLayerType, ChoroplethMode, ElectoralResult, GisEventItem } from "@/lib/electoralTypes";
 import { getPartyColor, getParticipationColor, getMarginColor, getSwingColor } from "@/lib/gisColors";
-import { getStateConfig } from "@/lib/stateConfig";
+import { StateConfig, getStateConfig } from "@/lib/stateConfig";
 
 interface WebGisMapProps {
   baseBoundary: BaseLayerType;
@@ -19,6 +19,7 @@ interface WebGisMapProps {
   onSelectTileProvider?: (provider: "osm" | "carto" | "satellite") => void;
   onSelectSection: (sectionProps: any, result: ElectoralResult | null) => void;
   swingYears?: { year1: number; year2: number };
+  stateCfg?: StateConfig;
 }
 
 // Mapas base 100% abiertos y limpios (Sin marcas de agua de API Key)
@@ -40,11 +41,14 @@ export const WebGisMap: React.FC<WebGisMapProps> = ({
   onSelectTileProvider,
   onSelectSection,
   swingYears,
+  stateCfg,
 }) => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
   const tileLayerRef = useRef<L.TileLayer | null>(null);
   const geojsonLayerRef = useRef<L.GeoJSON | null>(null);
+
+  const activeCfg = stateCfg || getStateConfig();
 
   const [loadingGeo, setLoadingGeo] = useState<boolean>(true);
   const [geoData, setGeoData] = useState<any>(null);
@@ -58,10 +62,9 @@ export const WebGisMap: React.FC<WebGisMapProps> = ({
   useEffect(() => {
     if (!mapContainerRef.current || mapInstanceRef.current) return;
 
-    const stateCfg = getStateConfig();
     const map = L.map(mapContainerRef.current, {
-      center: stateCfg.center || [21.019, -101.2574],
-      zoom: stateCfg.zoom || 9,
+      center: activeCfg.center || [19.0414, -98.2063],
+      zoom: activeCfg.zoom || 8,
       minZoom: 6,
       maxZoom: 18,
       zoomControl: false,
@@ -96,14 +99,16 @@ export const WebGisMap: React.FC<WebGisMapProps> = ({
   // 3. Cargar GeoJSON según la Capa Base Seleccionada y Estado Activo
   useEffect(() => {
     setLoadingGeo(true);
-    const stateCfg = getStateConfig();
     let filePath = "/data/gto_secciones.geojson";
-    if (stateCfg.key === "pue") {
-      filePath = "/data/pue_municipios.geojson";
+    if (activeCfg.key === "pue") {
+      if (baseBoundary === "municipios") filePath = "/data/pue_municipios.geojson";
+      else if (baseBoundary === "distritos_locales") filePath = "/data/pue_distritos_locales.geojson";
+      else if (baseBoundary === "distritos_federales") filePath = "/data/pue_distritos_federales.geojson";
+      else filePath = "/data/pue_secciones.geojson";
     } else {
       if (baseBoundary === "municipios") filePath = "/data/gto_municipios.geojson";
-      if (baseBoundary === "distritos_locales") filePath = "/data/gto_distritos_locales.geojson";
-      if (baseBoundary === "distritos_federales") filePath = "/data/gto_distritos_federales.geojson";
+      else if (baseBoundary === "distritos_locales") filePath = "/data/gto_distritos_locales.geojson";
+      else if (baseBoundary === "distritos_federales") filePath = "/data/gto_distritos_federales.geojson";
     }
 
     fetch(filePath)
@@ -116,7 +121,7 @@ export const WebGisMap: React.FC<WebGisMapProps> = ({
         console.error("Error cargando GeoJSON:", err);
         setLoadingGeo(false);
       });
-  }, [baseBoundary]);
+  }, [baseBoundary, activeCfg.key]);
 
   // 4. Helper para obtener el resultado electoral exacto según la capa activa
   const getElectoralResultForFeature = (props: any): any | null => {
@@ -145,8 +150,11 @@ export const WebGisMap: React.FC<WebGisMapProps> = ({
     } else if (baseBoundary === "municipios") {
       const mpioId = String(props.municipio || props.id || "");
       const munName = props.nombre || props.NAME_2 || "";
+      const munNorm = munName.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
       return (
         electoralCache.municipios?.[electionType]?.[yr]?.[munName] ||
+        electoralCache.municipios?.[electionType]?.[yr]?.[munNorm] ||
+        electoralCache.municipios?.[electionType]?.[yr]?.[munName.toUpperCase()] ||
         electoralCache.municipios?.[electionType]?.[yr]?.[mpioId] ||
         null
       );
@@ -227,19 +235,19 @@ export const WebGisMap: React.FC<WebGisMapProps> = ({
         if (baseBoundary === "secciones") {
           const secId = props.seccion || props.id;
           featureTitle = `Sección Electoral ${secId}`;
-          featureSubtitle = `${res?.municipio_nombre || props.nombre || `Mpio ${props.municipio || "Gto"}`} · Dtto Local ${props.distrito_l || "N/D"} · Dtto Fed ${props.distrito_f || "N/D"}`;
+          featureSubtitle = `${res?.municipio_nombre || props.nombre || `Mpio ${props.municipio || activeCfg.shortName}`} · Dtto Local ${props.distrito_l || res?.distrito_local || "N/D"} · Dtto Fed ${props.distrito_f || res?.distrito_federal || "N/D"}`;
         } else if (baseBoundary === "distritos_locales") {
           const dlId = props.distrito_l || props.id;
           featureTitle = `Distrito Local ${dlId}`;
-          featureSubtitle = `Guanajuato · ${res?.secciones_count || 0} Secciones Electorales`;
+          featureSubtitle = `${activeCfg.shortName} · ${res?.total_votos ? Number(res.total_votos).toLocaleString() + ' votos' : 'Padrón Electoral'}`;
         } else if (baseBoundary === "distritos_federales") {
           const dfId = props.distrito_f || props.id;
           featureTitle = `Distrito Federal ${dfId}`;
-          featureSubtitle = `Guanajuato · ${res?.secciones_count || 0} Secciones Electorales`;
+          featureSubtitle = `${activeCfg.shortName} · ${res?.total_votos ? Number(res.total_votos).toLocaleString() + ' votos' : 'Padrón Electoral'}`;
         } else if (baseBoundary === "municipios") {
           const mpioId = props.municipio || props.id;
           featureTitle = res?.nombre || props.nombre || `Municipio ${mpioId}`;
-          featureSubtitle = `Guanajuato (Clave ${mpioId}) · ${res?.secciones_count || 0} Secciones`;
+          featureSubtitle = `${activeCfg.shortName} · ${res?.total_votos ? Number(res.total_votos).toLocaleString() + ' votos' : (props.nombre ? 'Municipio Registrado' : 'Sin datos')}`;
         }
 
         layer.on({
@@ -271,16 +279,18 @@ export const WebGisMap: React.FC<WebGisMapProps> = ({
 
     geojsonLayerRef.current = geoLayer;
 
-    // AUTO-ZOOM (fitBounds): Ajustar vista al municipio seleccionado si aplica
-    if (selectedMunicipio && geoLayer.getLayers().length > 0) {
+    // AUTO-ZOOM (fitBounds): Ajustar vista automáticamente al territorio cargado
+    if (geoLayer.getLayers().length > 0) {
       const bounds = geoLayer.getBounds();
       if (bounds.isValid()) {
-        map.fitBounds(bounds, { padding: [35, 35], maxZoom: 13, animate: true });
+        if (selectedMunicipio) {
+          map.fitBounds(bounds, { padding: [35, 35], maxZoom: 13, animate: true });
+        } else {
+          map.fitBounds(bounds, { padding: [20, 20], animate: true });
+        }
       }
-    } else if (!selectedMunicipio && baseBoundary === "secciones") {
-      map.setView([21.019, -101.2574], 9, { animate: true });
     }
-  }, [geoData, choroplethMode, selectedYear, electionType, baseBoundary, electoralCache, selectedMunicipio, swingYears]);
+  }, [geoData, choroplethMode, selectedYear, electionType, baseBoundary, electoralCache, selectedMunicipio, swingYears, activeCfg]);
 
   return (
     <div className="position-relative w-100 rounded-3 overflow-hidden shadow-sm border border-gray-200" style={{ width: "100%", height: "650px", minHeight: "650px" }}>

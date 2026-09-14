@@ -17,6 +17,8 @@ interface EventFilterToolbarProps {
   municipiosList: { id: number; nombre: string }[];
   onOpenUploadModal?: () => void;
   onOpenSwingModal: () => void;
+  stateKey?: string;
+  totalMunicipios?: number;
 }
 
 export const EventFilterToolbar: React.FC<EventFilterToolbarProps> = ({
@@ -33,7 +35,19 @@ export const EventFilterToolbar: React.FC<EventFilterToolbarProps> = ({
   municipiosList,
   onOpenUploadModal,
   onOpenSwingModal,
+  stateKey = "gto",
+  totalMunicipios,
 }) => {
+  const availableYears =
+    stateKey === "pue"
+      ? electionType === "gubernatura"
+        ? [2018, 2021]
+        : [2018, 2021, 2024]
+      : electionType === "diputaciones"
+      ? [2018, 2021, 2024]
+      : [2018, 2024];
+
+  const displayTotalMun = totalMunicipios || municipiosList.length || 46;
   return (
     <div className="card bg-white border-0 shadow-sm rounded-3 mb-3">
       <div className="card-body p-3 bg-white">
@@ -104,7 +118,7 @@ export const EventFilterToolbar: React.FC<EventFilterToolbarProps> = ({
               <i className="ri-calendar-check-line text-primary me-1"></i> Proceso:
             </span>
             <div className="btn-group" role="group">
-              {(electionType === "diputaciones" ? [2018, 2021, 2024] : [2018, 2024]).map((yr) => (
+              {availableYears.map((yr) => (
                 <button
                   key={yr}
                   type="button"
@@ -154,7 +168,7 @@ export const EventFilterToolbar: React.FC<EventFilterToolbarProps> = ({
               onChange={(e) => onSelectMunicipio(e.target.value ? Number(e.target.value) : null)}
               style={{ minWidth: "180px" }}
             >
-              <option value="">Todo el Estado (46 Municipios)</option>
+              <option value="">Todo el Estado ({displayTotalMun} Municipios)</option>
               {municipiosList.map((m) => (
                 <option key={m.id} value={m.id}>
                   {m.nombre}

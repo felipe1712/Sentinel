@@ -104,6 +104,11 @@ export default function GisElectoralPage() {
   useEffect(() => {
     const cfg = getStateConfig();
     setStateCfg(cfg);
+    if (cfg.key === "pue") {
+      setBaseBoundary("municipios");
+      setElectionType("diputaciones");
+      setSelectedYear(2024);
+    }
 
     // Cargar caché de resultados electorales según el estado activo
     const cacheUrl = cfg.key === "pue" ? "/data/pue_electoral_results_cache.json" : "/data/electoral_results_cache.json";
@@ -119,8 +124,16 @@ export default function GisElectoralPage() {
 
   const handleSelectElectionType = (type: "gubernatura" | "diputaciones") => {
     setElectionType(type);
-    if (type === "gubernatura" && selectedYear === 2021) {
-      setSelectedYear(2024);
+    if (stateCfg.key === "pue") {
+      if (type === "gubernatura") {
+        if (selectedYear === 2024) setSelectedYear(2021);
+      } else {
+        if (selectedYear !== 2024 && selectedYear !== 2021 && selectedYear !== 2018) setSelectedYear(2024);
+      }
+    } else {
+      if (type === "gubernatura" && selectedYear === 2021) {
+        setSelectedYear(2024);
+      }
     }
   };
 
@@ -146,10 +159,27 @@ export default function GisElectoralPage() {
     setChoroplethMode("swing");
   };
 
-  const currentMunicipiosList =
-    stateCfg.municipios && stateCfg.municipios.length > 0
+  const currentMunicipiosList = React.useMemo(() => {
+    if (stateCfg.key === "pue") {
+      const munObj = electoralCache?.municipios?.diputaciones?.["2024"] || electoralCache?.municipios?.gubernatura?.["2021"];
+      if (munObj && Object.keys(munObj).length > 0) {
+        const uniqueNames = new Set<string>();
+        const list: { id: number; nombre: string }[] = [];
+        Object.values(munObj).forEach((m: any) => {
+          if (m && m.nombre && !uniqueNames.has(m.nombre) && m.nombre !== m.nombre.toUpperCase()) {
+            uniqueNames.add(m.nombre);
+            list.push({ id: list.length + 1, nombre: m.nombre });
+          }
+        });
+        if (list.length > 0) {
+          return list.sort((a, b) => a.nombre.localeCompare(b.nombre));
+        }
+      }
+    }
+    return stateCfg.municipios && stateCfg.municipios.length > 0
       ? stateCfg.municipios.map((m: any, idx: number) => ({ id: Number(m.clave) || idx + 1, nombre: m.nombre }))
       : MUNICIPIOS_GTO;
+  }, [stateCfg, electoralCache]);
 
   return (
     <div className="pb-5">
@@ -173,6 +203,8 @@ export default function GisElectoralPage() {
         selectedMunicipio={selectedMunicipio}
         onSelectMunicipio={setSelectedMunicipio}
         municipiosList={currentMunicipiosList}
+        stateKey={stateCfg.key}
+        totalMunicipios={stateCfg.totalMunicipios || currentMunicipiosList.length}
         onOpenUploadModal={() => setIsUploadModalOpen(true)}
         onOpenSwingModal={() => setIsSwingModalOpen(true)}
       />
@@ -182,6 +214,7 @@ export default function GisElectoralPage() {
         {/* Columna Central: Visor del Mapa Extendido */}
         <div className="col-lg-9">
           <WebGisMap
+            stateCfg={stateCfg}
             baseBoundary={baseBoundary}
             choroplethMode={choroplethMode}
             selectedYear={selectedYear}
@@ -199,13 +232,15 @@ export default function GisElectoralPage() {
         {/* Columna Derecha: Panel de Estadísticas & Cruce de Inteligencia */}
         <div className="col-lg-3">
           <ElectoralStatsPanel
+            stateCfg={stateCfg}
+            baseBoundary={baseBoundary}
             selectedSection={selectedSection}
             sectionResult={selectedSectionResult}
             associatedEvents={[]}
             selectedYear={selectedYear}
             totalSectionsCount={stateCfg.key === "pue" ? 2847 : 3357}
             selectedMunicipio={selectedMunicipio}
-            municipiosList={MUNICIPIOS_GTO}
+            municipiosList={currentMunicipiosList}
             electoralCache={electoralCache}
             onClearSelection={() => {
               setSelectedSection(null);
@@ -239,7 +274,7 @@ export default function GisElectoralPage() {
         currentYear={selectedYear}
         currentElectionType={electionType}
         electoralCache={electoralCache}
-        municipiosList={MUNICIPIOS_GTO}
+        municipiosList={currentMunicipiosList}
       />
     </div>
   );
