@@ -135,9 +135,9 @@ ON CONFLICT (id) DO UPDATE
 SET raw_text = EXCLUDED.raw_text, ingested_at = EXCLUDED.ingested_at;
 
 -- 3. PROCESSED EVENTS (INTELIGENCIA Y ALERTAS EJECUTIVAS) PARA PUEBLA
-INSERT INTO processed_events (
+INSERT INTO events (
   id, state_id, source_id, raw_event_id, category, severity, title, summary,
-  ai_summary, political_relevance, location, lat, lng, municipio, status, occurred_at
+  ai_summary, political_relevance, location_text, lat, lng, municipio, status, occurred_at
 ) VALUES
 (
   '88888888-0000-0000-0000-000000000031',
@@ -180,7 +180,7 @@ INSERT INTO processed_events (
   '21212121-2121-2121-2121-212121212121',
   '77777777-7777-7777-7777-777777777732',
   '99999999-0000-0000-0000-000000000033',
-  'movilidad',
+  'seguridad',
   'medio',
   'Obras Viales y Desvíos Preventivos en Periférico Ecológico (Cuautlancingo)',
   'Modernización de superficie de rodamiento y habilitación de rutas de desfogue.',
@@ -290,8 +290,14 @@ SET state_id = EXCLUDED.state_id,
   title = EXCLUDED.title,
   summary = EXCLUDED.summary,
   ai_summary = EXCLUDED.ai_summary,
+  category = EXCLUDED.category,
   severity = EXCLUDED.severity,
   political_relevance = EXCLUDED.political_relevance,
+  location_text = EXCLUDED.location_text,
+  lat = EXCLUDED.lat,
+  lng = EXCLUDED.lng,
+  municipio = EXCLUDED.municipio,
+  status = EXCLUDED.status,
   occurred_at = EXCLUDED.occurred_at;
 
 -- 4. SNAPSHOT DE GABINETE PARA PUEBLA (Clave INEGI 21)
@@ -309,6 +315,6 @@ INSERT INTO cabinet_snapshots (state_id, semaforos, key_points, alert_level, cre
     {"id": 2, "titulo": "Inspección Logística México - Puebla", "impacto": "Alto", "atencion": "Programada", "descripcion": "Monitoreo preventivo del transporte de carga en tramo Texmelucan con Guardia Nacional."},
     {"id": 3, "titulo": "Seguimiento a Mesas de Diálogo Comunitario", "impacto": "Medio", "atencion": "Estratégica", "descripcion": "Atención directa de Segob a comités agrarios en Tehuacán y Serdán."}
   ]',
-  'VERDE',
+  'NORMAL',
   NOW()
 ) ON CONFLICT DO NOTHING;
