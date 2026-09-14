@@ -15,7 +15,7 @@ pub mod sources;
 pub mod spiderfoot;
 
 use axum::{
-    routing::{delete, get, patch, post},
+    routing::{get, patch, post},
     Router,
 };
 use sqlx::PgPool;

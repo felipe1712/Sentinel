@@ -1,3 +1,5 @@
+#![allow(unused_imports)]
+
 pub mod inegi;
 pub mod countries;
 pub mod geoip;

@@ -46,8 +46,8 @@ pub async fn login(
                 email: email_clean,
                 role: "superadmin".to_string(),
                 name: "Superadministrador Global".to_string(),
-                cargo: "Dirección de Plataforma SentinelIQ Multi-Estado".to_string(),
-                active: true,
+                cargo: Some("Dirección de Plataforma SentinelIQ Multi-Estado".to_string()),
+                active: Some(true),
                 last_login: Some(chrono::Utc::now()),
             },
         }));
@@ -74,12 +74,13 @@ pub async fn login(
         });
         (user.id, s_id, user.role, user.name, user.cargo)
     } else {
-        // Auto-resolución para usuarios de dependencias de Guanajuato / Querétaro
-        let is_gto = email_clean.contains("guanajuato") || email_clean.contains("fspe") || email_clean.contains("gto");
+        // Auto-resolución para usuarios de dependencias de Guanajuato / Querétaro / Puebla
+        let is_pue = email_clean.contains("puebla") || email_clean.contains("pue");
         let is_qro = email_clean.contains("queretaro") || email_clean.contains("qro");
+        let is_gto = email_clean.contains("guanajuato") || email_clean.contains("fspe") || email_clean.contains("gto");
 
-        let s_id = if is_gto {
-            Uuid::parse_str("00000000-0000-0000-0000-000000000011").unwrap()
+        let s_id = if is_pue {
+            Uuid::parse_str("21212121-2121-2121-2121-212121212121").unwrap()
         } else if is_qro {
             Uuid::parse_str("11111111-1111-1111-1111-111111111111").unwrap()
         } else {
@@ -97,7 +98,7 @@ pub async fn login(
         };
 
         let user_name = email_clean.split('@').next().unwrap_or("Funcionario").replace('.', " ").to_uppercase();
-        let user_cargo = "Funcionario Acreditado".to_string();
+        let user_cargo: Option<String> = Some("Funcionario Acreditado".to_string());
         let new_id = Uuid::new_v4();
 
         // Registrar en base de datos si no existe
@@ -123,10 +124,10 @@ pub async fn login(
         id: user_id,
         state_id: Some(state_id),
         email: email_clean,
-        role: role,
+        role: role.clone(),
         name: name,
         cargo: cargo,
-        active: true,
+        active: Some(true),
         last_login: Some(chrono::Utc::now()),
     };
 

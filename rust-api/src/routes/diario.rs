@@ -1,7 +1,6 @@
 use axum::{
     extract::{Path, Query, State},
     http::StatusCode,
-    response::IntoResponse,
     Json,
 };
 use chrono::NaiveDate;
@@ -10,13 +9,10 @@ use serde_json::json;
 use sqlx::PgPool;
 use uuid::Uuid;
 
-use crate::{
-    auth::middleware::AuthUser,
-    error::AppError,
-};
+use crate::error::AppError;
 
 // ==============================================================================
-// Utilidad para resolver State ID (Soporta UUID, 'gto', 'qro', '11', '22')
+// Utilidad para resolver State ID (Soporta UUID, 'gto', 'qro', 'pue', '11', '21', '22')
 // ==============================================================================
 
 pub fn resolve_state_uuid(param: &str) -> Uuid {
@@ -24,6 +20,8 @@ pub fn resolve_state_uuid(param: &str) -> Uuid {
         u
     } else if param == "gto" || param == "11" {
         Uuid::parse_str("00000000-0000-0000-0000-000000000011").unwrap()
+    } else if param == "pue" || param == "21" {
+        Uuid::parse_str("21212121-2121-2121-2121-212121212121").unwrap()
     } else {
         Uuid::parse_str("11111111-1111-1111-1111-111111111111").unwrap()
     }
