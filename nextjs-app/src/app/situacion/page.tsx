@@ -125,7 +125,7 @@ export default function SituacionPage() {
         </div>
 
         {/* Cuadrante 3: Alertas Prioritarias Modo Claro */}
-        {/* Sección Destacada: Feed Multicanal de Fuentes Vivas en Tiempo Real (Últimas 36h) */}
+        {/* Sección Destacada: Canales Conectados en Tiempo Real (Últimas 24 Horas) */}
         <div className="col-12">
           <RealtimeLiveFeed maxItems={15} showFilters={true} />
         </div>

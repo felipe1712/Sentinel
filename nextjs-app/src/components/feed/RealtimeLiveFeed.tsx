@@ -47,7 +47,7 @@ export default function RealtimeLiveFeed({
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"all" | "telegram" | "twitter" | "oficial">("all");
   const [selectedSeverity, setSelectedSeverity] = useState<string>("all");
-  const [timeWindowHours, setTimeWindowHours] = useState<number>(36);
+  const [timeWindowHours, setTimeWindowHours] = useState<number>(24);
   const [lastSync, setLastSync] = useState<Date>(new Date());
   const [expandedRawId, setExpandedRawId] = useState<string | null>(null);
   const [autoRefresh, setAutoRefresh] = useState(true);
@@ -161,8 +161,9 @@ export default function RealtimeLiveFeed({
                 onChange={(e) => setTimeWindowHours(Number(e.target.value))}
               >
                 <option value={12}>Últimas 12 hrs</option>
-                <option value={24}>Últimas 24 hrs</option>
-                <option value={36}>Últimas 36 hrs</option>
+                <option value={24}>Últimas 24 hrs (Por Defecto)</option>
+                <option value={48}>Últimas 48 hrs</option>
+                <option value={72}>Últimas 72 hrs</option>
               </select>
             )}
 
@@ -352,12 +353,14 @@ export default function RealtimeLiveFeed({
                       )}
                     </div>
 
-                    {/* Sello de Tiempo */}
-                    <div className="text-muted fs-12 fw-semibold d-inline-flex align-items-center gap-1">
-                      <i className="ri-time-line"></i>
-                      <span>{formatRelativeTime(ev.occurred_at)}</span>
-                      <span className="text-muted fs-11">
-                        ({new Date(ev.occurred_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} hrs)
+                    {/* Sello de Fecha y Hora de Publicación */}
+                    <div className="d-flex align-items-center gap-2 flex-wrap">
+                      <span className="badge bg-light text-dark border fs-12 fw-bold d-inline-flex align-items-center gap-1 shadow-sm">
+                        <i className="ri-calendar-check-line text-primary"></i>
+                        <span>Publicado: {formatFullDateHour(ev.occurred_at)}</span>
+                      </span>
+                      <span className="badge bg-primary-subtle text-primary border fs-11 fw-bold">
+                        {formatRelativeTime(ev.occurred_at)}
                       </span>
                     </div>
                   </div>
@@ -403,9 +406,26 @@ export default function RealtimeLiveFeed({
                   {/* Contenedor del Mensaje Original (Acordeón) */}
                   {isExpanded && (
                     <div className="mt-2 p-3 rounded-2 border bg-dark text-light font-monospace fs-12">
-                      <div className="d-flex align-items-center justify-content-between pb-1 mb-2 border-bottom border-secondary text-secondary fs-11">
-                        <span>REGISTRO CRUDO CAPTURADO POR CRAWLER</span>
-                        <span>ID: {ev.id.slice(0, 8)}</span>
+                      <div className="d-flex flex-wrap align-items-center justify-content-between pb-2 mb-2 border-bottom border-secondary text-light fs-11 gap-2">
+                        <div>
+                          <span className="text-secondary fw-bold text-uppercase">Publicado: </span>
+                          <span className="text-warning fw-bold font-monospace">{formatFullTimestamp(ev.occurred_at)}</span>
+                        </div>
+                        <div>
+                          <span className="text-secondary fw-bold text-uppercase">Canal/Emisor: </span>
+                          <span className="text-white fw-bold">{ev.source_identifier || ev.source_name || "Canal Central"}</span>
+                        </div>
+                        <div>
+                          <span className="text-secondary fw-bold text-uppercase">Red: </span>
+                          <span className="badge bg-info-subtle text-info border fs-10">{ev.source_type?.toUpperCase() || "OFICIAL"}</span>
+                        </div>
+                        {ev.municipio && (
+                          <div>
+                            <span className="text-secondary fw-bold text-uppercase">Municipio: </span>
+                            <span className="text-white fw-bold">{ev.municipio}</span>
+                          </div>
+                        )}
+                        <span className="text-secondary">ID: {ev.id.slice(0, 8)}</span>
                       </div>
                       <p className="mb-0 text-white" style={{ whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
                         {ev.raw_text || ev.summary || "No hay texto crudo disponible para este registro."}
@@ -420,6 +440,41 @@ export default function RealtimeLiveFeed({
       </div>
     </div>
   );
+}
+
+// Utilidad para formatear fecha y hora legible (DD Mon · HH:MM hrs)
+function formatFullDateHour(isoString: string): string {
+  try {
+    const d = new Date(isoString);
+    const day = d.getDate().toString().padStart(2, "0");
+    const months = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
+    const month = months[d.getMonth()];
+    const hours = d.getHours().toString().padStart(2, "0");
+    const mins = d.getMinutes().toString().padStart(2, "0");
+    return `${day} ${month} · ${hours}:${mins} hrs`;
+  } catch {
+    return isoString;
+  }
+}
+
+// Utilidad para formatear timestamp completo (DD Mon YYYY · HH:MM:SS hrs)
+function formatFullTimestamp(isoString: string): string {
+  try {
+    const d = new Date(isoString);
+    return (
+      d.toLocaleString("es-MX", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: false,
+      }) + " hrs"
+    );
+  } catch {
+    return isoString;
+  }
 }
 
 // Utilidad para formatear tiempo relativo (hace X min / hrs)
@@ -543,6 +598,111 @@ function getDefaultFeedForState(stateKey: string): EnrichedEvent[] {
         source_identifier: "@PeriodismoBajio",
         source_credibility: "verificado",
         raw_text: "📢 [@PeriodismoBajio en X - Hace 16 horas] Sindicato del Clúster Automotriz y representantes empresariales en Guanajuato Puerto Interior (Silao) firman acuerdo preliminar de revisión salarial sin emplazamiento a huelga. Se pacta mesa de seguimiento mensual con la Secretaría de Economía.",
+      },
+    ];
+  } else if (stateKey === "pue") {
+    return [
+      {
+        id: "ev-pue-1",
+        state_id: "21212121-2121-2121-2121-212121212121",
+        category: "seguridad",
+        severity: "alto",
+        title: "Blindaje Logístico en Caseta Autopista México-Puebla (San Martín Texmelucan)",
+        summary: "Inspección y patrullaje conjunto de Guardia Nacional y SSP en acceso industrial de Texmelucan.",
+        ai_summary: "Despliegue preventivo sin afectación al transporte de carga pesada.",
+        political_relevance: 8,
+        municipio: "San Martín Texmelucan",
+        occurred_at: new Date(Date.now() - 35 * 60000).toISOString(),
+        source_type: "telegram",
+        source_name: "Canal Alerta Puebla Seguridad & Vigilancia",
+        source_identifier: "@AlertaPueblaSeguridad",
+        source_credibility: "alerta_ciudadana",
+        raw_text: "⚠️ #ALERTA_TEXMELUCAN [Telegram @AlertaPueblaSeguridad - Hace 35 min] Reportan operativo preventivo coordinado sobre la Autopista México-Puebla altura caseta de San Martín Texmelucan. Guardia Nacional y Policía Estatal inspeccionan transportes de carga. Circulación con reducción de carril lateral, avance fluido.",
+      },
+      {
+        id: "ev-pue-2",
+        state_id: "21212121-2121-2121-2121-212121212121",
+        category: "seguridad",
+        severity: "medio",
+        title: "Conclusión con Saldo Blanco en Despliegue Metropolitano Angelópolis",
+        summary: "SSP Puebla reporta patrullajes preventivos coordinados en Puebla Capital, San Andrés y San Pedro Cholula.",
+        ai_summary: "Operatividad regular y cobertura disuasiva en centros comerciales y zonas turísticas.",
+        political_relevance: 7,
+        municipio: "Puebla",
+        occurred_at: new Date(Date.now() - 75 * 60000).toISOString(),
+        source_type: "twitter",
+        source_name: "Secretaría de Seguridad Pública del Estado de Puebla",
+        source_identifier: "@SSPGobPue",
+        source_credibility: "oficial",
+        raw_text: "🚨 COMUNICADO OFICIAL [@SSPGobPue en X - Hace 1 hora 15 min]: Concluye con saldo blanco el despliegue metropolitano Angelópolis en Puebla Capital, San Pedro Cholula y San Andrés Cholula. Se reforzó el patrullaje preventivo en centros comerciales, plazas y corredores turísticos.",
+      },
+      {
+        id: "ev-pue-3",
+        state_id: "21212121-2121-2121-2121-212121212121",
+        category: "proteccion_civil",
+        severity: "medio",
+        title: "Cierre Preventivo por Obras en Periférico Ecológico (Cuautlancingo)",
+        summary: "Canal de vialidad en vivo alerta de reducción de carriles y desvíos hacia Forjadores y Recta a Cholula.",
+        ai_summary: "Impacto moderado en movilidad metropolitana en horario laboral.",
+        political_relevance: 6,
+        municipio: "Cuautlancingo",
+        occurred_at: new Date(Date.now() - 190 * 60000).toISOString(),
+        source_type: "telegram",
+        source_name: "Tráfico Puebla y Movilidad Metropolitana",
+        source_identifier: "@TraficoPueblaEnVivo",
+        source_credibility: "verificado",
+        raw_text: "🚗 #TraficoPuebla [Telegram @TraficoPueblaEnVivo - Hace 3 horas] Cierre preventivo por obras de modernización en Periférico Ecológico a la altura de Cuautlancingo. Vías alternas habilitadas sobre Recta a Cholula y Forjadores. Tráfico moderado.",
+      },
+      {
+        id: "ev-pue-4",
+        state_id: "21212121-2121-2121-2121-212121212121",
+        category: "proteccion_civil",
+        severity: "medio",
+        title: "Vigilancia Permanente Popocatépetl en Amarillo Fase 2",
+        summary: "Monitoreo sismológico y de emisiones volcánicas; sin caída de ceniza en zona urbana.",
+        ai_summary: "Protocolo estatal de Protección Civil activo para comunidades aledañas al coloso.",
+        political_relevance: 7,
+        municipio: "Atlixco",
+        occurred_at: new Date(Date.now() - 340 * 60000).toISOString(),
+        source_type: "oficial",
+        source_name: "Coordinación General de Protección Civil Puebla",
+        source_identifier: "PC_Estatal_PUE",
+        source_credibility: "oficial",
+        raw_text: "🌋 MONITOREO VOLCÁNICO [PC_Estatal_PUE - Hace 5 horas]: Coordinación General de Protección Civil informa semáforo volcánico del Popocatépetl se mantiene en Amarillo Fase 2. Emisiones leves de vapor y ceniza con dispersión hacia el noreste sin afectación a la zona metropolitana de Puebla.",
+      },
+      {
+        id: "ev-pue-5",
+        state_id: "21212121-2121-2121-2121-212121212121",
+        category: "politico",
+        severity: "medio",
+        title: "Acuerdos de Gobernabilidad y Diálogo Social en Tehuacán",
+        summary: "Instalación de mesa de trabajo pacífica con sectores productivos y comités ejidales.",
+        ai_summary: "Contención anticipada de inconformidades agrarias gracias a mediación de Segob Puebla.",
+        political_relevance: 6,
+        municipio: "Tehuacán",
+        occurred_at: new Date(Date.now() - 680 * 60000).toISOString(),
+        source_type: "twitter",
+        source_name: "Periódico Central Puebla — Cobertura Estatal",
+        source_identifier: "@CentralPuebla",
+        source_credibility: "verificado",
+        raw_text: "📰 NOTA CENTRAL [@CentralPuebla - Hace 11 horas]: Mesa de diálogo pacífica en Tehuacán: Gobierno del Estado atiende peticiones de comités de agua y agricultores del Valle de Tehuacán. Se pacta mesa técnica para el próximo lunes con Conagua y Gobernación.",
+      },
+      {
+        id: "ev-pue-6",
+        state_id: "21212121-2121-2121-2121-212121212121",
+        category: "proteccion_civil",
+        severity: "medio",
+        title: "Mantenimiento y Despeje Preventivo Carretero en Sierra Norte (Huauchinango)",
+        summary: "Retiro ágil de desprendimientos menores en carretera federal México-Tuxpan.",
+        ai_summary: "Mantenimiento preventivo que preserva conectividad intermunicipal en la sierra.",
+        political_relevance: 5,
+        municipio: "Huauchinango",
+        occurred_at: new Date(Date.now() - 1100 * 60000).toISOString(),
+        source_type: "telegram",
+        source_name: "Canal Alerta Puebla Seguridad & Vigilancia",
+        source_identifier: "@AlertaPueblaSeguridad",
+        source_credibility: "alerta_ciudadana",
+        raw_text: "🌲 REPORTE SIERRA NORTE [Telegram @AlertaPueblaSeguridad - Hace 18 horas]: Tránsito fluido y supervisión carretera en el tramo Huauchinango - Xicotepec. Brigadas de Protección Civil retiran escombros menores tras lluvia matutina sin mayores incidentes.",
       },
     ];
   } else {

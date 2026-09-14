@@ -235,7 +235,7 @@ export const GUANAJUATO_CONFIG: StateConfig = {
     {
       tag: "Prioridad 1 · Seguridad",
       region: "Corredor Laja-Bajío",
-      titulo: "Estrategia FSPE Celaya - Irapuato",
+      titulo: "Operativo FSPE Celaya - Irapuato",
       descripcion: "Operativo especial de paz y patrullaje reforzado por las Fuerzas de Seguridad Pública del Estado (FSPE) en el corredor Celaya-Irapuato-Salamanca.",
       border: "border-danger",
       badgeBg: "bg-danger text-white",
@@ -261,8 +261,8 @@ export const GUANAJUATO_CONFIG: StateConfig = {
   narrativas: [
     {
       id: "n1_gto",
-      title: "Estrategia de Seguridad & Coordinación FSPE en Celaya, Irapuato y Bajío",
-      summary: "Evaluación pública sobre patrullajes inteligentes de FSPE, operativos interinstitucionales y fortalecimiento municipal.",
+      title: "Operativo de Seguridad & Coordinación FSPE en Celaya, Irapuato y Bajío",
+      summary: "Evaluación pública sobre patrullajes preventivos de FSPE, operativos interinstitucionales y fortalecimiento municipal.",
       category: "Seguridad Pública",
       trend: "subiendo",
       volume_24h: 482,
@@ -338,8 +338,8 @@ export const GUANAJUATO_CONFIG: StateConfig = {
     { id: "s1_gto", name: "Fuerzas de Seguridad Pública (FSPE GTO)", type: "Oficial / API", identifier: "@FSPE_GtoOficial", credibility: "Oficial", active: true },
     { id: "s2_gto", name: "Canal Alertas Seguridad Celaya & Bajío", type: "Telegram", identifier: "@AlertasCelayaBajio", credibility: "Alta", active: true },
     { id: "s3_gto", name: "Noticias León y ZM en Vivo", type: "Telegram", identifier: "@NoticiasLeonGto", credibility: "Alta", active: true },
-    { id: "s4_gto", name: "Disturbios & Inestabilidad Social (MCP)", type: "MCP Tool", identifier: "intel_unrest_events", credibility: "Oficial", active: true },
-    { id: "s5_gto", name: "Índice Sintético de Riesgo GTO (MCP)", type: "MCP Tool", identifier: "intel_instability_index", credibility: "Oficial", active: true },
+    { id: "s4_gto", name: "Disturbios & Eventos Territoriales (MCP)", type: "MCP Tool", identifier: "mcp_unrest_events", credibility: "Oficial", active: true },
+    { id: "s5_gto", name: "Índice Sintético Territorial GTO (MCP)", type: "MCP Tool", identifier: "mcp_instability_index", credibility: "Oficial", active: true },
   ],
   municipios: [
     { clave: "11001", nombre: "Abasolo", region: "Corredor Laja-Bajío", actividad_nivel: "bajo", eventos_24h: 2, poblacion: "92,040", responsable_region: "FSPE Región Suroeste" },

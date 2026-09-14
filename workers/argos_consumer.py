@@ -15,11 +15,12 @@ RUST_API_URL = os.getenv("RUST_API_URL", "http://localhost:8080")
 SERVICE_TOKEN = os.getenv("SERVICE_TOKEN", "sentineliq_internal_service_token_2026")
 
 ACTIVE_STATES = [
-    {"key": "qro", "id": "22222222-2222-2222-2222-222222222222", "name": "Querétaro"},
-    {"key": "gto", "id": "11111111-1111-1111-1111-111111111111", "name": "Guanajuato"}
+    {"key": "gto", "id": "00000000-0000-0000-0000-000000000011", "name": "Guanajuato"},
+    {"key": "qro", "id": "11111111-1111-1111-1111-111111111111", "name": "Querétaro"},
+    {"key": "pue", "id": "21212121-2121-2121-2121-212121212121", "name": "Puebla"}
 ]
 
-async fn_consume_argos_feed():
+async def fn_consume_argos_feed():
     logger.info("Iniciando ciclo de ingesta ARGOS Gateway (cada 2 min)...")
     
     async with httpx.AsyncClient(timeout=15.0) as client:

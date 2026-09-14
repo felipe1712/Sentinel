@@ -25,7 +25,7 @@ interface DrilldownItem {
   description: string;
   relevance: number;
   actions: string[];
-  timeline: { time: string; text: string; source?: string; raw?: string; severity?: string }[];
+  timeline: { time: string; text: string; source?: string; raw?: string; severity?: string; fullTimestamp?: string }[];
 }
 
 export default function GabineteView() {
@@ -94,18 +94,27 @@ export default function GabineteView() {
   const handleSelectMunicipio = async (nombre: string) => {
     const mMatch = stateCfg.municipios.find((item) => item.nombre.toLowerCase().includes(nombre.toLowerCase())) || stateCfg.municipios[0];
 
-    // Cargar eventos vivos capturados por Telegram, X y fuentes oficiales en las últimas 36 horas
-    let liveTimeline: { time: string; text: string; source?: string; raw?: string; severity?: string }[] = [];
+    // Cargar eventos vivos capturados por Telegram, X y fuentes oficiales en las últimas 24 horas
+    let liveTimeline: { time: string; text: string; source?: string; raw?: string; severity?: string; fullTimestamp?: string }[] = [];
     try {
-      const resp = await api.get(`/events/live?municipio=${encodeURIComponent(mMatch.nombre)}&hours=36&limit=6`);
+      const resp = await api.get(`/events/live?municipio=${encodeURIComponent(mMatch.nombre)}&hours=24&limit=10`);
       if (resp.data && Array.isArray(resp.data) && resp.data.length > 0) {
-        liveTimeline = resp.data.map((ev: EnrichedEvent) => ({
-          time: new Date(ev.occurred_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-          text: ev.title,
-          source: ev.source_identifier ? `${ev.source_type === "telegram" ? "Telegram" : ev.source_type === "twitter" ? "X" : "Oficial"} · ${ev.source_identifier}` : ev.source_name || "Despacho Central",
-          raw: ev.raw_text || ev.summary,
-          severity: ev.severity,
-        }));
+        liveTimeline = resp.data.map((ev: EnrichedEvent) => {
+          const d = new Date(ev.occurred_at);
+          const day = d.getDate().toString().padStart(2, "0");
+          const months = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
+          const month = months[d.getMonth()];
+          const hours = d.getHours().toString().padStart(2, "0");
+          const mins = d.getMinutes().toString().padStart(2, "0");
+          return {
+            time: `${day} ${month} · ${hours}:${mins} hrs`,
+            text: ev.title,
+            source: ev.source_identifier ? `${ev.source_type === "telegram" ? "Telegram" : ev.source_type === "twitter" ? "X" : "Oficial"} · ${ev.source_identifier}` : ev.source_name || "Despacho Central",
+            raw: ev.raw_text || ev.summary,
+            severity: ev.severity,
+            fullTimestamp: d.toLocaleString("es-MX", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", hour12: false }) + " hrs",
+          };
+        });
       }
     } catch {
       // Continuar con fallback si el endpoint no está disponible
@@ -113,8 +122,8 @@ export default function GabineteView() {
 
     if (liveTimeline.length === 0) {
       liveTimeline = [
-        { time: "05:30 AM", text: "Briefing matutino registra condiciones bajo control." },
-        { time: "08:00 AM", text: `Inspección operativa y monitoreo de la región ${mMatch.region}.` },
+        { time: "Hoy · 05:30 hrs", text: "Briefing matutino registra condiciones bajo control.", fullTimestamp: "Hoy 05:30 hrs" },
+        { time: "Hoy · 08:00 hrs", text: `Inspección operativa y monitoreo de la región ${mMatch.region}.`, fullTimestamp: "Hoy 08:00 hrs" },
       ];
     }
 
@@ -355,8 +364,9 @@ export default function GabineteView() {
                   <div className="timeline-widget mb-4">
                     {selectedDetail.timeline.map((item, idx) => (
                       <div key={idx} className="p-3 mb-2 rounded-2 bg-white border border-gray-200 shadow-sm">
-                        <div className="d-flex align-items-center justify-content-between mb-1">
-                          <span className="badge bg-primary text-white fs-11 font-monospace shadow-sm">
+                        <div className="d-flex align-items-center justify-content-between mb-1 gap-2 flex-wrap">
+                          <span className="badge bg-primary text-white fs-11 font-monospace shadow-sm d-inline-flex align-items-center gap-1">
+                            <i className="ri-time-line"></i>
                             {item.time}
                           </span>
                           {item.source && (
@@ -371,6 +381,12 @@ export default function GabineteView() {
                         {item.raw && (
                           <div className="p-2 rounded bg-light border text-muted font-monospace fs-11 mt-1" style={{ whiteSpace: "pre-wrap" }}>
                             {item.raw}
+                          </div>
+                        )}
+                        {item.fullTimestamp && (
+                          <div className="text-muted fs-11 mt-1 text-end">
+                            <i className="ri-calendar-check-line me-1 text-primary"></i>
+                            Publicación: <span className="fw-semibold text-dark">{item.fullTimestamp}</span>
                           </div>
                         )}
                       </div>
@@ -392,7 +408,7 @@ export default function GabineteView() {
         </div>
       )}
 
-      {/* Feed en Vivo de Inteligencia y Fuentes en Sala de Gabinete */}
+      {/* Canales Conectados en Tiempo Real en Sala de Gabinete */}
       <div className="mt-4">
         <RealtimeLiveFeed maxItems={6} showFilters={true} />
       </div>

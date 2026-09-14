@@ -99,7 +99,7 @@ export default function SituacionEjecutivaGobernadorPage() {
                 <i className="ri-drop-line"></i>
               </div>
               <div>
-                <span className="text-dark fs-12 text-uppercase fw-bold" style={{ color: "#0f172a" }}>Estrategia Estatal</span>
+                <span className="text-dark fs-12 text-uppercase fw-bold" style={{ color: "#0f172a" }}>Programa Prioritario</span>
                 <h5 className="fw-extrabold mb-0 text-info fs-16" style={{ color: "#0284c7" }}>En Avance</h5>
               </div>
             </div>
@@ -137,7 +137,7 @@ export default function SituacionEjecutivaGobernadorPage() {
         </div>
       </div>
 
-      {/* Radar de Alertas Tempranas OSINT (Últimas 36 Horas) */}
+      {/* Canales Conectados en Tiempo Real (Últimas 24 Horas) */}
       <div className="mb-4">
         <RealtimeLiveFeed
           maxItems={4}
