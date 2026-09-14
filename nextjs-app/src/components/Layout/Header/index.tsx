@@ -57,7 +57,7 @@ const Header: React.FC<HeaderProps> = ({ toggleActive }) => {
                 {stateCfg.name}
               </span>
               <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block leading-tight mt-0.5">
-                SentinelIQ C5i · Sistema de Inteligencia Estratégica
+                SentinelIQ · Sistema de Información Geográfica
               </span>
             </div>
           </div>

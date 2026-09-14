@@ -131,7 +131,7 @@ export default function McpAdminPage() {
             Administración de Servidores & Tools MCP
           </h4>
           <p className="text-dark fs-13 mb-0 fw-semibold" style={{ color: "#334155" }}>
-            Control de herramientas de inteligencia global que alimentan los briefings y dossiers de la {stateCfg.governorTitle}.
+            Control de herramientas de análisis territorial que alimentan los briefings y dossiers de la {stateCfg.governorTitle}.
           </p>
         </div>
         <div className="d-flex gap-2">

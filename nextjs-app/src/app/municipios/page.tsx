@@ -54,10 +54,10 @@ export default function MunicipiosPage() {
             {stateCfg.name} · Clave INEGI {stateCfg.inegiCode}
           </span>
           <h4 className="fw-extrabold text-dark mb-1 fs-24" style={{ color: "#0f172a" }}>
-            Inteligencia y Monitoreo Municipal ({municipios.length} Municipios)
+            Información y Monitoreo Municipal ({municipios.length} Municipios)
           </h4>
           <p className="text-dark fs-13 mb-0 fw-semibold" style={{ color: "#334155" }}>
-            Nivel de actividad, eventos procesados, población e inteligencia territorial por municipio.
+            Nivel de actividad, eventos procesados, población e información territorial por municipio.
           </p>
         </div>
         <div className="d-flex gap-2">

@@ -26,13 +26,13 @@ export const Sidebar: React.FC = () => {
           </span>
         </Link>
         <div className="text-primary fw-bold fs-11 text-uppercase mt-1">
-          Inteligencia Ejecutiva · {stateCfg.shortName}
+          Sistema de Información Geográfica · {stateCfg.shortName}
         </div>
       </div>
 
       <div id="scrollbar" className="p-3">
         <ul className="navbar-nav id=navbar-nav">
-          <li className="menu-title"><span data-key="t-menu" className="text-primary fw-bold">Estratégico</span></li>
+          <li className="menu-title"><span data-key="t-menu" className="text-primary fw-bold">Sistema de Información Geográfica</span></li>
 
           <li className="nav-item">
             <Link href="/situacion" className={`nav-link ${isActive("/situacion") ? "active fw-bold text-primary" : "text-dark"}`}>
@@ -81,7 +81,7 @@ export const Sidebar: React.FC = () => {
 
           <li className="nav-item">
             <Link href="/municipios" className={`nav-link ${isActive("/municipios") ? "active fw-bold text-primary" : "text-dark"}`}>
-              <i className="ri-map-pin-2-line me-2"></i> <span>Inteligencia Municipal</span>
+              <i className="ri-map-pin-2-line me-2"></i> <span>Información Municipal</span>
             </Link>
           </li>
 

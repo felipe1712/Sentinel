@@ -181,7 +181,7 @@ export default function FuentesManagerPage() {
         <div className="card bg-white border-0 shadow-sm rounded-3 overflow-hidden">
           <div className="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
             <h6 className="card-title mb-0 fw-extrabold text-dark fs-15" style={{ color: "#0f172a" }}>
-              Fuentes Activas de Inteligencia para {stateCfg.name}
+              Canales Conectados y Fuentes Activas para {stateCfg.name}
             </h6>
             <span className="badge bg-success text-white fw-bold shadow-sm">Operación Normal</span>
           </div>

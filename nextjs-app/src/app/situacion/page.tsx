@@ -51,10 +51,10 @@ export default function SituacionPage() {
             {stateCfg.name}
           </span>
           <h4 className="fw-extrabold text-dark mb-1 fs-24" style={{ color: "#0f172a" }}>
-            Centro de Inteligencia Situacional
+            Centro de Información Situacional
           </h4>
           <p className="text-dark fs-13 mb-0 fw-semibold" style={{ color: "#334155" }}>
-            Vista general estratégica para la toma de decisiones · {stateCfg.name}
+            Vista general para la toma de decisiones · {stateCfg.name}
           </p>
         </div>
         <div className="d-flex gap-2">
@@ -155,9 +155,9 @@ export default function SituacionPage() {
               <div className="p-3 bg-light rounded-3 border border-gray-200 shadow-sm">
                 <div className="d-flex justify-content-between align-items-center mb-1">
                   <h6 className="fw-extrabold fs-14 text-primary mb-0" style={{ color: "#1e40af" }}>
-                    {stateCfg.prioridades[2]?.titulo || "Gestión de proyectos estratégicos"}
+                    {stateCfg.prioridades[2]?.titulo || "Gestión de proyectos prioritarios"}
                   </h6>
-                  <span className="badge bg-primary text-white fw-bold fs-10">Atención Estratégica</span>
+                  <span className="badge bg-primary text-white fw-bold fs-10">Atención Prioritaria</span>
                 </div>
                 <p className="fs-13 text-dark fw-semibold mb-0" style={{ color: "#0f172a" }}>
                   {stateCfg.prioridades[2]?.descripcion}

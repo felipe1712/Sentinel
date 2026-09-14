@@ -53,7 +53,7 @@ export default function BriefingPage() {
 ⏰ *Corte*: 05:30 AM · ${new Date().toLocaleDateString("es-MX", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
 🔒 *Clasificación*: Alto Impacto / Confidencial
 
-*1. Resumen de Inteligencia:*
+*1. Resumen Ejecutivo:*
 ${summaryText}
 
 *2. Puntos Prioritarios:*
@@ -155,7 +155,7 @@ ${summaryText}
       <div className="card bg-white border-0 shadow-sm mb-4 border-start border-4 border-primary rounded-3 overflow-hidden">
         <div className="card-header bg-white border-bottom py-3">
           <h5 className="card-title mb-0 fw-extrabold text-primary text-uppercase fs-14" style={{ color: "#1e40af" }}>
-            1. Resumen Ejecutivo de Inteligencia
+            1. Resumen Ejecutivo Territorial
           </h5>
         </div>
         <div className="card-body p-4 bg-white">

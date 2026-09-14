@@ -124,7 +124,7 @@ const ProfileMenu: React.FC = () => {
                 <i className="ri-building-4-line"></i>
                 <span>Visualizar Estado:</span>
               </span>
-              <div className="grid grid-cols-2 gap-1.5">
+              <div className="grid grid-cols-3 gap-1.5">
                 {getAllSupportedStates().map((st) => {
                   const isCurrent = stateCfg.key === st.key;
                   return (

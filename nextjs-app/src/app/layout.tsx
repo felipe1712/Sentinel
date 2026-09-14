@@ -19,7 +19,7 @@ const inter = Inter({
 });
   
 export const metadata: Metadata = {
-  title: "SentinelIQ | Sistema de Inteligencia Estratégica",
+  title: "SentinelIQ | Sistema de Información Geográfica",
   description: "Plataforma Integral de Análisis Situacional, WebGIS Electoral y Monitoreo de Fuentes",
 };
 

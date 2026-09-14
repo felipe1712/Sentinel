@@ -179,7 +179,7 @@ export default function GabineteView() {
             SALA DE GABINETE DE GOBIERNO · {stateCfg.name.toUpperCase()}
           </span>
           <h2 className="fw-extrabold text-dark mb-0 fs-28" style={{ color: "#0f172a" }}>
-            Monitoreo Estratégico en Tiempo Real
+            Monitoreo en Tiempo Real
           </h2>
         </div>
         <div className="text-md-end pt-1">
@@ -279,7 +279,7 @@ export default function GabineteView() {
                     "Gobernabilidad & Diálogo",
                     "OPERACIÓN NORMAL",
                     "success",
-                    stateCfg.prioridades[2]?.descripcion || "Mesa de concertación de proyectos estratégicos."
+                    stateCfg.prioridades[2]?.descripcion || "Mesa de concertación de proyectos prioritarios."
                   )
                 }
               >
@@ -325,7 +325,7 @@ export default function GabineteView() {
             <div className="row g-4">
               <div className="col-lg-7">
                 <h5 className="fw-extrabold text-primary mb-3 fs-16" style={{ color: "#1e40af" }}>
-                  <i className="ri-file-text-line me-2"></i> Diagnóstico de Inteligencia Procesada
+                  <i className="ri-file-text-line me-2"></i> Diagnóstico de Información Procesada
                 </h5>
                 <div className="p-4 rounded-3 border border-gray-300 bg-white mb-4 shadow-sm" style={{ borderLeft: "5px solid #2563eb" }}>
                   <p className="fs-15 lh-lg text-dark fw-semibold mb-0" style={{ color: "#0f172a" }}>

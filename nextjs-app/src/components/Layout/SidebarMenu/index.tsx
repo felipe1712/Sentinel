@@ -57,9 +57,9 @@ const SidebarMenu: React.FC<SidebarMenuProps> = ({ toggleActive }) => {
 
       {/* Navigation List */}
       <div className="pt-4 px-3 pb-8 h-[calc(100vh-72px)] overflow-y-auto sidebar-custom-scrollbar">
-        {/* SECCION: ESTRATEGICO */}
+        {/* SECCION: SISTEMA DE INFORMACION GEOGRAFICA */}
         <span className="block font-bold uppercase text-gray-400 dark:text-gray-500 px-3 mb-2 text-[11px] tracking-wider">
-          Estratégico
+          Sistema de Información Geográfica
         </span>
         <nav className="space-y-1 mb-6">
           <Link href="/situacion" className={linkClass("/situacion")}>
@@ -113,7 +113,7 @@ const SidebarMenu: React.FC<SidebarMenuProps> = ({ toggleActive }) => {
           <Link href="/municipios" className={linkClass("/municipios")}>
             <span className="flex items-center gap-2.5">
               <i className="ri-map-pin-2-line text-[18px]"></i>
-              <span>Inteligencia Municipal</span>
+              <span>Información Municipal</span>
             </span>
           </Link>
 

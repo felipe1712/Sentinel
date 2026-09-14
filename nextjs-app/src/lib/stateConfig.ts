@@ -89,7 +89,7 @@ export const QUERETARO_CONFIG: StateConfig = {
       tag: "Prioridad 1 · Movilidad",
       region: "ZMQ",
       titulo: "Paseo 5 de Febrero",
-      descripcion: "Operativo especial de agilidad vial atendido por PoEs y municipio en nodos estratégicos. Flujo vehicular continuo en horas pico.",
+      descripcion: "Operativo especial de agilidad vial atendido por PoEs y municipio en nodos prioritarios. Flujo vehicular continuo en horas pico.",
       border: "border-danger",
       badgeBg: "bg-danger text-white",
     },
@@ -441,7 +441,7 @@ export const PUEBLA_CONFIG: StateConfig = {
       badgeBg: "bg-primary text-white",
     },
   ],
-  sintesisEjecutiva: "El Estado de Puebla mantiene estabilidad institucional y gobernabilidad plena en sus 217 municipios. Continúa el operativo metropolitano de seguridad y vigilancia estratégica en el corredor industrial Puebla-Tlaxcala y la autopista México-Puebla.",
+  sintesisEjecutiva: "El Estado de Puebla mantiene estabilidad institucional y gobernabilidad plena en sus 217 municipios. Continúa el operativo metropolitano de seguridad y vigilancia territorial en el corredor industrial Puebla-Tlaxcala y la autopista México-Puebla.",
   narrativas: [
     { id: "nar-pue-1", title: "Operativo Metropolitano de Seguridad Ciudadana", summary: "Refuerzo coordinado de patrullajes en Puebla Capital y zona conurbada.", category: "Seguridad", trend: "subiendo", volume_24h: 310, sentiment: "Positivo", region: "Metropolitana de Puebla" },
     { id: "nar-pue-2", title: "Plan Estatal de Infraestructura Hídrica y Carretera", summary: "Inversión histórica en redes hidráulicas y caminos de la Sierra Norte y Mixteca.", category: "Infraestructura", trend: "estable", volume_24h: 185, sentiment: "Positivo", region: "Sierra Norte" },

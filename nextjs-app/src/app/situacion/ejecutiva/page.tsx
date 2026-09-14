@@ -32,7 +32,7 @@ export default function SituacionEjecutivaGobernadorPage() {
                 {stateCfg.welcomeTitle}
               </h2>
               <p className="mb-0 fs-15 lh-lg fw-bold" style={{ color: "#334155" }}>
-                Resumen procesado de inteligencia territorial, paz pública y proyectos estratégicos para el {stateCfg.name}.
+                Resumen procesado de información territorial, paz pública y proyectos prioritarios para el {stateCfg.name}.
               </p>
             </div>
             <div className="col-lg-4 text-lg-end">
@@ -146,8 +146,8 @@ export default function SituacionEjecutivaGobernadorPage() {
         />
       </div>
 
-      {/* Prioridades Estratégicas del Día Dinámicas */}
-      <h5 className="fw-extrabold text-dark mb-3 fs-18" style={{ color: "#0f172a" }}>Prioridades Estratégicas del Día</h5>
+      {/* Prioridades del Día Dinámicas */}
+      <h5 className="fw-extrabold text-dark mb-3 fs-18" style={{ color: "#0f172a" }}>Prioridades del Día</h5>
       <div className="row g-4 mb-4">
         {stateCfg.prioridades.map((p, idx) => (
           <div key={idx} className="col-md-4">

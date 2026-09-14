@@ -183,7 +183,7 @@ export default function LoginPage() {
             </h2>
 
             <p className="text-muted fs-13 mb-0" style={{ color: "#9ca3af" }}>
-              Plataforma de Inteligencia Ejecutiva y Monitoreo Estratégico
+              Sistema de Información Geográfica y Monitoreo Territorial
             </p>
           </div>
 

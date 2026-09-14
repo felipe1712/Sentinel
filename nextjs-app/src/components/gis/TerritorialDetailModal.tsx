@@ -552,7 +552,7 @@ export const TerritorialDetailModal: React.FC<TerritorialDetailModalProps> = ({
                     <div className="card border border-gray-200 rounded-3 mb-3">
                       <div className="card-header bg-light py-2 px-3">
                         <span className="fs-12 fw-extrabold text-dark text-uppercase">
-                          Desglose Estratégico de Coaliciones (Opción A)
+                          Desglose de Coaliciones (Opción A)
                         </span>
                       </div>
                       <div className="card-body p-3">

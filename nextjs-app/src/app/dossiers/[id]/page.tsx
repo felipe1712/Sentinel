@@ -15,7 +15,7 @@ const DEFAULT_DOSSIER_MAP: Record<string, any> = {
   dos_qro_01: {
     id: "dos_qro_01",
     type: "Gira Municipal",
-    title: "Dossier Estratégico · Gira de Trabajo Santiago de Querétaro",
+    title: "Dossier Ejecutivo · Gira de Trabajo Santiago de Querétaro",
     bluf: "Análisis situacional de la capital: avance de obras en Paseo 5 de Febrero, coordinación PoEs/C4 municipal y temas prioritarios de concertación vecinal.",
     date: getFormattedDate(0),
     confidence: "Alta (98%)",
@@ -97,7 +97,7 @@ const DEFAULT_DOSSIER_MAP: Record<string, any> = {
   dos_gto_01: {
     id: "dos_gto_01",
     type: "Gira Municipal",
-    title: "Dossier Estratégico · Gira de Trabajo Corredor Industrial León - Silao",
+    title: "Dossier Ejecutivo · Gira de Trabajo Corredor Industrial León - Silao",
     bluf: "Análisis situacional metropolitano: movilidad sobre Eje Metropolitano, enlace con FSPE y proyectos del Clúster Automotriz Puerto Interior.",
     date: getFormattedDate(0),
     confidence: "Alta (98%)",
@@ -211,7 +211,7 @@ export default function DossierDetailPage() {
     return (
       <div className="pb-5 pt-4 text-center">
         <div className="spinner-border text-primary me-2" role="status"></div>
-        <span className="fw-bold text-dark fs-15">Cargando Dossier de Inteligencia...</span>
+        <span className="fw-bold text-dark fs-15">Cargando Dossier Ejecutivo...</span>
       </div>
     );
   }
@@ -274,7 +274,7 @@ export default function DossierDetailPage() {
               1. Situación Actual & Diagnóstico Territorial
             </h5>
             <p className="fs-15 lh-lg text-dark fw-semibold" style={{ color: "#0f172a" }}>
-              {data.content?.situacion_actual || "Diagnóstico estratégico actualizado para el Estado de Querétaro."}
+              {data.content?.situacion_actual || "Diagnóstico territorial actualizado para el Estado de Querétaro."}
             </p>
           </div>
 

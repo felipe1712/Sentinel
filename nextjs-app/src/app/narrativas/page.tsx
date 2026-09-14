@@ -39,7 +39,7 @@ export default function NarrativasPage() {
       <div className="d-flex flex-column flex-md-row align-items-md-center justify-content-between mb-4 gap-3">
         <div>
           <span className="badge bg-primary text-white text-uppercase px-3 py-1 fs-11 fw-bold mb-2 shadow-sm">
-            Inteligencia de Opinión Pública · {stateCfg.name}
+            Monitoreo de Opinión Pública · {stateCfg.name}
           </span>
           <h4 className="fw-extrabold text-dark mb-1 fs-24" style={{ color: "#0f172a" }}>
             Tracking de Narrativas & Momentum Mediático
@@ -68,7 +68,7 @@ export default function NarrativasPage() {
             <table className="table table-hover align-middle mb-0">
               <thead className="bg-light text-dark border-bottom">
                 <tr>
-                  <th className="text-dark fw-bold py-3 ps-4">Narrativa / Tema Estratégico</th>
+                  <th className="text-dark fw-bold py-3 ps-4">Narrativa / Tema Prioritario</th>
                   <th className="text-dark fw-bold">Categoría</th>
                   <th className="text-dark fw-bold">Región</th>
                   <th className="text-dark fw-bold">Tendencia</th>

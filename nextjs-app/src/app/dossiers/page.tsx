@@ -14,7 +14,7 @@ const getFormattedDate = (daysOffset: number = 0) => {
 const DEFAULT_DOSSIERS_GTO = [
   {
     id: "dos_gto_01",
-    title: "Dossier Estratégico · Gira de Trabajo Corredor Industrial León - Silao",
+    title: "Dossier Ejecutivo · Gira de Trabajo Corredor Industrial León - Silao",
     type: "Gira Municipal",
     bluf: "Análisis situacional metropolitano: movilidad sobre Eje Metropolitano, enlace con FSPE y proyectos del Clúster Automotriz Puerto Interior.",
     confidence: "Alta (98%)",
@@ -41,7 +41,7 @@ const DEFAULT_DOSSIERS_GTO = [
 const DEFAULT_DOSSIERS_QRO = [
   {
     id: "dos_qro_01",
-    title: "Dossier Estratégico · Gira de Trabajo Santiago de Querétaro",
+    title: "Dossier Ejecutivo · Gira de Trabajo Santiago de Querétaro",
     type: "Gira Municipal",
     bluf: "Análisis situacional de la capital: avance de obras en Paseo 5 de Febrero, coordinación PoEs/C4 municipal y temas prioritarios de concertación vecinal.",
     confidence: "Alta (98%)",
@@ -98,7 +98,7 @@ export default function DossiersPage() {
             {stateCfg.governorTitle}
           </span>
           <h4 className="fw-extrabold text-dark mb-1 fs-24" style={{ color: "#0f172a" }}>
-            Dossiers Ejecutivos de Inteligencia
+            Dossiers Ejecutivos
           </h4>
           <p className="text-dark fs-14 mb-0 fw-bold" style={{ color: "#334155" }}>
             Documentos estructurados con análisis situacional en tiempo real, perfiles, municipios e incidentes.

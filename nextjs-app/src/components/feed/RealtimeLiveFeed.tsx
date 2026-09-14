@@ -144,7 +144,7 @@ export default function RealtimeLiveFeed({
               </span>
             </div>
             <h5 className="fw-bold mb-0 text-dark fs-18" style={{ color: "#0f172a" }}>
-              Feed Multicanal de Inteligencia y Fuentes Vivas
+              Canales Conectados
             </h5>
             <p className="text-muted fs-13 mb-0">
               Monitoreo continuo de canales de Telegram, redes sociales (X) y despachos oficiales de {stateCfg.name}.
