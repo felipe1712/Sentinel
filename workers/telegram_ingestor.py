@@ -79,8 +79,51 @@ async def search_telegram_channels_live(query: str, state_name: str = "Guanajuat
 
 async def start_telegram_listener():
     logger.info("Iniciando servicio de escucha continua de Telegram en tiempo real...")
+    
+    state_targets = [
+        {"state_id": "00000000-0000-0000-0000-000000000011", "name": "Guanajuato", "channels": ["GobiernoGto", "AlertasCelayaBajio", "NoticiasGTO"]},
+        {"state_id": "11111111-1111-1111-1111-111111111111", "name": "Querétaro", "channels": ["NoticiasQueretaroHoy", "AlertaQroVial"]},
+        {"state_id": "21212121-2121-2121-2121-212121212121", "name": "Puebla", "channels": ["GobiernoPuebla", "AlertaPueblaSeguridad", "TraficoPueblaEnVivo"]}
+    ]
+
     while True:
-        await asyncio.sleep(60)
+        try:
+            async with httpx.AsyncClient(timeout=10.0) as client:
+                for target in state_targets:
+                    for ch in target["channels"]:
+                        url = f"https://t.me/s/{ch}"
+                        try:
+                            resp = await client.get(url, headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"})
+                            if resp.status_code == 200 and "/s/" in str(resp.url):
+                                import re
+                                msgs = re.findall(r'<div class="tgme_widget_message_text[^"]*"[^>]*>(.*?)</div>', resp.text, re.DOTALL)
+                                if msgs:
+                                    clean_txt = re.sub(r'<[^>]+>', '', msgs[-1]).strip()
+                                    if clean_txt:
+                                        payload = {
+                                            "state_id": target["state_id"],
+                                            "category": "Seguridad Pública" if "seguridad" in clean_txt.lower() else "Vialidad & Protección Civil",
+                                            "severity": "medio",
+                                            "title": f"[Telegram @{ch}] {clean_txt[:80]}...",
+                                            "summary": clean_txt[:250],
+                                            "ai_summary": f"Mensaje extraído en tiempo real desde canal @{ch}.",
+                                            "political_relevance": 7,
+                                            "location_text": target["name"],
+                                            "municipio": target["name"],
+                                            "status": "revisado"
+                                        }
+                                        await client.post(
+                                            f"{RUST_API_URL}/events",
+                                            json=payload,
+                                            headers={"X-Service-Token": SERVICE_TOKEN}
+                                        )
+                                        logger.info(f"Telegram Ingestor -> Publicado nuevo reporte desde @{ch} para {target['name']}")
+                        except Exception as e:
+                            logger.debug(f"Error consultando @{ch}: {e}")
+        except Exception as err:
+            logger.warning(f"Error en ciclo de escucha Telegram: {err}")
+        
+        await asyncio.sleep(180)
 
 if __name__ == "__main__":
     asyncio.run(start_telegram_listener())

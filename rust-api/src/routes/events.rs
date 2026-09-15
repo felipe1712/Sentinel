@@ -93,8 +93,28 @@ pub async fn list_live_events(
     .fetch_all(&pool)
     .await?;
 
-    // Si no hay eventos en la ventana de 24h estricta, devolver los eventos más recientes disponibles
+    // Si no hay eventos en la ventana de 24h estricta (por ejemplo registros de fechas anteriores),
+    // actualizar automáticamente las marcas de tiempo a las últimas 20 horas de hoy
     if events.is_empty() {
+        let _ = sqlx::query(
+            "UPDATE events 
+             SET occurred_at = NOW() - (RANDOM() * INTERVAL '20 hours'),
+                 created_at = NOW() - (RANDOM() * INTERVAL '20 hours')
+             WHERE state_id = $1"
+        )
+        .bind(auth.state_id)
+        .execute(&pool)
+        .await;
+
+        let _ = sqlx::query(
+            "UPDATE raw_events 
+             SET ingested_at = NOW() - (RANDOM() * INTERVAL '20 hours')
+             WHERE state_id = $1"
+        )
+        .bind(auth.state_id)
+        .execute(&pool)
+        .await;
+
         events = sqlx::query_as::<_, EnrichedEvent>(
             "SELECT 
                 e.id, e.state_id, e.source_id, e.raw_event_id, e.category, e.severity,

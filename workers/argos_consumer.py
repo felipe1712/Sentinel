@@ -88,5 +88,15 @@ async def fn_consume_argos_feed():
             except Exception as e:
                 logger.warning(f"Error procesando ingesta ARGOS para {state['name']}: {e}")
 
+async def main_loop():
+    logger.info("Iniciando bucle continuo de consumo ARGOS...")
+    while True:
+        try:
+            await fn_consume_argos_feed()
+        except Exception as e:
+            logger.error(f"Error en ciclo ARGOS: {e}")
+        await asyncio.sleep(120)
+
 if __name__ == "__main__":
-    asyncio.run(fn_consume_argos_feed())
+    asyncio.run(main_loop())
+

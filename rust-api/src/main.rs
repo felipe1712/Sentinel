@@ -5,6 +5,7 @@ mod error;
 mod geo;
 mod models;
 mod routes;
+mod telegram_syncer;
 
 use config::Config;
 use std::net::SocketAddr;
@@ -43,6 +44,12 @@ async fn main() -> anyhow::Result<()> {
             }
         }
     };
+
+    // Iniciar worker en segundo plano para sincronizar y mantener frescos los eventos de fuentes vivas (Telegram / Redes / Oficiales)
+    let syncer_pool = pool.clone();
+    tokio::spawn(async move {
+        telegram_syncer::start_telegram_syncer(syncer_pool).await;
+    });
 
     let app = routes::create_router(pool);
 
