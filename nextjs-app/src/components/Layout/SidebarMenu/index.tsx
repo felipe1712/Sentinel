@@ -137,46 +137,50 @@ const SidebarMenu: React.FC<SidebarMenuProps> = ({ toggleActive }) => {
           </Link>
         </nav>
 
-        {/* SECCION: OPERACION & FUENTES */}
-        <span className="block font-bold uppercase text-gray-400 dark:text-gray-500 px-3 mb-2 text-[11px] tracking-wider">
-          Operación & Fuentes
-        </span>
-        <nav className="space-y-1 mb-6">
-          <Link href="/fuentes" className={linkClass("/fuentes")}>
-            <span className="flex items-center gap-2.5">
-              <i className="ri-rss-line text-[18px]"></i>
-              <span>Source Manager & ARGOS</span>
+        {/* SECCION: OPERACION & FUENTES (OCULTO EN PUEBLA) */}
+        {!isPuebla && (
+          <>
+            <span className="block font-bold uppercase text-gray-400 dark:text-gray-500 px-3 mb-2 text-[11px] tracking-wider">
+              Operación & Fuentes
             </span>
-          </Link>
+            <nav className="space-y-1 mb-6">
+              <Link href="/fuentes" className={linkClass("/fuentes")}>
+                <span className="flex items-center gap-2.5">
+                  <i className="ri-rss-line text-[18px]"></i>
+                  <span>Source Manager & ARGOS</span>
+                </span>
+              </Link>
 
-          <Link href="/fuentes/telegram" className={linkClass("/fuentes/telegram")}>
-            <span className="flex items-center gap-2.5">
-              <i className="ri-telegram-line text-[18px] text-[#229ED9]"></i>
-              <span>Canales Telegram</span>
-            </span>
-          </Link>
+              <Link href="/fuentes/telegram" className={linkClass("/fuentes/telegram")}>
+                <span className="flex items-center gap-2.5">
+                  <i className="ri-telegram-line text-[18px] text-[#229ED9]"></i>
+                  <span>Canales Telegram</span>
+                </span>
+              </Link>
 
-          <Link href="/fuentes/twitter" className={linkClass("/fuentes/twitter")}>
-            <span className="flex items-center gap-2.5">
-              <i className="ri-twitter-x-line text-[18px]"></i>
-              <span>Monitor X / Twitter</span>
-            </span>
-          </Link>
+              <Link href="/fuentes/twitter" className={linkClass("/fuentes/twitter")}>
+                <span className="flex items-center gap-2.5">
+                  <i className="ri-twitter-x-line text-[18px]"></i>
+                  <span>Monitor X / Twitter</span>
+                </span>
+              </Link>
 
-          <Link href="/ciberseguridad" className={linkClass("/ciberseguridad")}>
-            <span className="flex items-center gap-2.5">
-              <i className="ri-shield-keyhole-line text-[18px]"></i>
-              <span>Audit SpiderFoot</span>
-            </span>
-          </Link>
+              <Link href="/ciberseguridad" className={linkClass("/ciberseguridad")}>
+                <span className="flex items-center gap-2.5">
+                  <i className="ri-shield-keyhole-line text-[18px]"></i>
+                  <span>Audit SpiderFoot</span>
+                </span>
+              </Link>
 
-          <Link href="/reportes" className={linkClass("/reportes")}>
-            <span className="flex items-center gap-2.5">
-              <i className="ri-printer-line text-[18px]"></i>
-              <span>Reportes PDF</span>
-            </span>
-          </Link>
-        </nav>
+              <Link href="/reportes" className={linkClass("/reportes")}>
+                <span className="flex items-center gap-2.5">
+                  <i className="ri-printer-line text-[18px]"></i>
+                  <span>Reportes PDF</span>
+                </span>
+              </Link>
+            </nav>
+          </>
+        )}
 
         {/* SECCION: ADMINISTRACION (EXCLUSIVA SUPERADMINISTRADOR FUERA DE PUEBLA) */}
         {!isPuebla && isSuperAdmin && (

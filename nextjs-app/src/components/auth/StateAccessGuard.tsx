@@ -144,10 +144,11 @@ export default function StateAccessGuard({ children }: StateAccessGuardProps) {
     );
   }
 
-  // 3. Bloqueo total de administración en Puebla Demo
+  // 3. Bloqueo total de administración y operación/fuentes en Puebla Demo
   const isAdminRoute = pathname.startsWith("/admin") || pathname.startsWith("/auditoria");
+  const isOperacionRoute = pathname.startsWith("/fuentes") || pathname.startsWith("/ciberseguridad");
 
-  if (isPuebla && isAdminRoute) {
+  if (isPuebla && (isAdminRoute || isOperacionRoute)) {
     return (
       <div className="min-h-[70vh] flex items-center justify-center p-4">
         <div className="max-w-md w-full bg-white dark:bg-[#0c1427] border border-red-500/30 rounded-2xl p-6 text-center shadow-lg">
@@ -158,7 +159,7 @@ export default function StateAccessGuard({ children }: StateAccessGuardProps) {
             Módulo No Disponible
           </h3>
           <p className="text-xs text-gray-600 dark:text-gray-400 mb-5 leading-relaxed">
-            El módulo de administración se encuentra deshabilitado para esta instancia de demostración.
+            Este módulo se encuentra deshabilitado para esta instancia de demostración.
           </p>
           <button
             onClick={() => router.push("/situacion")}
