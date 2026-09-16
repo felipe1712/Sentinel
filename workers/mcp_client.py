@@ -81,7 +81,7 @@ news_feed_breaker = CircuitBreaker("NEWS_FEED_API", failure_threshold=3, recover
 # 2. INVOCACIÓN DE GDELT 2.0 (intel_gdelt_search)
 # =============================================================================
 GDELT_BASE_URL = os.getenv("GDELT_BASE_URL", "https://api.gdeltproject.org/api/v2/doc/doc")
-GDELT_TIMEOUT_SECS = float(os.getenv("GDELT_TIMEOUT_SECS", "8.0"))
+GDELT_TIMEOUT_SECS = float(os.getenv("GDELT_TIMEOUT_SECS", "15.0"))
 
 async def invoke_gdelt_search(query: str, state_name: str, max_records: int = 15, timespan: str = "24h") -> List[Dict[str, Any]]:
     """
@@ -103,7 +103,7 @@ async def invoke_gdelt_search(query: str, state_name: str, max_records: int = 15
     }
 
     try:
-        async with httpx.AsyncClient(timeout=GDELT_TIMEOUT_SECS) as client:
+        async with httpx.AsyncClient(timeout=GDELT_TIMEOUT_SECS, follow_redirects=True) as client:
             resp = await client.get(GDELT_BASE_URL, params=params)
             if resp.status_code == 200:
                 data = resp.json()
@@ -141,8 +141,8 @@ async def invoke_gdelt_search(query: str, state_name: str, max_records: int = 15
                 gdelt_breaker.record_failure(Exception(err_msg))
                 return _get_gdelt_contingency_results(query, state_name)
     except httpx.TimeoutException as e:
-        logger.warning(f"[GDELT] Timeout ({GDELT_TIMEOUT_SECS}s) contactando api.gdeltproject.org: {e}")
-        gdelt_breaker.record_failure(e)
+        logger.warning(f"[GDELT] Latencia alta o timeout ({GDELT_TIMEOUT_SECS}s) contactando api.gdeltproject.org. Activando contingencia territorial.")
+        # No penalizar el circuit breaker con apertura dura ante latencias transitorias del servicio público internacional
         return _get_gdelt_contingency_results(query, state_name)
     except Exception as e:
         logger.warning(f"[GDELT] Error de red saliente hacia api.gdeltproject.org: {e}")
