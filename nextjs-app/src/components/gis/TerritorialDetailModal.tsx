@@ -3,6 +3,7 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { ElectoralResult } from "@/lib/electoralTypes";
 import { getPartyColor, PARTY_COLORS } from "@/lib/gisColors";
+import { getStateConfig } from "@/lib/stateConfig";
 
 interface TerritorialDetailModalProps {
   isOpen: boolean;
@@ -25,6 +26,7 @@ export const TerritorialDetailModal: React.FC<TerritorialDetailModalProps> = ({
   electoralCache,
   municipiosList,
 }) => {
+  const stateCfg = useMemo(() => getStateConfig(), []);
   const [modalYear, setModalYear] = useState<number>(currentYear);
   const [modalElectionType, setModalElectionType] = useState<"gubernatura" | "diputaciones">(currentElectionType);
   const [activeTab, setActiveTab] = useState<"resultados" | "tendencias" | "secciones">("resultados");
@@ -40,11 +42,17 @@ export const TerritorialDetailModal: React.FC<TerritorialDetailModalProps> = ({
     }
   }, [isOpen, currentYear, currentElectionType]);
 
-  // Si se cambia a gubernatura mientras estaba en 2021, ajustar a 2024
+  // Si se cambia a gubernatura en Puebla, ajustar a 2021 si era 2024
   const handleElectionTypeChange = (type: "gubernatura" | "diputaciones") => {
     setModalElectionType(type);
-    if (type === "gubernatura" && modalYear === 2021) {
-      setModalYear(2024);
+    if (stateCfg.key === "pue") {
+      if (type === "gubernatura" && modalYear === 2024) {
+        setModalYear(2021);
+      }
+    } else {
+      if (type === "gubernatura" && modalYear === 2021) {
+        setModalYear(2024);
+      }
     }
   };
 
@@ -61,7 +69,7 @@ export const TerritorialDetailModal: React.FC<TerritorialDetailModalProps> = ({
   }, [selectedSection, baseBoundary]);
 
   const territoryTitle = selectedSection?.featureTitle || `Territorio ${territoryId}`;
-  const territorySubtitle = selectedSection?.featureSubtitle || "Guanajuato";
+  const territorySubtitle = selectedSection?.featureSubtitle || stateCfg.shortName;
 
   // Obtener resultado electoral según los filtros internos del modal
   const activeResult: ElectoralResult | null = useMemo(() => {
@@ -115,8 +123,11 @@ export const TerritorialDetailModal: React.FC<TerritorialDetailModalProps> = ({
 
   // Años y datos para la gráfica de tendencias
   const trendYears = useMemo(() => {
-    return modalElectionType === "diputaciones" ? [2018, 2021, 2024] : [2018, 2024];
-  }, [modalElectionType]);
+    if (modalElectionType === "diputaciones") {
+      return [2018, 2021, 2024];
+    }
+    return stateCfg.key === "pue" ? [2018, 2021] : [2018, 2024];
+  }, [modalElectionType, stateCfg.key]);
 
   const trendData = useMemo(() => {
     return trendYears.map((yr) => {
@@ -325,13 +336,16 @@ export const TerritorialDetailModal: React.FC<TerritorialDetailModalProps> = ({
 
   if (!isOpen || !selectedSection) return null;
 
-  const winnerParty = activeResult?.ganador_partido || "PAN";
-  const winnerColor = getPartyColor(winnerParty);
+  const hasVotes = Boolean(activeResult && activeResult.total_votos && activeResult.total_votos > 0);
+  const rawWinner = activeResult?.ganador_partido;
+  const isNoData = !hasVotes || !rawWinner || rawWinner === "Sin datos";
+  const winnerParty = isNoData ? "Sin votación registrada" : rawWinner;
+  const winnerColor = isNoData ? "#64748b" : getPartyColor(winnerParty);
 
   // Voto de coalición vs Voto Puro
   const vPanAli = activeResult?.votos_partidos?.["PAN_ALIANZA"] ?? activeResult?.votos_partidos?.["PAN-PRI-PRD"] ?? activeResult?.votos_partidos?.["PAN-PRD-MC"] ?? 0;
   const vPanPuro = activeResult?.votos_partidos?.["PAN_PURO"] ?? activeResult?.votos_partidos?.["PAN"] ?? vPanAli;
-  const vOppAli = activeResult?.votos_partidos?.["OPOSICION_ALIANZA"] ?? activeResult?.votos_partidos?.["MORENA-PT-PVEM"] ?? activeResult?.votos_partidos?.["MORENA-PT-PES"] ?? 0;
+  const vOppAli = activeResult?.votos_partidos?.["MORENA-PT-PVEM"] ?? activeResult?.votos_partidos?.["MORENA-PT-PES"] ?? activeResult?.votos_partidos?.["OPOSICION_ALIANZA"] ?? activeResult?.votos_partidos?.["MORENA"] ?? 0;
   const vMc = activeResult?.votos_partidos?.["MC"] ?? 0;
 
   return (
@@ -404,7 +418,7 @@ export const TerritorialDetailModal: React.FC<TerritorialDetailModalProps> = ({
                 <i className="ri-calendar-line text-primary me-1"></i> Ciclo:
               </span>
               <div className="btn-group" role="group">
-                {(modalElectionType === "diputaciones" ? [2018, 2021, 2024] : [2018, 2024]).map((yr) => (
+                {(modalElectionType === "diputaciones" ? [2018, 2021, 2024] : (stateCfg.key === "pue" ? [2018, 2021] : [2018, 2024])).map((yr) => (
                   <button
                     key={yr}
                     type="button"
@@ -581,12 +595,12 @@ export const TerritorialDetailModal: React.FC<TerritorialDetailModalProps> = ({
                           </div>
                         </div>
 
-                        {/* Fila Oposición */}
+                        {/* Fila Coalición MORENA */}
                         <div className="mb-3">
                           <div className="d-flex justify-content-between align-items-center mb-1 fs-12 fw-bold text-dark">
                             <span>
                               <i className="ri-checkbox-blank-circle-fill me-1" style={{ color: PARTY_COLORS["MORENA"] }}></i>
-                              Coalición Oposición (MORENA + Aliados)
+                              Coalición MORENA (MORENA + Aliados)
                             </span>
                             <span>{Number(vOppAli).toLocaleString()} votos ({activeResult?.total_votos ? ((Number(vOppAli) / activeResult.total_votos) * 100).toFixed(1) : 0}%)</span>
                           </div>
@@ -1018,7 +1032,7 @@ export const TerritorialDetailModal: React.FC<TerritorialDetailModalProps> = ({
                       </table>
                     </div>
 
-                    {/* Diagnóstico de Alternancia */}
+                    {/* Diagnóstico de Alternancia / Estabilidad */}
                     <div className="p-3 bg-light rounded-3 border border-gray-200">
                       <span className="fs-11 text-muted fw-bold text-uppercase d-block mb-2">
                         Diagnóstico de Estabilidad Territorial
@@ -1026,39 +1040,31 @@ export const TerritorialDetailModal: React.FC<TerritorialDetailModalProps> = ({
                       {(() => {
                         const r2018 = historicalResults[2018]?.ganador_partido;
                         const r2024 = historicalResults[2024]?.ganador_partido;
-                        const panWins18 = r2018?.includes("PAN");
-                        const panWins24 = r2024?.includes("PAN");
 
-                        if (!r2018 || !r2024) {
-                          return <span className="fs-13 text-muted">Datos insuficientes para determinar alternancia completa.</span>;
+                        if (
+                          !r2018 ||
+                          !r2024 ||
+                          r2018 === "Sin datos" ||
+                          r2024 === "Sin datos" ||
+                          r2018.includes("Sin votación") ||
+                          r2024.includes("Sin votación")
+                        ) {
+                          return <span className="fs-13 text-muted">Datos insuficientes para determinar comparativa histórica.</span>;
                         }
 
-                        if (panWins18 && panWins24) {
+                        const sameWinner = r2018 === r2024;
+                        if (sameWinner) {
                           return (
-                            <div className="alert alert-success d-flex align-items-center gap-2 mb-0 py-2 fs-13 fw-bold">
-                              <i className="ri-shield-check-fill fs-18"></i>
-                              Bastión Retenido: La coalición del PAN retuvo este territorio tanto en 2018 como en 2024.
-                            </div>
-                          );
-                        } else if (!panWins18 && !panWins24) {
-                          return (
-                            <div className="alert alert-danger d-flex align-items-center gap-2 mb-0 py-2 fs-13 fw-bold">
-                              <i className="ri-alert-fill fs-18"></i>
-                              Territorio Opositor Consolidado: Ganado por la oposición en ambos ciclos.
-                            </div>
-                          );
-                        } else if (panWins18 && !panWins24) {
-                          return (
-                            <div className="alert alert-warning d-flex align-items-center gap-2 mb-0 py-2 fs-13 fw-bold">
-                              <i className="ri-swap-line fs-18"></i>
-                              Alternancia a la Oposición: Ganado por el PAN en 2018 y cedido en 2024.
+                            <div className="alert alert-secondary d-flex align-items-center gap-2 mb-0 py-2 fs-13 fw-bold text-dark border">
+                              <i className="ri-shield-check-fill fs-18 text-primary"></i>
+                              Continuidad Electoral: Ganado por {r2024} en ambos ciclos (2018 y 2024).
                             </div>
                           );
                         } else {
                           return (
-                            <div className="alert alert-info d-flex align-items-center gap-2 mb-0 py-2 fs-13 fw-bold">
-                              <i className="ri-arrow-up-circle-fill fs-18"></i>
-                              Territorio Recuperado: Recuperado por el PAN en 2024.
+                            <div className="alert alert-info d-flex align-items-center gap-2 mb-0 py-2 fs-13 fw-bold text-dark border">
+                              <i className="ri-swap-line fs-18 text-primary"></i>
+                              Alternancia Electoral: Ganado por {r2018} en 2018 y ganado por {r2024} en 2024.
                             </div>
                           );
                         }
@@ -1103,11 +1109,11 @@ export const TerritorialDetailModal: React.FC<TerritorialDetailModalProps> = ({
                           {filteredSections.map((s) => {
                             const pColor = getPartyColor(s.ganador_partido);
                             const margin = s.margen_victoria_pct || 0;
-                            let statusBadge = <span className="badge bg-success">Bastión</span>;
+                            let statusBadge = <span className="badge bg-success">Consolidada</span>;
                             if (margin < 5) {
                               statusBadge = <span className="badge bg-warning text-dark">Disputada</span>;
                             } else if (margin < 15) {
-                              statusBadge = <span className="badge bg-info text-dark">Favorable</span>;
+                              statusBadge = <span className="badge bg-info text-dark">Ventaja Moderada</span>;
                             }
 
                             return (
@@ -1149,7 +1155,7 @@ export const TerritorialDetailModal: React.FC<TerritorialDetailModalProps> = ({
           {/* Footer del Modal */}
           <div className="modal-footer bg-light border-0 py-2 px-4 d-flex justify-content-between">
             <span className="text-muted fs-11">
-              <i className="ri-information-line me-1"></i> Análisis electoral SentinelIQ · INE Guanajuato
+              <i className="ri-information-line me-1"></i> Análisis electoral SentinelIQ · INE {stateCfg.shortName}
             </span>
             <button type="button" className="btn btn-secondary btn-sm fw-bold px-4" onClick={onClose}>
               Cerrar Ficha
