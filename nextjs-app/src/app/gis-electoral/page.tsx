@@ -111,7 +111,12 @@ export default function GisElectoralPage() {
     }
 
     // Cargar caché de resultados electorales según el estado activo
-    const cacheUrl = cfg.key === "pue" ? "/data/pue_electoral_results_cache.json" : "/data/electoral_results_cache.json";
+    const cacheUrl =
+      cfg.key === "pue"
+        ? "/data/pue_electoral_results_cache.json"
+        : cfg.key === "qro"
+        ? "/data/qro_electoral_results_cache.json"
+        : "/data/electoral_results_cache.json";
     fetch(cacheUrl)
       .then((res) => res.json())
       .then((data) => setElectoralCache(data))
@@ -124,7 +129,7 @@ export default function GisElectoralPage() {
 
   const handleSelectElectionType = (type: "gubernatura" | "diputaciones") => {
     setElectionType(type);
-    if (stateCfg.key === "pue") {
+    if (stateCfg.key === "pue" || stateCfg.key === "qro") {
       if (type === "gubernatura") {
         if (selectedYear === 2024) setSelectedYear(2021);
       } else {
@@ -238,7 +243,7 @@ export default function GisElectoralPage() {
             sectionResult={selectedSectionResult}
             associatedEvents={[]}
             selectedYear={selectedYear}
-            totalSectionsCount={stateCfg.key === "pue" ? 2847 : 3357}
+            totalSectionsCount={stateCfg.key === "pue" ? 2847 : stateCfg.key === "qro" ? 922 : 3357}
             selectedMunicipio={selectedMunicipio}
             municipiosList={currentMunicipiosList}
             electoralCache={electoralCache}

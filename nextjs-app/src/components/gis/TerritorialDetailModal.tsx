@@ -42,10 +42,10 @@ export const TerritorialDetailModal: React.FC<TerritorialDetailModalProps> = ({
     }
   }, [isOpen, currentYear, currentElectionType]);
 
-  // Si se cambia a gubernatura en Puebla, ajustar a 2021 si era 2024
+  // Si se cambia a gubernatura en Puebla o Querétaro, ajustar a 2021 si era 2024
   const handleElectionTypeChange = (type: "gubernatura" | "diputaciones") => {
     setModalElectionType(type);
-    if (stateCfg.key === "pue") {
+    if (stateCfg.key === "pue" || stateCfg.key === "qro") {
       if (type === "gubernatura" && modalYear === 2024) {
         setModalYear(2021);
       }
@@ -126,7 +126,7 @@ export const TerritorialDetailModal: React.FC<TerritorialDetailModalProps> = ({
     if (modalElectionType === "diputaciones") {
       return [2018, 2021, 2024];
     }
-    return stateCfg.key === "pue" ? [2018, 2021] : [2018, 2024];
+    return (stateCfg.key === "pue" || stateCfg.key === "qro") ? [2018, 2021] : [2018, 2024];
   }, [modalElectionType, stateCfg.key]);
 
   const trendData = useMemo(() => {
@@ -418,7 +418,7 @@ export const TerritorialDetailModal: React.FC<TerritorialDetailModalProps> = ({
                 <i className="ri-calendar-line text-primary me-1"></i> Ciclo:
               </span>
               <div className="btn-group" role="group">
-                {(modalElectionType === "diputaciones" ? [2018, 2021, 2024] : (stateCfg.key === "pue" ? [2018, 2021] : [2018, 2024])).map((yr) => (
+                {(modalElectionType === "diputaciones" ? [2018, 2021, 2024] : ((stateCfg.key === "pue" || stateCfg.key === "qro") ? [2018, 2021] : [2018, 2024])).map((yr) => (
                   <button
                     key={yr}
                     type="button"
@@ -562,11 +562,11 @@ export const TerritorialDetailModal: React.FC<TerritorialDetailModalProps> = ({
                       </div>
                     </div>
 
-                    {/* Análisis Opción A: Voto Duro vs Coalición */}
+                    {/* Desglose por Bloques y Coaliciones */}
                     <div className="card border border-gray-200 rounded-3 mb-3">
                       <div className="card-header bg-light py-2 px-3">
                         <span className="fs-12 fw-extrabold text-dark text-uppercase">
-                          Desglose de Coaliciones (Opción A)
+                          Desglose por Bloques y Coaliciones
                         </span>
                       </div>
                       <div className="card-body p-3">

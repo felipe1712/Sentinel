@@ -267,7 +267,7 @@ export const ElectoralStatsPanel: React.FC<StatsPanelProps> = ({
               </span>
               <h5 className="fw-extrabold text-dark mb-1">{currentMpioObj?.nombre}</h5>
               <div className="d-flex justify-content-between fs-12 text-muted fw-bold">
-                <span>Estado de Guanajuato</span>
+                <span>Estado de {stateCfg?.name || "Guanajuato"}</span>
                 <span className="badge bg-primary text-white">Zoom Activo</span>
               </div>
             </div>
@@ -345,10 +345,10 @@ export const ElectoralStatsPanel: React.FC<StatsPanelProps> = ({
               <span className="fs-11 text-muted fw-bold text-uppercase d-block mb-1">
                 Marco Geográfico Activo
               </span>
-              <h5 className="fw-extrabold text-dark mb-1">Estado de Guanajuato</h5>
+              <h5 className="fw-extrabold text-dark mb-1">Estado de {stateCfg?.name || "Guanajuato"}</h5>
               <div className="d-flex justify-content-between fs-12 text-muted fw-bold">
-                <span>3,357 Secciones Electorales</span>
-                <span>46 Municipios</span>
+                <span>{totalSectionsCount.toLocaleString()} Secciones Electorales</span>
+                <span>{municipiosList.length || stateCfg?.totalMunicipios || 46} Municipios</span>
               </div>
             </div>
 
