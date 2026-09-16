@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { getStateConfig } from "@/lib/stateConfig";
 
 export type Role = "superadmin" | "gabinete" | "gobernador" | "analista";
 
@@ -172,8 +173,26 @@ export const GLOBAL_SUPERADMIN_USER: UserProfile = {
   active: true,
 };
 
+// Usuario Demo Institucional para Puebla (Acceso libre de demostración sin credenciales)
+export const PUEBLA_DEMO_USER: UserProfile = {
+  id: "u_pue_demo",
+  name: "Invitado Demo Puebla",
+  email: "demo@puebla.gob.mx",
+  cargo: "Demostración Institucional / Gabinete",
+  role: "gabinete",
+  state_key: "pue",
+  active: true,
+};
+
 export function getDefaultUsersForState(stateKey: string): UserProfile[] {
   const normalized = stateKey.toLowerCase().trim();
+  if (normalized === "pue") {
+    // Para Puebla solo retornar usuarios no-administradores y demo
+    return [
+      PUEBLA_DEMO_USER,
+      ...PREDEFINED_USERS_BY_STATE["pue"].filter((u) => u.role !== "superadmin"),
+    ];
+  }
   const list = PREDEFINED_USERS_BY_STATE[normalized] || [];
   // Asegurar que el superadministrador global esté disponible en ambos estados
   return [GLOBAL_SUPERADMIN_USER, ...list];
@@ -182,9 +201,20 @@ export function getDefaultUsersForState(stateKey: string): UserProfile[] {
 export function getStoredUser(): UserProfile | null {
   if (typeof window === "undefined") return null;
   try {
+    const stateCfg = getStateConfig();
     const userStr = localStorage.getItem("sentineliq_user");
-    if (!userStr) return null;
-    return JSON.parse(userStr) as UserProfile;
+    if (!userStr) {
+      if (stateCfg.key === "pue") {
+        return PUEBLA_DEMO_USER;
+      }
+      return null;
+    }
+    const parsed = JSON.parse(userStr) as UserProfile;
+    // Si estamos en Puebla pero el usuario almacenado es superadmin o de otro estado, forzar perfil demo
+    if (stateCfg.key === "pue" && (parsed.role === "superadmin" || parsed.state_key !== "pue")) {
+      return PUEBLA_DEMO_USER;
+    }
+    return parsed;
   } catch {
     return null;
   }
@@ -202,11 +232,17 @@ export function setStoredUser(user: UserProfile | null): void {
 
 export function logout(): void {
   if (typeof window === "undefined") return;
+  const stateCfg = getStateConfig();
   localStorage.removeItem("sentineliq_user");
   localStorage.removeItem("sentineliq_token");
   document.cookie = "authUser=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
   window.dispatchEvent(new Event("sentineliq_auth_change"));
-  window.location.href = "/login";
+  if (stateCfg.key === "pue") {
+    // En Puebla regresa a /situacion en modo demo público
+    window.location.href = "/situacion";
+  } else {
+    window.location.href = "/login";
+  }
 }
 
 export function useRole() {
@@ -214,7 +250,17 @@ export function useRole() {
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
-    setUser(getStoredUser());
+    const stateCfg = getStateConfig();
+    let current = getStoredUser();
+    if (stateCfg.key === "pue") {
+      if (!current || current.role === "superadmin" || current.state_key !== "pue") {
+        current = PUEBLA_DEMO_USER;
+        setStoredUser(PUEBLA_DEMO_USER);
+        localStorage.setItem("sentineliq_token", "sentineliq_internal_service_token_2026");
+        document.cookie = "authUser=sentineliq_internal_service_token_2026; path=/; max-age=86400";
+      }
+    }
+    setUser(current);
     setLoaded(true);
 
     const handleStorageChange = () => {

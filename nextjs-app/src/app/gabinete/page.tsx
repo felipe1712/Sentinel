@@ -3,13 +3,13 @@
 import React, { useState, useEffect, useRef } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import SemaforoCard from "@/components/velzon/SemaforoCard";
+import SemaforoCard from "@/components/situacion/SemaforoCard";
 import api from "@/lib/api";
 import { getStateConfig, StateConfig } from "@/lib/stateConfig";
 
 // Dynamically import SituacionalMap
 const SituacionalMap = dynamic(
-  () => import("@/components/velzon/SituacionalMap"),
+  () => import("@/components/situacion/SituacionalMap"),
   { ssr: false, loading: () => <div className="p-5 text-center text-dark fs-16 fw-bold">Cargando Mapa del Estado...</div> }
 );
 

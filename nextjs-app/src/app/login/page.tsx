@@ -8,6 +8,7 @@ import {
   GLOBAL_SUPERADMIN_USER,
   getDefaultUsersForState,
   PREDEFINED_USERS_BY_STATE,
+  PUEBLA_DEMO_USER,
 } from "@/hooks/useRole";
 import { getStateConfig, getStateConfigByKey, StateConfig } from "@/lib/stateConfig";
 import { api, SERVICE_TOKEN } from "@/lib/api";
@@ -21,8 +22,15 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    setStateCfg(getStateConfig());
-  }, []);
+    const cfg = getStateConfig();
+    setStateCfg(cfg);
+    if (cfg.key === "pue") {
+      setStoredUser(PUEBLA_DEMO_USER);
+      localStorage.setItem("sentineliq_token", SERVICE_TOKEN);
+      document.cookie = `authUser=${SERVICE_TOKEN}; path=/; max-age=86400`;
+      router.replace("/situacion");
+    }
+  }, [router]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();

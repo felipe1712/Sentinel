@@ -274,9 +274,11 @@ export default function TelegramSearchPage() {
                 </p>
               </div>
             </div>
-            <Link href="/admin/keys" className="btn btn-outline-primary btn-sm fw-bold text-nowrap">
-              <i className="ri-key-2-line me-1"></i> Configurar API Keys
-            </Link>
+            {stateCfg.key !== "pue" && (
+              <Link href="/admin/keys" className="btn btn-outline-primary btn-sm fw-bold text-nowrap">
+                <i className="ri-key-2-line me-1"></i> Configurar API Keys
+              </Link>
+            )}
           </div>
         </div>
       </div>

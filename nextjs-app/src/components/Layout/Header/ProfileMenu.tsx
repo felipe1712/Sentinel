@@ -18,6 +18,7 @@ const ProfileMenu: React.FC = () => {
   const [active, setActive] = useState<boolean>(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const stateCfg = getStateConfig();
+  const isPuebla = stateCfg.key === "pue";
 
   const currentRoleInfo = (role && ROLE_LABELS[role]) || ROLE_LABELS.analista;
   const stateUsers = getDefaultUsersForState(stateCfg.key);
@@ -170,8 +171,8 @@ const ProfileMenu: React.FC = () => {
             </div>
           )}
 
-          {/* Enlace a Administración si es Superadministrador */}
-          {isSuperAdmin && (
+          {/* Enlace a Administración si es Superadministrador (fuera de Puebla) */}
+          {!isPuebla && isSuperAdmin && (
             <div className="px-3 pt-2">
               <Link
                 href="/admin"

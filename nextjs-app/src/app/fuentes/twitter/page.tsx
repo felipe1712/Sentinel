@@ -142,9 +142,11 @@ export default function TwitterSearchPage() {
                 </p>
               </div>
             </div>
-            <Link href="/admin/keys" className="btn btn-outline-primary btn-sm fw-bold text-nowrap">
-              <i className="ri-key-2-line me-1"></i> Configurar Bearer Token
-            </Link>
+            {stateCfg.key !== "pue" && (
+              <Link href="/admin/keys" className="btn btn-outline-primary btn-sm fw-bold text-nowrap">
+                <i className="ri-key-2-line me-1"></i> Configurar Bearer Token
+              </Link>
+            )}
           </div>
         </div>
       </div>

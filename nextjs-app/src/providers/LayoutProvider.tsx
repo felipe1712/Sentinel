@@ -26,15 +26,7 @@ const LayoutProvider: React.FC<LayoutProviderProps> = ({ children }) => {
     pathname === "/login/" ||
     pathname.startsWith("/login") ||
     pathname.startsWith("/authentication/") ||
-    [
-      "/coming-soon/",
-      "/coming-soon",
-      "/",
-      "/front-pages/features/",
-      "/front-pages/team/",
-      "/front-pages/faq/",
-      "/front-pages/contact/",
-    ].includes(pathname);
+    pathname === "/";
 
   if (isAuthPage) {
     return (

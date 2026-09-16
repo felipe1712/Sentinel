@@ -3,15 +3,15 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
-import SemaforoCard from "@/components/velzon/SemaforoCard";
-import SeverityBadge from "@/components/velzon/SeverityBadge";
+import SemaforoCard from "@/components/situacion/SemaforoCard";
+import SeverityBadge from "@/components/situacion/SeverityBadge";
 import api from "@/lib/api";
 import { getStateConfig, StateConfig } from "@/lib/stateConfig";
 import RealtimeLiveFeed from "@/components/feed/RealtimeLiveFeed";
 
 // Dynamically import SituacionalMap
 const SituacionalMap = dynamic(
-  () => import("@/components/velzon/SituacionalMap"),
+  () => import("@/components/situacion/SituacionalMap"),
   { ssr: false, loading: () => <div className="p-4 text-center text-dark fw-bold fs-14">Cargando Mapa del Estado...</div> }
 );
 

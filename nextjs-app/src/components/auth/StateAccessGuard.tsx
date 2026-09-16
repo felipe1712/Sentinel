@@ -15,18 +15,20 @@ export default function StateAccessGuard({ children }: StateAccessGuardProps) {
   const { user, role, loaded, isAuthenticated } = useRole();
   const stateCfg = getStateConfig();
 
+  const isPuebla = stateCfg.key === "pue";
+
   // Rutas exentas de validación de sesión (login y flujos auth)
   const isAuthRoute =
     pathname === "/login" ||
     pathname === "/login/" ||
     pathname.startsWith("/authentication/");
 
-  // Redirigir de manera segura dentro de useEffect si no está autenticado
+  // Redirigir de manera segura dentro de useEffect si no está autenticado (excepto en Puebla demo)
   useEffect(() => {
-    if (loaded && !isAuthenticated && !isAuthRoute) {
+    if (loaded && !isAuthenticated && !isAuthRoute && !isPuebla) {
       router.replace("/login");
     }
-  }, [loaded, isAuthenticated, isAuthRoute, router]);
+  }, [loaded, isAuthenticated, isAuthRoute, isPuebla, router]);
 
   if (!loaded) {
     return (
@@ -142,8 +144,35 @@ export default function StateAccessGuard({ children }: StateAccessGuardProps) {
     );
   }
 
-  // 3. Control de acceso a la ruta /admin (Exclusivo Superadministrador)
-  if (pathname.startsWith("/admin") && role !== "superadmin") {
+  // 3. Bloqueo total de administración en Puebla Demo
+  const isAdminRoute = pathname.startsWith("/admin") || pathname.startsWith("/auditoria");
+
+  if (isPuebla && isAdminRoute) {
+    return (
+      <div className="min-h-[70vh] flex items-center justify-center p-4">
+        <div className="max-w-md w-full bg-white dark:bg-[#0c1427] border border-red-500/30 rounded-2xl p-6 text-center shadow-lg">
+          <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-red-100 text-red-600 dark:bg-red-950/50 dark:text-red-400 flex items-center justify-center text-2xl">
+            <i className="ri-shield-keyhole-line"></i>
+          </div>
+          <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">
+            Módulo No Disponible
+          </h3>
+          <p className="text-xs text-gray-600 dark:text-gray-400 mb-5 leading-relaxed">
+            El módulo de administración se encuentra deshabilitado para esta instancia de demostración.
+          </p>
+          <button
+            onClick={() => router.push("/situacion")}
+            className="px-4 py-2 bg-primary-600 text-white text-xs font-bold rounded-lg hover:bg-primary-700 transition-all shadow-sm"
+          >
+            Regresar a Situación Ejecutiva
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // 4. Control de acceso a la ruta /admin (Exclusivo Superadministrador para otros estados)
+  if (isAdminRoute && role !== "superadmin") {
     return (
       <div className="min-h-[70vh] flex items-center justify-center p-4">
         <div className="max-w-md w-full bg-white dark:bg-[#0c1427] border border-amber-500/30 rounded-2xl p-6 text-center shadow-lg">

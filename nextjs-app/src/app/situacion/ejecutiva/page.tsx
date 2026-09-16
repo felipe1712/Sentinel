@@ -7,7 +7,7 @@ import { getStateConfig, StateConfig } from "@/lib/stateConfig";
 import RealtimeLiveFeed from "@/components/feed/RealtimeLiveFeed";
 
 const SituacionalMap = dynamic(
-  () => import("@/components/velzon/SituacionalMap"),
+  () => import("@/components/situacion/SituacionalMap"),
   { ssr: false, loading: () => <div className="p-5 text-center text-dark fs-16 fw-bold">Cargando Mapa Situacional...</div> }
 );
 
