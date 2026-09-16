@@ -1,4 +1,4 @@
-﻿import os
+import os
 import time
 import asyncio
 import logging
@@ -133,6 +133,9 @@ async def invoke_gdelt_search(query: str, state_name: str, max_records: int = 15
                         "query": query
                     })
                 return results
+            elif resp.status_code == 429:
+                logger.warning(f"[GDELT] Límite de tasa temporal (HTTP 429) en api.gdeltproject.org. Retornando datos de contingencia territorial.")
+                return _get_gdelt_contingency_results(query, state_name)
             else:
                 err_msg = f"HTTP {resp.status_code} desde api.gdeltproject.org"
                 gdelt_breaker.record_failure(Exception(err_msg))

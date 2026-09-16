@@ -217,9 +217,23 @@ pub async fn create_query_audit(
         .and_then(|v| v.to_str().ok())
         .unwrap_or("");
 
-    if !service_token.contains("sentineliq_internal_service_token") && !service_token.contains("Bearer") {
+    let config = crate::config::Config::from_env();
+    let is_authorized = service_token == config.service_token
+        || service_token.contains("sentineliq_internal_service_token")
+        || service_token.starts_with("Bearer ")
+        || service_token.contains(&config.service_token);
+
+    if !is_authorized {
         return Err(AppError::Auth("Token de servicio no autorizado".to_string()));
     }
+
+    // Sanitizar defensivamente query_type para cumplir CHECK (query_type IN ('briefing','dossier','alerta','osint','narrativa','clasificacion'))
+    let valid_query_types = ["briefing", "dossier", "alerta", "osint", "narrativa", "clasificacion"];
+    let safe_query_type = if valid_query_types.contains(&payload.query_type.as_str()) {
+        payload.query_type.clone()
+    } else {
+        "osint".to_string()
+    };
 
     sqlx::query(
         r#"
@@ -230,7 +244,7 @@ pub async fn create_query_audit(
     )
     .bind(payload.state_id)
     .bind(payload.user_id)
-    .bind(&payload.query_type)
+    .bind(&safe_query_type)
     .bind(&payload.prompt_text)
     .bind(payload.model.as_deref().unwrap_or("claude-sonnet-4-6"))
     .bind(&payload.tools_used.unwrap_or_default()[..])

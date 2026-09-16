@@ -148,8 +148,9 @@ class TestPostNormalization(unittest.TestCase):
 
         self.assertIn("[TWITTER]", event["title"])
         self.assertEqual(event["municipio"], "San Juan del Río")
-        self.assertEqual(event["category"], "movilidad")
-        self.assertIn(event["severity"], ("alta", "critica"))
+        self.assertEqual(event["category"], "seguridad")
+        self.assertIn(event["severity"], ("alto", "critico"))
+        self.assertTrue(0 <= event["political_relevance"] <= 10)
         self.assertEqual(event["source_type"], "data365_twitter")
         self.assertTrue(len(event["dedup_hash"]) == 64)
         self.assertEqual(event["entities"]["autor"], "@AlertaQro")

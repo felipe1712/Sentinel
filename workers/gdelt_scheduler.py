@@ -95,28 +95,32 @@ def normalize_gdelt_article(article: Dict[str, Any], state_key: str) -> Dict[str
     municipio, lat, lng, clave = geocode_territory(f"{title} {url}", state_key=state_key)
 
     clean_lower = title.lower()
-    severity = "baja"
+    severity = "bajo"
     if any(w in clean_lower for w in ["urgente", "alerta", "bloqueo", "balacera", "explosion", "enfrentamiento"]):
-        severity = "critica"
+        severity = "critico"
     elif any(w in clean_lower for w in ["accidente", "choque", "incendio", "detenido", "volcadura", "fallece"]):
-        severity = "alta"
+        severity = "alto"
     elif any(w in clean_lower for w in ["precaucion", "cierre vial", "lluvia", "encharcamiento", "trafico"]):
-        severity = "media"
+        severity = "medio"
 
     category = "seguridad"
-    if any(w in clean_lower for w in ["autopista", "vialidad", "carretera", "choque", "transito", "carril"]):
-        category = "movilidad"
-    elif any(w in clean_lower for w in ["clima", "lluvia", "dren", "inundacion", "frente frio"]):
+    if any(w in clean_lower for w in ["clima", "lluvia", "dren", "inundacion", "frente frio"]):
         category = "proteccion_civil"
     elif any(w in clean_lower for w in ["salud", "hospital", "vacunacion"]):
         category = "salud"
     elif any(w in clean_lower for w in ["acuerdo", "inversion", "obras", "infraestructura", "gobierno"]):
-        category = "gobernabilidad"
+        category = "politico"
+    elif any(w in clean_lower for w in ["autopista", "vialidad", "carretera", "choque", "transito", "carril"]):
+        category = "seguridad"
+    else:
+        category = "seguridad"
 
     dedup_hash = article.get("dedup_hash")
     if not dedup_hash:
         import hashlib
         dedup_hash = hashlib.sha256(f"gdelt:{url}".encode("utf-8")).hexdigest()
+
+    relevance = 8 if severity in ("alto", "critico") else 4
 
     return {
         "title": f"[GDELT] {title[:110]}",
@@ -131,7 +135,7 @@ def normalize_gdelt_article(article: Dict[str, Any], state_key: str) -> Dict[str
         "original_url": url,
         "dedup_hash": dedup_hash,
         "source_type": "gdelt",
-        "political_relevance": 70 if severity in ("alta", "critica") else 45,
+        "political_relevance": relevance,
         "occurred_at": datetime.now(timezone.utc).isoformat(),
         "entities": {
             "dominio": domain,
@@ -183,7 +187,7 @@ async def record_query_audit(
 
     payload = {
         "state_id": state_uuid,
-        "query_type": "territorial_gdelt",
+        "query_type": "osint",
         "prompt_text": f"[GDELT 2.0] Monitoreo de prensa territorial: {query_text}",
         "model": "world-intel-mcp-v2",
         "tools_used": ["intel_gdelt_search", "territorial_geocoder", "event_deduplicator"],
@@ -203,7 +207,7 @@ async def record_query_audit(
 
 
 async def run_single_state_cycle(state_key: str) -> Dict[str, Any]:
-    """Ejecuta consultas territoriales GDELT para un estado."""
+    """Ejecuta consultas territoriales GDELT para un estado con pausa anti-rate limit."""
     cfg = GDELT_TERRITORIAL_QUERIES.get(state_key, {})
     state_name = cfg.get("state_name", state_key.upper())
     queries = cfg.get("queries", [])
@@ -237,6 +241,9 @@ async def run_single_state_cycle(state_key: str) -> Dict[str, Any]:
             latency_ms = int((time.time() - q_start) * 1000)
             logger.error(f"Error en consulta GDELT '{q}' ({state_name}): {exc}")
             await record_query_audit(state_key, q, 0, latency_ms, False)
+
+        # Pausa de 5 segundos entre consultas para respetar la tasa de api.gdeltproject.org y prevenir HTTP 429
+        await asyncio.sleep(5)
 
     elapsed = round(time.time() - start_time, 2)
     metrics = {

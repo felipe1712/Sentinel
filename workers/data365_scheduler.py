@@ -71,6 +71,7 @@ TERRITORIAL_QUERIES = {
 async def send_event_to_api(event_data: Dict[str, Any], state_key: str) -> Tuple[bool, bool]:
     """
     Envía un evento normalizado al backend Rust (`POST /events`).
+    Garantiza conformidad con los CHECK constraints de PostgreSQL.
     Retorna una tupla: (éxito: bool, es_nuevo: bool)
     """
     endpoint = f"{RUST_API_URL}/events"
@@ -80,20 +81,52 @@ async def send_event_to_api(event_data: Dict[str, Any], state_key: str) -> Tuple
         "X-State-Key": state_key,
     }
 
+    # Normalización defensiva de severidad para cumplir CHECK (severity IN ('critico','alto','medio','bajo','informativo'))
+    raw_sev = str(event_data.get("severity", "bajo")).lower()
+    sev_map = {
+        "critica": "critico", "critico": "critico",
+        "alta": "alto", "alto": "alto",
+        "media": "medio", "medio": "medio",
+        "baja": "bajo", "bajo": "bajo",
+        "informativo": "informativo"
+    }
+    severity = sev_map.get(raw_sev, "bajo")
+
+    # Normalización defensiva de categoría para cumplir CHECK (category IN ('seguridad','proteccion_civil','salud','politico','social','economia','ciberseguridad'))
+    raw_cat = str(event_data.get("category", "seguridad")).lower()
+    cat_map = {
+        "movilidad": "seguridad",
+        "gobernabilidad": "politico",
+    }
+    category = cat_map.get(raw_cat, raw_cat)
+    valid_cats = {'seguridad', 'proteccion_civil', 'salud', 'politico', 'social', 'economia', 'ciberseguridad'}
+    if category not in valid_cats:
+        category = "seguridad"
+
+    # political_relevance acotado a 0..10 para cumplir CHECK (political_relevance BETWEEN 0 AND 10)
+    raw_rel = event_data.get("political_relevance", 4)
+    try:
+        relevance = int(raw_rel)
+        if relevance > 10:
+            relevance = 8 if severity in ("alto", "critico") else 4
+    except (ValueError, TypeError):
+        relevance = 4
+    relevance = max(0, min(10, relevance))
+
     # Transformar a formato CreateEventDTO
     payload = {
         "title": event_data.get("title", ""),
         "summary": event_data.get("summary", ""),
         "ai_summary": event_data.get("ai_summary", ""),
-        "category": event_data.get("category", "seguridad"),
-        "severity": event_data.get("severity", "baja"),
+        "category": category,
+        "severity": severity,
         "location_text": event_data.get("location_text", ""),
         "municipio": event_data.get("municipio"),
         "lat": event_data.get("lat"),
         "lng": event_data.get("lng"),
         "dedup_hash": event_data.get("dedup_hash"),
         "original_url": event_data.get("original_url"),
-        "political_relevance": event_data.get("political_relevance", 40),
+        "political_relevance": relevance,
         "entities": event_data.get("entities", {}),
         "occurred_at": event_data.get("occurred_at"),
     }
@@ -102,9 +135,6 @@ async def send_event_to_api(event_data: Dict[str, Any], state_key: str) -> Tuple
         async with httpx.AsyncClient(timeout=10.0) as client:
             resp = await client.post(endpoint, json=payload, headers=headers)
             if resp.status_code in (200, 201):
-                res_json = resp.json()
-                # Si el dedup_hash ya existía, el backend retorna el registro existente sin error
-                # Detectamos si es nuevo o existente comprobando si fue recién insertado
                 return True, True
             else:
                 logger.warning(f"Error al enviar evento a Rust API [{resp.status_code}]: {resp.text}")
@@ -124,6 +154,7 @@ async def record_query_audit(
 ):
     """
     Registra la consulta territorial en la tabla `query_audit` de la Rust API.
+    query_type debe ser uno de: ('briefing','dossier','alerta','osint','narrativa','clasificacion').
     """
     endpoint = f"{RUST_API_URL}/admin/query-audit"
     state_uuid = STATE_UUIDS.get(state_key, STATE_UUIDS["qro"])
@@ -136,7 +167,7 @@ async def record_query_audit(
 
     payload = {
         "state_id": state_uuid,
-        "query_type": "territorial_data365",
+        "query_type": "osint",
         "prompt_text": f"[{platform.upper()}] Monitoreo territorial: {query_text}",
         "model": "data365-v1.1-social-agent",
         "tools_used": ["data365_search", "territorial_geocoder", "event_deduplicator"],
@@ -199,6 +230,9 @@ async def run_single_state_cycle(client: Data365Client, state_key: str) -> Dict[
             latency_ms = int((time.time() - q_start) * 1000)
             logger.error(f"Error procesando consulta '{query}' ({platform}) en {state_key}: {exc}")
             await record_query_audit(state_key, query, platform, 0, latency_ms, status=f"error: {str(exc)[:50]}")
+
+        # Pequeña pausa entre consultas para dosificar la tasa hacia la API Data365
+        await asyncio.sleep(2)
 
     elapsed = round(time.time() - start_time, 2)
     metrics = {
