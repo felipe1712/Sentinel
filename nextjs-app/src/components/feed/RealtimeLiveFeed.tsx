@@ -66,7 +66,14 @@ export default function RealtimeLiveFeed({
       }
 
       if (resp.data && Array.isArray(resp.data) && resp.data.length > 0) {
-        setEvents(resp.data);
+        const seen = new Set<string>();
+        const unique = resp.data.filter((ev: EnrichedEvent) => {
+          const k = (ev.title || "").trim().toLowerCase();
+          if (seen.has(k)) return false;
+          seen.add(k);
+          return true;
+        });
+        setEvents(unique);
       } else {
         // Fallback enriquecido inicial por estado si la BD aún no tiene registros en la ventana
         setEvents(getDefaultFeedForState(stateCfg.key));

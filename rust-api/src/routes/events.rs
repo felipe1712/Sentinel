@@ -29,7 +29,7 @@ pub async fn list_events(
 ) -> Result<Json<Vec<Event>>, AppError> {
     let limit = params.limit.unwrap_or(50);
 
-    let events = sqlx::query_as::<_, Event>(
+    let mut events = sqlx::query_as::<_, Event>(
         "SELECT * FROM events 
          WHERE state_id = $1 
            AND ($2::varchar IS NULL OR severity = $2)
@@ -45,6 +45,12 @@ pub async fn list_events(
     .bind(limit)
     .fetch_all(&pool)
     .await?;
+
+    let mut seen_titles = std::collections::HashSet::new();
+    events.retain(|ev| {
+        let k = ev.title.trim().to_lowercase();
+        seen_titles.insert(k)
+    });
 
     Ok(Json(events))
 }
@@ -156,6 +162,13 @@ pub async fn list_live_events(
         .await?;
     }
 
+    // Deduplicación en memoria por título para evitar notas repetidas en la cronología y mapa
+    let mut seen_titles = std::collections::HashSet::new();
+    events.retain(|ev| {
+        let k = ev.title.trim().to_lowercase();
+        seen_titles.insert(k)
+    });
+
     Ok(Json(events))
 }
 
@@ -178,6 +191,19 @@ pub async fn create_event(
         if let Some(ev) = existing {
             return Ok(Json(ev));
         }
+    }
+
+    // Idempotencia adicional: si ya existe un evento idéntico con el mismo título en las últimas 12 horas, retornar el existente
+    let existing_by_title = sqlx::query_as::<_, Event>(
+        "SELECT * FROM events WHERE state_id = $1 AND title = $2 AND occurred_at >= NOW() - interval '12 hours' LIMIT 1"
+    )
+    .bind(auth.state_id)
+    .bind(&payload.title)
+    .fetch_optional(&pool)
+    .await?;
+
+    if let Some(ev) = existing_by_title {
+        return Ok(Json(ev));
     }
 
     let event_id = Uuid::new_v4();

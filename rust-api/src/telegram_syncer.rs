@@ -141,6 +141,20 @@ async fn ingest_next_live_event(pool: &PgPool, step: usize) -> anyhow::Result<()
         let (category, severity, title, summary, ai_summary, relevance, loc_text, lat, lng, mun, source_ident, raw_msg) = 
             get_live_template(&state.clave_inegi, step);
 
+        // Si ya existe un evento con este título para este estado, NO volver a insertarlo (evita eventos repetidos)
+        let exists: bool = sqlx::query_scalar(
+            "SELECT EXISTS(SELECT 1 FROM events WHERE state_id = $1 AND title = $2)"
+        )
+        .bind(state.id)
+        .bind(title)
+        .fetch_one(pool)
+        .await
+        .unwrap_or(false);
+
+        if exists {
+            continue;
+        }
+
         let source = sources
             .iter()
             .find(|s| s.identifier == source_ident)
@@ -220,7 +234,7 @@ fn get_live_template(clave_inegi: &str, step: usize) -> (
                     "⚠️ #CELAYA [Telegram @AlertaBajioOficial - En Vivo] FSPE y Guardia Nacional despliegan unidades de supervisión en tramo Celaya - Apaseo. Circulación continua en ambos sentidos, precaución al volante."
                 ),
                 (
-                    "movilidad", "medio",
+                    "seguridad", "medio",
                     "Fluidez Vial y Monitoreo en Blvd. Adolfo López Mateos (Zona Centro León)",
                     "Reporte ciudadano en vivo confirma flujo ordenado y despeje tras incidente menor.",
                     "Atención en tiempo óptimo por unidades de vialidad municipal y policía vial.",
@@ -279,7 +293,7 @@ fn get_live_template(clave_inegi: &str, step: usize) -> (
                     "🌋 #Popocatepetl [PC Estatal Puebla]: Se mantiene monitoreo del coloso en Amarillo Fase 2. Actividad dentro de parámetros normales sin riesgo para la población."
                 ),
                 (
-                    "movilidad", "medio",
+                    "seguridad", "medio",
                     "Agilidad y Reordenamiento Vial en Periférico Ecológico (Tramo Cuautlancingo)",
                     "Canal de movilidad ciudadana informa tránsito fluido tras agilización de carriles laterales.",
                     "Cuadrillas de señalamiento operan en horario diurno sin generar congestión severa.",
@@ -311,7 +325,7 @@ fn get_live_template(clave_inegi: &str, step: usize) -> (
         _ => { // Querétaro (22)
             let templates = [
                 (
-                    "movilidad", "medio",
+                    "seguridad", "medio",
                     "Dispositivo de Agilidad Vial en Paseo 5 de Febrero (Epigmenio González)",
                     "PoEs y personal de movilidad agilizan incorporación vehicular en carril lateral.",
                     "Tránsito sostenido con apoyo de semaforización adaptativa.",

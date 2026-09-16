@@ -99,7 +99,15 @@ export default function GabineteView() {
     try {
       const resp = await api.get(`/events/live?municipio=${encodeURIComponent(mMatch.nombre)}&hours=24&limit=10`);
       if (resp.data && Array.isArray(resp.data) && resp.data.length > 0) {
-        liveTimeline = resp.data.map((ev: EnrichedEvent) => {
+        const seen = new Set<string>();
+        const uniqueEvents = resp.data.filter((ev: EnrichedEvent) => {
+          const k = (ev.title || "").trim().toLowerCase();
+          if (seen.has(k)) return false;
+          seen.add(k);
+          return true;
+        });
+
+        liveTimeline = uniqueEvents.map((ev: EnrichedEvent) => {
           const d = new Date(ev.occurred_at);
           const day = d.getDate().toString().padStart(2, "0");
           const months = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
