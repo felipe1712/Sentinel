@@ -18,6 +18,7 @@ echo "🗄️ Inicializando Bases de Datos PostgreSQL y Redis..."
 echo "----------------------------------------------------------"
 docker compose -p sentineliq-qro -f docker-compose.prod.yml up -d sentineliq-postgres sentineliq-redis
 docker compose -p sentineliq-gto -f docker-compose.gto.yml up -d sentineliq-gto-postgres sentineliq-gto-redis
+docker compose -p sentineliq-pue -f docker-compose.pue.yml up -d sentineliq-pue-postgres sentineliq-pue-redis 2>/dev/null || true
 
 echo "⏳ Verificando disponibilidad de bases de datos..."
 sleep 3
@@ -37,6 +38,7 @@ for sql_file in rust-api/migrations/*.sql; do
       echo "  -> Aplicando nueva migración: $fname"
       docker exec -i sentineliq_postgres psql -U sentinel -d sentineliq < "$sql_file" 2>/dev/null || true
       docker exec -i sentineliq_gto_postgres psql -U sentineliq -d sentineliq_gto < "$sql_file" 2>/dev/null || true
+      docker exec -i sentineliq_pue_postgres psql -U sentineliq -d sentineliq_pue < "$sql_file" 2>/dev/null || true
       echo "$fname" >> "$APPLIED_LOG"
       pending_migrations=$((pending_migrations + 1))
     fi
@@ -84,6 +86,14 @@ echo "----------------------------------------------------------"
 echo "🟩 Desplegando Guanajuato (:3005, :8086)..."
 echo "----------------------------------------------------------"
 docker compose -p sentineliq-gto -f docker-compose.gto.yml up -d --build --remove-orphans
+
+# 5.1 Recompilar y levantar Puebla
+if [ -f "docker-compose.pue.yml" ]; then
+  echo "----------------------------------------------------------"
+  echo "🟪 Desplegando Puebla (:3006, :8087)..."
+  echo "----------------------------------------------------------"
+  docker compose -p sentineliq-pue -f docker-compose.pue.yml up -d --build --remove-orphans 2>/dev/null || true
+fi
 
 # 6. Configurar Nginx para permitir subida de archivos grandes (PDFs de 16MB a 100MB)
 echo "📁 Verificando configuración de subida (client_max_body_size 100M) en Nginx..."

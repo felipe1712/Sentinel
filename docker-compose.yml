@@ -91,7 +91,7 @@ services:
       DATA365_BASE_URL: ${DATA365_BASE_URL:-https://api.data365.co/v1.1}
       DATA365_CALLBACK_URL: ${DATA365_CALLBACK_URL:-""}
       GDELT_BASE_URL: ${GDELT_BASE_URL:-https://api.gdeltproject.org/api/v2/doc/doc}
-      GDELT_TIMEOUT_SECS: ${GDELT_TIMEOUT_SECS:-8.0}
+      GDELT_TIMEOUT_SECS: ${GDELT_TIMEOUT_SECS:-15.0}
     depends_on:
       - rust-api
       - redis
