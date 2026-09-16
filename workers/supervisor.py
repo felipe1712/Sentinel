@@ -17,9 +17,9 @@ logging.basicConfig(level=logging.INFO, format="[%(asctime)s] [Supervisor] %(mes
 logger = logging.getLogger("supervisor")
 
 SERVICES = [
-    ("Briefing Generator", [sys.executable, "briefing_generator.py"]),
-    ("Data365 Scheduler", [sys.executable, "data365_scheduler.py"]),
-    ("GDELT Scheduler", [sys.executable, "gdelt_scheduler.py"]),
+    ("Briefing Generator", [sys.executable, "-u", "briefing_generator.py"]),
+    ("Data365 Scheduler", [sys.executable, "-u", "data365_scheduler.py"]),
+    ("GDELT Scheduler", [sys.executable, "-u", "gdelt_scheduler.py"]),
 ]
 
 def main():

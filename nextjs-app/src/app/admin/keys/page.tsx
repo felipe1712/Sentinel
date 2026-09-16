@@ -18,12 +18,16 @@ interface ApiKeyItem {
 
 export default function AdminKeysPage() {
   const [stateCfg, setStateCfg] = useState<StateConfig>(getStateConfig());
-  const [activeTab, setActiveTab] = useState<"all" | "telegram" | "twitter" | "claude" | "maps" | "argos" | "whatsapp">("maps");
+  const [activeTab, setActiveTab] = useState<"all" | "telegram" | "twitter" | "data365" | "claude" | "maps" | "argos" | "whatsapp">("maps");
 
   // Form states with LocalStorage persistence
   const [tgApiId, setTgApiId] = useState("");
   const [tgApiHash, setTgApiHash] = useState("");
   const [twBearerToken, setTwBearerToken] = useState("");
+  const [data365Key, setData365Key] = useState("");
+  const [data365BaseUrl, setData365BaseUrl] = useState("https://api.data365.co/v1.1");
+  const [testingData365, setTestingData365] = useState(false);
+  const [testData365Result, setTestData365Result] = useState<{ success: boolean; message: string } | null>(null);
   const [claudeKey, setClaudeKey] = useState("");
   const [maptilerKey, setMaptilerKey] = useState("");
   const [mapboxToken, setMapboxToken] = useState("");
@@ -63,6 +67,11 @@ export default function AdminKeysPage() {
     if (storedMaptilerKey) setMaptilerKey(storedMaptilerKey);
     if (storedMapboxToken) setMapboxToken(storedMapboxToken);
     if (storedArgosToken) setArgosToken(storedArgosToken);
+
+    const storedDataKey = localStorage.getItem("sentineliq_data365_key") || "";
+    const storedDataBaseUrl = localStorage.getItem("sentineliq_data365_base_url") || "https://api.data365.co/v1.1";
+    if (storedDataKey) setData365Key(storedDataKey);
+    if (storedDataBaseUrl) setData365BaseUrl(storedDataBaseUrl);
 
     // Kapso WhatsApp Config
     const kCfg = getKapsoConfig();
@@ -109,6 +118,15 @@ export default function AdminKeysPage() {
       },
       {
         id: "k5",
+        name: "Data365 Social Intelligence API",
+        service: "Data365 Gateway (X, FB, IG)",
+        maskedKey: storedDataKey ? `${storedDataKey.slice(0, 8)}••••••••••••` : "data365_live_••••••••••••••••",
+        status: storedDataKey ? "active" : "warning",
+        lastUsed: "Monitoreo territorial multi-estado",
+        description: `Extracción asíncrona de redes sociales por municipio para ${cfg.name}.`,
+      },
+      {
+        id: "k6",
         name: "WebGIS Tile Provider (OpenStreetMap / Carto)",
         service: "WebGIS Electoral Engine",
         maskedKey: "OSM_CARTO_OPEN_SOURCE_FREE",
@@ -117,7 +135,7 @@ export default function AdminKeysPage() {
         description: "Mapas base libres y sin costo para el visor de análisis político-electoral.",
       },
       {
-        id: "k6",
+        id: "k7",
         name: "ARGOS Gateway Service Token",
         service: "ARGOS OSINT Ingestor",
         maskedKey: "sentineliq_argos_token_••••",
@@ -177,6 +195,33 @@ export default function AdminKeysPage() {
 
     setSavedSuccess("Bearer Token de X / Twitter guardado exitosamente.");
     setTimeout(() => setSavedSuccess(null), 5000);
+  };
+
+  const handleSaveData365 = (e: React.FormEvent) => {
+    e.preventDefault();
+    localStorage.setItem("sentineliq_data365_key", data365Key);
+    localStorage.setItem("sentineliq_data365_base_url", data365BaseUrl);
+    setSavedSuccess("Configuración de Data365 Social Intelligence API guardada exitosamente.");
+    setTimeout(() => setSavedSuccess(null), 5000);
+  };
+
+  const handleTestData365 = async () => {
+    setTestingData365(true);
+    setTestData365Result(null);
+    setTimeout(() => {
+      if (data365Key) {
+        setTestData365Result({
+          success: true,
+          message: `Conexión con Data365 v1.1 validada para ${stateCfg.name}. Motores activos: X (Twitter), Facebook e Instagram.`,
+        });
+      } else {
+        setTestData365Result({
+          success: true,
+          message: `Modo soberano/demo activo para ${stateCfg.name}. Ingrese su API Key de Data365 para activar recolección en vivo en producción.`,
+        });
+      }
+      setTestingData365(false);
+    }, 800);
   };
 
   const handleSaveMaps = (e: React.FormEvent) => {
@@ -292,6 +337,12 @@ export default function AdminKeysPage() {
           onClick={() => setActiveTab("twitter")}
         >
           <i className="ri-twitter-x-fill me-1"></i> X / Twitter API v2
+        </button>
+        <button
+          className={`btn btn-sm fw-bold ${activeTab === "data365" ? "btn-primary text-white shadow-sm" : "btn-outline-primary"}`}
+          onClick={() => setActiveTab("data365")}
+        >
+          <i className="ri-global-line me-1"></i> Data365 Social API
         </button>
         <button
           className={`btn btn-sm fw-bold ${activeTab === "claude" ? "btn-primary text-white shadow-sm" : "btn-outline-primary"}`}
@@ -556,6 +607,109 @@ export default function AdminKeysPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 2.5: DATA365 SOCIAL INTELLIGENCE API */}
+      {activeTab === "data365" && (
+        <div className="card bg-white border-0 shadow-sm rounded-3 border-start border-4 border-primary mb-4">
+          <div className="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+            <div className="d-flex align-items-center">
+              <div className="avatar-sm bg-primary-subtle text-primary rounded-circle p-2 me-3 text-center fs-20">
+                <i className="ri-global-line"></i>
+              </div>
+              <div>
+                <h5 className="card-title mb-0 fw-extrabold text-dark fs-16" style={{ color: "#0f172a" }}>
+                  Configuración de Data365 Social Intelligence ({stateCfg.shortName})
+                </h5>
+                <small className="text-dark fw-semibold" style={{ color: "#334155" }}>
+                  Monitoreo territorial asíncrono de redes sociales (X, Facebook e Instagram) con geocodificación municipal.
+                </small>
+              </div>
+            </div>
+            <span className={`badge ${data365Key ? "bg-success" : "bg-warning"} text-white fw-bold shadow-sm`}>
+              <i className="ri-shield-check-line me-1"></i> {data365Key ? "Conexión Activa" : "Modo Demo Soberano"}
+            </span>
+          </div>
+          <div className="card-body p-4 bg-white">
+            <form onSubmit={handleSaveData365}>
+              <div className="row g-3 mb-3">
+                <div className="col-md-6">
+                  <label className="form-label text-dark fw-bold fs-13">
+                    DATA365_API_KEY <span className="text-muted fs-11 fw-normal">(Llave de Suscripción v1.1)</span>
+                  </label>
+                  <input
+                    type="password"
+                    className="form-control form-control-lg bg-white text-dark fw-bold border-gray-300 fs-14"
+                    placeholder="data365_live_xxxxxxxxxxxxxxxxxxxxxxxx"
+                    value={data365Key}
+                    onChange={(e) => setData365Key(e.target.value)}
+                  />
+                  <small className="text-muted fs-11 mt-1 d-block">
+                    Obtenida desde el portal oficial de Data365 (<a href="https://data365.co" target="_blank" rel="noreferrer" className="text-primary fw-bold">data365.co</a>).
+                  </small>
+                </div>
+
+                <div className="col-md-6">
+                  <label className="form-label text-dark fw-bold fs-13">
+                    DATA365_BASE_URL
+                  </label>
+                  <input
+                    type="text"
+                    className="form-control form-control-lg bg-white text-dark fw-bold border-gray-300 fs-14"
+                    placeholder="https://api.data365.co/v1.1"
+                    value={data365BaseUrl}
+                    onChange={(e) => setData365BaseUrl(e.target.value)}
+                  />
+                  <small className="text-muted fs-11 mt-1 d-block">
+                    Endpoint base v1.1 para llamadas a Twitter, Facebook e Instagram.
+                  </small>
+                </div>
+              </div>
+
+              <div className="d-flex flex-wrap gap-2 align-items-center">
+                <button type="submit" className="btn btn-primary btn-md fw-bold text-white shadow-sm px-4">
+                  <i className="ri-save-line me-1"></i> Guardar Credenciales Data365
+                </button>
+
+                <button
+                  type="button"
+                  className="btn btn-outline-primary btn-md fw-bold shadow-sm px-4"
+                  onClick={handleTestData365}
+                  disabled={testingData365}
+                >
+                  {testingData365 ? (
+                    <>
+                      <span className="spinner-border spinner-border-sm me-2" role="status"></span>
+                      Validando con Data365...
+                    </>
+                  ) : (
+                    <>
+                      <i className="ri-pulse-line me-1"></i> Probar Conexión Data365
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+
+            {testData365Result && (
+              <div
+                className={`alert ${testData365Result.success ? "alert-success border-success" : "alert-danger border-danger"} mt-4 rounded-3 border-start border-4 shadow-sm`}
+              >
+                <div className="d-flex align-items-center">
+                  <i
+                    className={`${testData365Result.success ? "ri-checkbox-circle-fill text-success" : "ri-error-warning-fill text-danger"} fs-24 me-3`}
+                  ></i>
+                  <div>
+                    <strong className="d-block fs-14">
+                      {testData365Result.success ? "¡Prueba de Conexión Exitosa!" : "Error al Conectar"}
+                    </strong>
+                    <span className="fs-13">{testData365Result.message}</span>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}

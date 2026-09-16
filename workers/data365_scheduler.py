@@ -19,7 +19,7 @@ import json
 import logging
 import asyncio
 from datetime import datetime, timezone
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Tuple, Optional
 
 import httpx
 from data365_client import Data365Client, STATE_UUIDS
