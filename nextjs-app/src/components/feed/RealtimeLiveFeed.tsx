@@ -20,10 +20,12 @@ export interface EnrichedEvent {
   status?: string;
   occurred_at: string;
   created_at?: string;
-  source_type?: string; // 'telegram' | 'twitter' | 'oficial' | 'api_federal' | 'rss'
+  source_type?: string; // 'telegram' | 'twitter' | 'oficial' | 'api_federal' | 'rss' | 'gdelt' | 'news_feed' | 'data365_twitter' | 'data365_facebook' | 'data365_instagram'
   source_name?: string;
   source_identifier?: string;
   source_credibility?: string;
+  original_url?: string;
+  dedup_hash?: string;
   raw_text?: string;
 }
 
@@ -45,7 +47,7 @@ export default function RealtimeLiveFeed({
   const [stateCfg, setStateCfg] = useState<StateConfig>(getStateConfig());
   const [events, setEvents] = useState<EnrichedEvent[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<"all" | "telegram" | "twitter" | "oficial">("all");
+  const [activeTab, setActiveTab] = useState<"all" | "telegram" | "twitter" | "data365" | "gdelt" | "oficial">("all");
   const [selectedSeverity, setSelectedSeverity] = useState<string>("all");
   const [timeWindowHours, setTimeWindowHours] = useState<number>(24);
   const [lastSync, setLastSync] = useState<Date>(new Date());
@@ -99,8 +101,20 @@ export default function RealtimeLiveFeed({
       if (ev.source_type !== "telegram") return false;
     } else if (activeTab === "twitter") {
       if (ev.source_type !== "twitter" && ev.source_type !== "x") return false;
+    } else if (activeTab === "data365") {
+      if (!ev.source_type?.startsWith("data365")) return false;
+    } else if (activeTab === "gdelt") {
+      if (ev.source_type !== "gdelt" && ev.source_type !== "news_feed") return false;
     } else if (activeTab === "oficial") {
-      if (ev.source_type === "telegram" || ev.source_type === "twitter" || ev.source_type === "x") return false;
+      if (
+        ev.source_type === "telegram" ||
+        ev.source_type === "twitter" ||
+        ev.source_type === "x" ||
+        ev.source_type?.startsWith("data365") ||
+        ev.source_type === "gdelt" ||
+        ev.source_type === "news_feed"
+      )
+        return false;
     }
 
     // Filtro por severidad
@@ -126,7 +140,17 @@ export default function RealtimeLiveFeed({
   // Conteo para badges en pestañas
   const countTelegram = events.filter((e) => e.source_type === "telegram").length;
   const countTwitter = events.filter((e) => e.source_type === "twitter" || e.source_type === "x").length;
-  const countOficial = events.filter((e) => e.source_type !== "telegram" && e.source_type !== "twitter" && e.source_type !== "x").length;
+  const countData365 = events.filter((e) => e.source_type?.startsWith("data365")).length;
+  const countGdelt = events.filter((e) => e.source_type === "gdelt" || e.source_type === "news_feed").length;
+  const countOficial = events.filter(
+    (e) =>
+      e.source_type !== "telegram" &&
+      e.source_type !== "twitter" &&
+      e.source_type !== "x" &&
+      !e.source_type?.startsWith("data365") &&
+      e.source_type !== "gdelt" &&
+      e.source_type !== "news_feed"
+  ).length;
 
   return (
     <div className="card border-0 shadow-sm rounded-4 overflow-hidden bg-white mb-4">
@@ -221,6 +245,26 @@ export default function RealtimeLiveFeed({
               </li>
               <li className="nav-item">
                 <button
+                  className={`nav-link btn-sm py-1 px-3 fs-13 fw-bold rounded-pill d-inline-flex align-items-center gap-1 ${activeTab === "data365" ? "active bg-primary text-white" : "text-secondary"}`}
+                  style={activeTab === "data365" ? { backgroundColor: "#2563eb" } : {}}
+                  onClick={() => setActiveTab("data365")}
+                >
+                  <i className="ri-share-forward-line" style={{ color: activeTab === "data365" ? "#ffffff" : "#2563eb" }}></i>
+                  Data365 Social ({countData365})
+                </button>
+              </li>
+              <li className="nav-item">
+                <button
+                  className={`nav-link btn-sm py-1 px-3 fs-13 fw-bold rounded-pill d-inline-flex align-items-center gap-1 ${activeTab === "gdelt" ? "active text-white" : "text-secondary"}`}
+                  style={activeTab === "gdelt" ? { backgroundColor: "#7c3aed" } : {}}
+                  onClick={() => setActiveTab("gdelt")}
+                >
+                  <i className="ri-global-line" style={{ color: activeTab === "gdelt" ? "#ffffff" : "#7c3aed" }}></i>
+                  GDELT 2.0 Prensa ({countGdelt})
+                </button>
+              </li>
+              <li className="nav-item">
+                <button
                   className={`nav-link btn-sm py-1 px-3 fs-13 fw-bold rounded-pill d-inline-flex align-items-center gap-1 ${activeTab === "oficial" ? "active bg-success text-white" : "text-secondary"}`}
                   onClick={() => setActiveTab("oficial")}
                 >
@@ -277,7 +321,9 @@ export default function RealtimeLiveFeed({
             {filteredEvents.map((ev) => {
               const isTelegram = ev.source_type === "telegram";
               const isTwitter = ev.source_type === "twitter" || ev.source_type === "x";
-              const isOficial = !isTelegram && !isTwitter;
+              const isData365 = Boolean(ev.source_type?.startsWith("data365"));
+              const isGdelt = ev.source_type === "gdelt" || ev.source_type === "news_feed";
+              const isOficial = !isTelegram && !isTwitter && !isData365 && !isGdelt;
               const isExpanded = expandedRawId === ev.id;
 
               return (
@@ -310,6 +356,24 @@ export default function RealtimeLiveFeed({
                         >
                           <i className="ri-twitter-x-line"></i>
                           X · {ev.source_identifier || "@Cuenta"}
+                        </span>
+                      )}
+                      {isData365 && (
+                        <span
+                          className="badge fs-11 fw-bold px-2 py-1 text-white d-inline-flex align-items-center gap-1 shadow-sm"
+                          style={{ backgroundColor: "#2563eb" }}
+                        >
+                          <i className="ri-share-forward-line"></i>
+                          Data365 · {ev.source_type?.replace("data365_", "").toUpperCase() || "Social"}
+                        </span>
+                      )}
+                      {isGdelt && (
+                        <span
+                          className="badge fs-11 fw-bold px-2 py-1 text-white d-inline-flex align-items-center gap-1 shadow-sm"
+                          style={{ backgroundColor: "#7c3aed" }}
+                        >
+                          <i className="ri-global-line"></i>
+                          GDELT 2.0 · {ev.source_name || "Prensa"}
                         </span>
                       )}
                       {isOficial && (
@@ -393,14 +457,27 @@ export default function RealtimeLiveFeed({
                       Fuente: {ev.source_name || "Despacho Central de Monitoreo"}
                     </span>
 
-                    <button
-                      onClick={() => setExpandedRawId(isExpanded ? null : ev.id)}
-                      className="btn btn-link btn-sm p-0 fs-12 fw-bold text-decoration-none d-inline-flex align-items-center gap-1"
-                      style={{ color: "#2563eb" }}
-                    >
-                      <i className={isExpanded ? "ri-arrow-up-s-line" : "ri-file-text-line"}></i>
-                      {isExpanded ? "Ocultar Evidencia" : "Ver Texto Original Capturado"}
-                    </button>
+                    <div className="d-flex align-items-center gap-3">
+                      {ev.original_url && (
+                        <a
+                          href={ev.original_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="btn btn-link btn-sm p-0 fs-12 fw-bold text-decoration-none d-inline-flex align-items-center gap-1 text-primary"
+                        >
+                          <i className="ri-external-link-line"></i>
+                          Ver Fuente Original
+                        </a>
+                      )}
+                      <button
+                        onClick={() => setExpandedRawId(isExpanded ? null : ev.id)}
+                        className="btn btn-link btn-sm p-0 fs-12 fw-bold text-decoration-none d-inline-flex align-items-center gap-1"
+                        style={{ color: "#2563eb" }}
+                      >
+                        <i className={isExpanded ? "ri-arrow-up-s-line" : "ri-file-text-line"}></i>
+                        {isExpanded ? "Ocultar Evidencia" : "Ver Texto Original Capturado"}
+                      </button>
+                    </div>
                   </div>
 
                   {/* Contenedor del Mensaje Original (Acordeón) */}

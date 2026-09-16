@@ -42,6 +42,7 @@ pub fn create_router(pool: PgPool) -> Router {
         .route("/events", get(events::list_events).post(events::create_event))
         .route("/events/live", get(events::list_live_events))
         .route("/events/stream", get(events::sse_events_stream))
+        .route("/events/webhook/data365", post(events::data365_webhook))
         .route("/events/:id", get(events::get_event))
         // WebGIS Electoral Routes
         .route("/gis/results", get(gis::list_electoral_results))

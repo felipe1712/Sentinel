@@ -62,6 +62,7 @@ pub async fn list_live_events(
             e.id, e.state_id, e.source_id, e.raw_event_id, e.category, e.severity,
             e.title, e.summary, e.ai_summary, e.political_relevance, e.location_text,
             e.lat, e.lng, e.municipio, e.entities, e.status, e.occurred_at, e.created_at,
+            e.dedup_hash, e.original_url, COALESCE(e.ingested_at, e.created_at) AS ingested_at,
             COALESCE(s.type, 'oficial') AS source_type,
             COALESCE(s.name, 'Fuente Oficial Monitoreada') AS source_name,
             COALESCE(s.identifier, '@gobierno') AS source_identifier,
@@ -78,7 +79,9 @@ pub async fn list_live_events(
            AND ($6::varchar IS NULL 
                 OR s.type = $6 
                 OR ($6 = 'oficial' AND (s.type IS NULL OR s.type = 'api_federal' OR s.type = 'rss'))
-                OR ($6 = 'twitter' AND (s.type = 'twitter' OR s.type = 'x'))
+                OR ($6 = 'twitter' AND (s.type = 'twitter' OR s.type = 'x' OR s.type = 'data365_twitter'))
+                OR ($6 = 'data365' AND (s.type LIKE 'data365%'))
+                OR ($6 = 'gdelt' AND (s.type = 'gdelt' OR s.type = 'news_feed'))
                )
          ORDER BY e.occurred_at DESC 
          LIMIT $7"
@@ -120,6 +123,7 @@ pub async fn list_live_events(
                 e.id, e.state_id, e.source_id, e.raw_event_id, e.category, e.severity,
                 e.title, e.summary, e.ai_summary, e.political_relevance, e.location_text,
                 e.lat, e.lng, e.municipio, e.entities, e.status, e.occurred_at, e.created_at,
+                e.dedup_hash, e.original_url, COALESCE(e.ingested_at, e.created_at) AS ingested_at,
                 COALESCE(s.type, 'oficial') AS source_type,
                 COALESCE(s.name, 'Fuente Oficial Monitoreada') AS source_name,
                 COALESCE(s.identifier, '@gobierno') AS source_identifier,
@@ -135,7 +139,9 @@ pub async fn list_live_events(
                AND ($5::varchar IS NULL 
                     OR s.type = $5 
                     OR ($5 = 'oficial' AND (s.type IS NULL OR s.type = 'api_federal' OR s.type = 'rss'))
-                    OR ($5 = 'twitter' AND (s.type = 'twitter' OR s.type = 'x'))
+                    OR ($5 = 'twitter' AND (s.type = 'twitter' OR s.type = 'x' OR s.type = 'data365_twitter'))
+                    OR ($5 = 'data365' AND (s.type LIKE 'data365%'))
+                    OR ($5 = 'gdelt' AND (s.type = 'gdelt' OR s.type = 'news_feed'))
                    )
              ORDER BY e.occurred_at DESC 
              LIMIT $6"
@@ -160,17 +166,32 @@ pub async fn create_event(
 ) -> Result<Json<Event>, AppError> {
     auth.require_role(&["analista", "jefe_oficina", "superadmin"])?;
 
+    // Idempotencia: si se provee dedup_hash y ya existe el evento, retornar el existente
+    if let Some(ref hash) = payload.dedup_hash {
+        let existing = sqlx::query_as::<_, Event>(
+            "SELECT * FROM events WHERE dedup_hash = $1"
+        )
+        .bind(hash)
+        .fetch_optional(&pool)
+        .await?;
+
+        if let Some(ev) = existing {
+            return Ok(Json(ev));
+        }
+    }
+
     let event_id = Uuid::new_v4();
     let occurred_at = payload.occurred_at.unwrap_or_else(chrono::Utc::now);
 
     let event = sqlx::query_as::<_, Event>(
         "INSERT INTO events 
-         (id, state_id, category, severity, title, summary, ai_summary, political_relevance, location_text, lat, lng, municipio, entities, occurred_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+         (id, state_id, source_id, category, severity, title, summary, ai_summary, political_relevance, location_text, lat, lng, municipio, entities, dedup_hash, original_url, occurred_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
          RETURNING *"
     )
     .bind(event_id)
     .bind(auth.state_id)
+    .bind(payload.source_id)
     .bind(&payload.category)
     .bind(&payload.severity)
     .bind(&payload.title)
@@ -182,11 +203,35 @@ pub async fn create_event(
     .bind(payload.lng)
     .bind(&payload.municipio)
     .bind(payload.entities.clone().unwrap_or(json!({})))
+    .bind(&payload.dedup_hash)
+    .bind(&payload.original_url)
     .bind(occurred_at)
     .fetch_one(&pool)
     .await?;
 
     Ok(Json(event))
+}
+
+#[derive(Deserialize)]
+pub struct Data365WebhookPayload {
+    pub task_id: Option<String>,
+    pub status: Option<String>,
+    pub platform: Option<String>,
+    pub data: Option<serde_json::Value>,
+}
+
+pub async fn data365_webhook(
+    State(_pool): State<PgPool>,
+    Json(payload): Json<Data365WebhookPayload>,
+) -> Json<serde_json::Value> {
+    tracing::info!(
+        "Webhook Data365 recibido: task_id={:?}, status={:?}, platform={:?}",
+        payload.task_id, payload.status, payload.platform
+    );
+    Json(json!({
+        "status": "acknowledged",
+        "received_at": chrono::Utc::now().to_rfc3339()
+    }))
 }
 
 pub async fn get_event(

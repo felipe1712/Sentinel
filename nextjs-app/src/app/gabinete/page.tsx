@@ -109,7 +109,23 @@ export default function GabineteView() {
           return {
             time: `${day} ${month} · ${hours}:${mins} hrs`,
             text: ev.title,
-            source: ev.source_identifier ? `${ev.source_type === "telegram" ? "Telegram" : ev.source_type === "twitter" ? "X" : "Oficial"} · ${ev.source_identifier}` : ev.source_name || "Despacho Central",
+            source: ev.source_identifier
+              ? `${
+                  ev.source_type?.startsWith("data365")
+                    ? `Data365 (${ev.source_type.replace("data365_", "").toUpperCase()})`
+                    : ev.source_type === "gdelt" || ev.source_type === "news_feed"
+                    ? "GDELT 2.0 Prensa"
+                    : ev.source_type === "telegram"
+                    ? "Telegram"
+                    : ev.source_type === "twitter" || ev.source_type === "x"
+                    ? "X"
+                    : "Oficial"
+                } · ${ev.source_identifier}`
+              : ev.source_type?.startsWith("data365")
+              ? `Data365 (${ev.source_type.replace("data365_", "").toUpperCase()})`
+              : ev.source_type === "gdelt"
+              ? "GDELT 2.0 Prensa Global"
+              : ev.source_name || "Despacho Central",
             raw: ev.raw_text || ev.summary,
             severity: ev.severity,
             fullTimestamp: d.toLocaleString("es-MX", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", hour12: false }) + " hrs",

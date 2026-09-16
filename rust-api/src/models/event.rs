@@ -21,7 +21,10 @@ pub struct Event {
     pub municipio: Option<String>,
     pub entities: Option<Value>,
     pub status: Option<String>,
+    pub dedup_hash: Option<String>,
+    pub original_url: Option<String>,
     pub occurred_at: DateTime<Utc>,
+    pub ingested_at: Option<DateTime<Utc>>,
     pub created_at: Option<DateTime<Utc>>,
 }
 
@@ -38,6 +41,9 @@ pub struct CreateEventDTO {
     pub lng: Option<f64>,
     pub municipio: Option<String>,
     pub entities: Option<Value>,
+    pub dedup_hash: Option<String>,
+    pub original_url: Option<String>,
+    pub source_id: Option<Uuid>,
     pub occurred_at: Option<DateTime<Utc>>,
 }
 
@@ -59,7 +65,10 @@ pub struct EnrichedEvent {
     pub municipio: Option<String>,
     pub entities: Option<Value>,
     pub status: Option<String>,
+    pub dedup_hash: Option<String>,
+    pub original_url: Option<String>,
     pub occurred_at: DateTime<Utc>,
+    pub ingested_at: Option<DateTime<Utc>>,
     pub created_at: Option<DateTime<Utc>>,
     // Campos enriquecidos de la fuente
     pub source_type: Option<String>,

@@ -16,6 +16,24 @@ interface McpTool {
 
 const getInitialTools = (shortName: string): McpTool[] => [
   {
+    id: "intel_gdelt_search",
+    name: "GDELT 2.0 Búsqueda Territorial de Medios",
+    category: "inteligencia",
+    description: `Monitoreo global y regional de medios de comunicación para los municipios de ${shortName}. Conexión HTTPS api.gdeltproject.org.`,
+    active: true,
+    lastRun: "Hace 1 min",
+    latencyMs: 220,
+  },
+  {
+    id: "intel_news_feed",
+    name: "Feed de Noticias Regionales & Corredores",
+    category: "inteligencia",
+    description: `Agregador en tiempo real de despachos de prensa y corredores viales de ${shortName}.`,
+    active: true,
+    lastRun: "Hace 3 min",
+    latencyMs: 160,
+  },
+  {
     id: "intel_earthquakes",
     name: "Sismos & Actividad Telúrica",
     category: "proteccion_civil",
@@ -101,22 +119,31 @@ export default function McpAdminPage() {
     setTestingTool(toolId);
     setTestResult(null);
     setTimeout(() => {
-      const region = stateCfg.key === "gto"
-        ? "Estado de Guanajuato y vecinos (Qro, Mich, Jal, SLP)"
-        : "Estado de Querétaro y vecinos (Gto, Hgo, EdoMex, SLP)";
+      const region =
+        stateCfg.key === "pue"
+          ? "Estado de Puebla y vecinos (Tlax, Ver, Oax, Mor, Hgo, EdoMex)"
+          : stateCfg.key === "gto"
+          ? "Estado de Guanajuato y vecinos (Qro, Mich, Jal, SLP)"
+          : "Estado de Querétaro y vecinos (Gto, Hgo, EdoMex, SLP, Mich)";
+
+      const isGdelt = toolId === "intel_gdelt_search" || toolId === "intel_news_feed";
 
       setTestResult({
         tool: toolId,
         status: "success",
         data: {
           region,
-          records_evaluated: 48,
-          summary: "Sin anomalías críticas detectadas en las últimas 6 horas.",
-          mcp_server: "world-intel-mcp (local stdio/Qdrant)"
-        }
+          records_evaluated: isGdelt ? 24 : 48,
+          circuit_breaker: isGdelt ? "CLOSED (Saludable 100%)" : "OPERATIVO",
+          network_target: isGdelt ? "api.gdeltproject.org:443" : "world-intel-mcp Daemon",
+          summary: isGdelt
+            ? `Monitoreo territorial de prensa y corredores para ${stateCfg.name} ejecutado con éxito. Sin fallas consecutivas.`
+            : "Sin anomalías críticas detectadas en las últimas 6 horas.",
+          mcp_server: "world-intel-mcp (local stdio/Qdrant + GDELT 2.0)",
+        },
       });
       setTestingTool(null);
-    }, 800);
+    }, 600);
   };
 
   return (

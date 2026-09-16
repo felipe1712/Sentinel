@@ -326,6 +326,41 @@ export default function SituacionalMap({
         }
       }
 
+      // 4. Marcadores de Incidentes Específicos (GDELT, Data365, Alertas Territoriales)
+      if (Array.isArray(liveEvents)) {
+        liveEvents.forEach((ev: any) => {
+          if (ev.lat && ev.lng && typeof ev.lat === "number" && typeof ev.lng === "number") {
+            const isCrit =
+              ev.severity?.toLowerCase() === "critico" ||
+              ev.severity?.toLowerCase() === "critica" ||
+              ev.severity?.toLowerCase() === "alta" ||
+              ev.severity?.toLowerCase() === "alto";
+            const markerColor = isCrit ? "#ef4444" : "#3b82f6";
+
+            const marker = L.circleMarker([ev.lat, ev.lng], {
+              radius: isCrit ? 7 : 5,
+              fillColor: markerColor,
+              color: "#ffffff",
+              weight: 2,
+              opacity: 1,
+              fillOpacity: 0.9,
+            });
+
+            marker.bindPopup(`
+              <div style="font-family: system-ui, sans-serif; font-size: 12px; max-width: 240px;">
+                <div style="font-weight: 700; color: #0f172a; margin-bottom: 4px;">${ev.title || "Incidente Detectado"}</div>
+                <div style="color: #475569; margin-bottom: 6px; line-height: 1.3;">${(ev.summary || "").slice(0, 140)}...</div>
+                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 10px; color: #64748b; border-top: 1px solid #e2e8f0; pt: 4px;">
+                  <span><strong>${ev.municipio || "Zona"}</strong></span>
+                  <span>${ev.source_type?.toUpperCase() || "INTEL"}</span>
+                </div>
+              </div>
+            `);
+            marker.addTo(map);
+          }
+        });
+      }
+
       setTimeout(() => {
         map.invalidateSize();
       }, 200);

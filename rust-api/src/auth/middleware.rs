@@ -35,12 +35,14 @@ fn resolve_request_state_id(parts: &Parts) -> Uuid {
         }
     }
 
-    // 2. Header de clave X-State-Key (gto vs qro)
+    // 2. Header de clave X-State-Key (gto vs qro vs pue)
     if let Some(key_val) = parts.headers.get("X-State-Key").and_then(|v| v.to_str().ok()) {
         if key_val.eq_ignore_ascii_case("gto") || key_val.eq_ignore_ascii_case("guanajuato") {
             return Uuid::parse_str("00000000-0000-0000-0000-000000000011").unwrap();
         } else if key_val.eq_ignore_ascii_case("qro") || key_val.eq_ignore_ascii_case("queretaro") {
             return Uuid::parse_str("11111111-1111-1111-1111-111111111111").unwrap();
+        } else if key_val.eq_ignore_ascii_case("pue") || key_val.eq_ignore_ascii_case("puebla") {
+            return Uuid::parse_str("21212121-2121-2121-2121-212121212121").unwrap();
         }
     }
 
@@ -50,6 +52,8 @@ fn resolve_request_state_id(parts: &Parts) -> Uuid {
             return Uuid::parse_str("00000000-0000-0000-0000-000000000011").unwrap();
         } else if env_key.eq_ignore_ascii_case("qro") {
             return Uuid::parse_str("11111111-1111-1111-1111-111111111111").unwrap();
+        } else if env_key.eq_ignore_ascii_case("pue") {
+            return Uuid::parse_str("21212121-2121-2121-2121-212121212121").unwrap();
         }
     }
 
@@ -57,6 +61,8 @@ fn resolve_request_state_id(parts: &Parts) -> Uuid {
     if let Some(host) = parts.headers.get(header::HOST).and_then(|v| v.to_str().ok()) {
         if host.contains("gto") {
             return Uuid::parse_str("00000000-0000-0000-0000-000000000011").unwrap();
+        } else if host.contains("pue") {
+            return Uuid::parse_str("21212121-2121-2121-2121-212121212121").unwrap();
         }
     }
 
@@ -124,6 +130,8 @@ where
                     Uuid::parse_str("00000000-0000-0000-0000-000000000011").unwrap()
                 } else if key_val.eq_ignore_ascii_case("qro") || key_val.eq_ignore_ascii_case("queretaro") {
                     Uuid::parse_str("11111111-1111-1111-1111-111111111111").unwrap()
+                } else if key_val.eq_ignore_ascii_case("pue") || key_val.eq_ignore_ascii_case("puebla") {
+                    Uuid::parse_str("21212121-2121-2121-2121-212121212121").unwrap()
                 } else {
                     claims.state_id
                 }
