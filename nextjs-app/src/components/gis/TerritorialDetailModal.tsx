@@ -77,23 +77,105 @@ export const TerritorialDetailModal: React.FC<TerritorialDetailModalProps> = ({
     const yr = String(modalYear);
     const idKey = String(territoryId);
 
+    let res: ElectoralResult | null = null;
     try {
       if (baseBoundary === "secciones") {
-        return electoralCache[modalElectionType]?.[yr]?.[idKey] || null;
-      }
-      if (baseBoundary === "distritos_locales") {
-        return electoralCache["distritos_locales"]?.[modalElectionType]?.[yr]?.[idKey] || null;
-      }
-      if (baseBoundary === "distritos_federales") {
-        return electoralCache["distritos_federales"]?.[modalElectionType]?.[yr]?.[idKey] || null;
-      }
-      if (baseBoundary === "municipios") {
-        return electoralCache["municipios"]?.[modalElectionType]?.[yr]?.[idKey] || null;
+        res = electoralCache[modalElectionType]?.[yr]?.[idKey] || null;
+      } else if (baseBoundary === "distritos_locales") {
+        res = electoralCache["distritos_locales"]?.[modalElectionType]?.[yr]?.[idKey] || null;
+      } else if (baseBoundary === "distritos_federales") {
+        res = electoralCache["distritos_federales"]?.[modalElectionType]?.[yr]?.[idKey] || null;
+      } else if (baseBoundary === "municipios") {
+        const munMap = electoralCache["municipios"]?.[modalElectionType]?.[yr];
+        if (munMap) {
+          const munName = selectedSection?.nombre || selectedSection?.featureTitle || "";
+          const munNorm = munName.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+          res = (
+            munMap[idKey] ||
+            munMap[munName] ||
+            munMap[munNorm] ||
+            munMap[munName.toUpperCase()] ||
+            null
+          );
+        }
       }
     } catch {
-      return null;
+      res = null;
     }
-    return initialResult;
+
+    if (res && res.total_votos && res.total_votos > 0) {
+      return res;
+    }
+
+    // Fallback: calcular agregado dinámico desde las secciones del año
+    if (baseBoundary !== "secciones") {
+      const sectionsMap = electoralCache[modalElectionType]?.[yr] || {};
+      let tot = 0;
+      let ln = 0;
+      const vpAcc: Record<string, number> = {};
+      const munNameNorm = (selectedSection?.nombre || selectedSection?.featureTitle || "")
+        .toUpperCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .trim();
+
+      Object.values(sectionsMap).forEach((secData: any) => {
+        let matches = false;
+        if (baseBoundary === "municipios") {
+          const secMunNorm = (secData.municipio_nombre || "")
+            .toUpperCase()
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .trim();
+          if (secData.clave_municipio === territoryId || (munNameNorm && secMunNorm === munNameNorm)) {
+            matches = true;
+          }
+        } else if (baseBoundary === "distritos_locales" && secData.distrito_local === territoryId) {
+          matches = true;
+        } else if (baseBoundary === "distritos_federales" && secData.distrito_federal === territoryId) {
+          matches = true;
+        }
+
+        if (matches) {
+          tot += Number(secData.total_votos || 0);
+          ln += Number(secData.lista_nominal || 0);
+          if (secData.votos_partidos) {
+            Object.entries(secData.votos_partidos).forEach(([p, v]) => {
+              vpAcc[p] = (vpAcc[p] || 0) + Number(v);
+            });
+          }
+        }
+      });
+
+      if (tot > 0) {
+        const sorted = Object.entries(vpAcc).sort(([, a], [, b]) => b - a);
+        const wp = sorted[0]?.[0] || "Sin datos";
+        const wv = sorted[0]?.[1] || 0;
+        const sp = sorted[1]?.[0] || "";
+        const sv = sorted[1]?.[1] || 0;
+        const wpct = Math.round((wv / tot) * 1000) / 10;
+        const spct = sv > 0 ? Math.round((sv / tot) * 1000) / 10 : 0;
+        const partPct = ln > 0 ? Math.round((tot / ln) * 1000) / 10 : 0;
+        return {
+          election_year: modalYear,
+          election_type: modalElectionType,
+          clave_seccion: territoryId,
+          lista_nominal: ln,
+          total_votos: tot,
+          participacion_pct: partPct,
+          ganador_partido: wp,
+          ganador_votos: wv,
+          ganador_pct: wpct,
+          segundo_partido: sp,
+          segundo_votos: sv,
+          segundo_pct: spct,
+          margen_victoria_pct: Math.max(0, Math.round((wpct - spct) * 10) / 10),
+          votos_partidos: vpAcc,
+        } as ElectoralResult;
+      }
+    }
+
+    return res || initialResult;
   }, [selectedSection, electoralCache, modalYear, modalElectionType, baseBoundary, territoryId, initialResult]);
 
   // Obtener resultados históricos para la pestaña de Swing (2018, 2021, 2024)
@@ -104,19 +186,100 @@ export const TerritorialDetailModal: React.FC<TerritorialDetailModalProps> = ({
 
     [2018, 2021, 2024].forEach((yr) => {
       const yrStr = String(yr);
+      let res: any = null;
       try {
         if (baseBoundary === "secciones") {
-          results[yr] = electoralCache[modalElectionType]?.[yrStr]?.[idKey] || null;
+          res = electoralCache[modalElectionType]?.[yrStr]?.[idKey] || null;
         } else if (baseBoundary === "distritos_locales") {
-          results[yr] = electoralCache["distritos_locales"]?.[modalElectionType]?.[yrStr]?.[idKey] || null;
+          res = electoralCache["distritos_locales"]?.[modalElectionType]?.[yrStr]?.[idKey] || null;
         } else if (baseBoundary === "distritos_federales") {
-          results[yr] = electoralCache["distritos_federales"]?.[modalElectionType]?.[yrStr]?.[idKey] || null;
+          res = electoralCache["distritos_federales"]?.[modalElectionType]?.[yrStr]?.[idKey] || null;
         } else if (baseBoundary === "municipios") {
-          results[yr] = electoralCache["municipios"]?.[modalElectionType]?.[yrStr]?.[idKey] || null;
+          const munMap = electoralCache["municipios"]?.[modalElectionType]?.[yrStr];
+          if (munMap) {
+            const munName = selectedSection?.nombre || selectedSection?.featureTitle || "";
+            const munNorm = munName.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+            res = (
+              munMap[idKey] ||
+              munMap[munName] ||
+              munMap[munNorm] ||
+              munMap[munName.toUpperCase()] ||
+              null
+            );
+          }
         }
       } catch {
-        results[yr] = null;
+        res = null;
       }
+
+      if ((!res || !res.total_votos || res.total_votos === 0) && baseBoundary !== "secciones") {
+        const sectionsMap = electoralCache[modalElectionType]?.[yrStr] || {};
+        let tot = 0;
+        let ln = 0;
+        const vpAcc: Record<string, number> = {};
+        const munNameNorm = (selectedSection?.nombre || selectedSection?.featureTitle || "")
+          .toUpperCase()
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .trim();
+
+        Object.values(sectionsMap).forEach((secData: any) => {
+          let matches = false;
+          if (baseBoundary === "municipios") {
+            const secMunNorm = (secData.municipio_nombre || "")
+              .toUpperCase()
+              .normalize("NFD")
+              .replace(/[\u0300-\u036f]/g, "")
+              .trim();
+            if (secData.clave_municipio === territoryId || (munNameNorm && secMunNorm === munNameNorm)) {
+              matches = true;
+            }
+          } else if (baseBoundary === "distritos_locales" && secData.distrito_local === territoryId) {
+            matches = true;
+          } else if (baseBoundary === "distritos_federales" && secData.distrito_federal === territoryId) {
+            matches = true;
+          }
+
+          if (matches) {
+            tot += Number(secData.total_votos || 0);
+            ln += Number(secData.lista_nominal || 0);
+            if (secData.votos_partidos) {
+              Object.entries(secData.votos_partidos).forEach(([p, v]) => {
+                vpAcc[p] = (vpAcc[p] || 0) + Number(v);
+              });
+            }
+          }
+        });
+
+        if (tot > 0) {
+          const sorted = Object.entries(vpAcc).sort(([, a], [, b]) => b - a);
+          const wp = sorted[0]?.[0] || "Sin datos";
+          const wv = sorted[0]?.[1] || 0;
+          const sp = sorted[1]?.[0] || "";
+          const sv = sorted[1]?.[1] || 0;
+          const wpct = Math.round((wv / tot) * 1000) / 10;
+          const spct = sv > 0 ? Math.round((sv / tot) * 1000) / 10 : 0;
+          const partPct = ln > 0 ? Math.round((tot / ln) * 1000) / 10 : 0;
+          res = {
+            election_year: yr,
+            election_type: modalElectionType,
+            clave_seccion: territoryId,
+            lista_nominal: ln,
+            total_votos: tot,
+            participacion_pct: partPct,
+            ganador_partido: wp,
+            ganador_votos: wv,
+            ganador_pct: wpct,
+            segundo_partido: sp,
+            segundo_votos: sv,
+            segundo_pct: spct,
+            margen_victoria_pct: Math.max(0, Math.round((wpct - spct) * 10) / 10),
+            votos_partidos: vpAcc,
+          };
+        }
+      }
+
+      results[yr] = res;
     });
     return results;
   }, [selectedSection, electoralCache, modalElectionType, baseBoundary, territoryId]);
@@ -237,10 +400,23 @@ export const TerritorialDetailModal: React.FC<TerritorialDetailModalProps> = ({
     const sectionsMap = electoralCache[modalElectionType]?.[yr] || {};
     const list: any[] = [];
 
+    const munNameNorm = (selectedSection?.nombre || selectedSection?.featureTitle || "")
+      .toUpperCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .trim();
+
     Object.entries(sectionsMap).forEach(([secNum, data]: [string, any]) => {
       let matches = false;
-      if (baseBoundary === "municipios" && data.clave_municipio === territoryId) {
-        matches = true;
+      if (baseBoundary === "municipios") {
+        const secMunNorm = (data.municipio_nombre || "")
+          .toUpperCase()
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .trim();
+        if (data.clave_municipio === territoryId || (munNameNorm && secMunNorm === munNameNorm)) {
+          matches = true;
+        }
       } else if (baseBoundary === "distritos_locales" && data.distrito_local === territoryId) {
         matches = true;
       } else if (baseBoundary === "distritos_federales" && data.distrito_federal === territoryId) {
