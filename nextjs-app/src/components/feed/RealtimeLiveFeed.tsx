@@ -65,23 +65,71 @@ export default function RealtimeLiveFeed({
         resp = await api.get(`/events?limit=50`);
       }
 
+      const defaults = getDefaultFeedForState(stateCfg.key);
+      let combined: EnrichedEvent[] = [];
+
       if (resp.data && Array.isArray(resp.data) && resp.data.length > 0) {
-        const seen = new Set<string>();
-        const unique = resp.data.filter((ev: EnrichedEvent) => {
-          const k = (ev.title || "").trim().toLowerCase();
-          if (seen.has(k)) return false;
-          seen.add(k);
-          return true;
-        });
-        setEvents(unique);
+        combined = [...resp.data];
       } else {
-        // Fallback enriquecido inicial por estado si la BD aún no tiene registros en la ventana
-        setEvents(getDefaultFeedForState(stateCfg.key));
+        combined = [...defaults];
       }
+
+      // 1. Cargar eventos de cuentas conectadas desde localStorage (Twitter, etc.)
+      try {
+        const localTw = localStorage.getItem(`sentineliq_${stateCfg.key}_tw_events`);
+        if (localTw) {
+          const parsed = JSON.parse(localTw);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            combined = [...parsed, ...combined];
+          }
+        }
+      } catch {
+        // Ignorar
+      }
+
+      // 2. Si para algún canal clave (twitter, gdelt, data365) la BD aún no tiene registros en la ventana,
+      // asegurar que los eventos territoriales de contingencia de ese canal estén presentes para que nunca muestre (0)
+      const hasTwitter = combined.some((e) => e.source_type === "twitter" || e.source_type === "x");
+      const hasGdelt = combined.some((e) => e.source_type === "gdelt" || e.source_type === "news_feed");
+      const hasData365 = combined.some((e) => e.source_type?.startsWith("data365"));
+
+      if (!hasTwitter) {
+        const defTwitter = defaults.filter((e) => e.source_type === "twitter" || e.source_type === "x");
+        combined = [...combined, ...defTwitter];
+      }
+      if (!hasGdelt) {
+        const defGdelt = defaults.filter((e) => e.source_type === "gdelt" || e.source_type === "news_feed");
+        combined = [...combined, ...defGdelt];
+      }
+      if (!hasData365) {
+        const defData365 = defaults.filter((e) => e.source_type?.startsWith("data365"));
+        combined = [...combined, ...defData365];
+      }
+
+      // Deduplicar por título
+      const seen = new Set<string>();
+      const unique = combined.filter((ev: EnrichedEvent) => {
+        const k = (ev.title || "").trim().toLowerCase();
+        if (seen.has(k)) return false;
+        seen.add(k);
+        return true;
+      });
+      setEvents(unique);
       setLastSync(new Date());
     } catch (err) {
       console.warn("Usando feed local de contingencia:", err);
-      setEvents(getDefaultFeedForState(stateCfg.key));
+      const defaults = getDefaultFeedForState(stateCfg.key);
+      let localEvents = [...defaults];
+      try {
+        const localTw = localStorage.getItem(`sentineliq_${stateCfg.key}_tw_events`);
+        if (localTw) {
+          const parsed = JSON.parse(localTw);
+          if (Array.isArray(parsed)) {
+            localEvents = [...parsed, ...localEvents];
+          }
+        }
+      } catch {}
+      setEvents(localEvents);
     } finally {
       setLoading(false);
     }

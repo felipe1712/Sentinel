@@ -9,7 +9,13 @@ export default function RootPage() {
 
   useEffect(() => {
     const cfg = getStateConfig();
-    if (cfg.key === "pue") {
+    const token = typeof window !== "undefined"
+      ? localStorage.getItem("sentinel_token") || localStorage.getItem("sentineliq_token")
+      : null;
+
+    if (token) {
+      router.replace(cfg.key === "pue" ? "/situacion" : "/gabinete");
+    } else if (cfg.key === "pue") {
       router.replace("/situacion");
     } else {
       router.replace("/login");

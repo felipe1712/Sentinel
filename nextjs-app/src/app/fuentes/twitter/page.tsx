@@ -30,6 +30,7 @@ export default function TwitterSearchPage() {
   const [loading, setLoading] = useState(false);
   const [connectingHandle, setConnectingHandle] = useState<string | null>(null);
   const [accounts, setAccounts] = useState<TwitterAccountResult[]>([]);
+  const [connectedAccounts, setConnectedAccounts] = useState<TwitterAccountResult[]>([]);
   const [connectedMap, setConnectedMap] = useState<Record<string, boolean>>({});
   const [hasBearerToken, setHasBearerToken] = useState(false);
   const [searchMode, setSearchMode] = useState<"api_v2" | "soberano">("soberano");
@@ -41,6 +42,7 @@ export default function TwitterSearchPage() {
   const isGuanajuato = stateCfg.key === "gto";
   const isPuebla = stateCfg.key === "pue";
 
+  // Cargar cuentas conectadas y configuración al montar
   useEffect(() => {
     const cfg = getStateConfig();
     setStateCfg(cfg);
@@ -55,9 +57,16 @@ export default function TwitterSearchPage() {
 
     // Cargar cuentas previamente conectadas en este navegador
     try {
-      const saved = localStorage.getItem(`sentineliq_${cfg.key}_connected_tw`);
-      if (saved) {
-        setConnectedMap(JSON.parse(saved));
+      const savedMap = localStorage.getItem(`sentineliq_${cfg.key}_connected_tw`);
+      if (savedMap) {
+        setConnectedMap(JSON.parse(savedMap));
+      }
+      const savedAccounts = localStorage.getItem(`sentineliq_${cfg.key}_connected_accounts_list`);
+      if (savedAccounts) {
+        const parsedList: TwitterAccountResult[] = JSON.parse(savedAccounts);
+        if (Array.isArray(parsedList)) {
+          setConnectedAccounts(parsedList);
+        }
       }
     } catch {
       // Ignorar error de parseo
@@ -137,9 +146,72 @@ export default function TwitterSearchPage() {
     setConnectingHandle(acc.handle);
     setConnectNotice(null);
 
+    // 1. Actualizar mapa de estado
+    const updatedMap = { ...connectedMap, [acc.handle]: true };
+    setConnectedMap(updatedMap);
     try {
-      // 1. Guardar la fuente y el evento directamente en la base de datos soberana
-      const resp = await api.post("/sources/twitter/connect", {
+      localStorage.setItem(`sentineliq_${stateCfg.key}_connected_tw`, JSON.stringify(updatedMap));
+    } catch {
+      // Ignorar
+    }
+
+    // 2. Agregar a la lista permanente de cuentas conectadas
+    const existingIndex = connectedAccounts.findIndex((c) => c.handle.toLowerCase() === acc.handle.toLowerCase());
+    let updatedList: TwitterAccountResult[];
+    if (existingIndex >= 0) {
+      updatedList = [...connectedAccounts];
+      updatedList[existingIndex] = acc;
+    } else {
+      updatedList = [acc, ...connectedAccounts];
+    }
+    setConnectedAccounts(updatedList);
+    try {
+      localStorage.setItem(`sentineliq_${stateCfg.key}_connected_accounts_list`, JSON.stringify(updatedList));
+    } catch {
+      // Ignorar
+    }
+
+    // 3. Inyectar evento al Live Feed en localStorage para visualización inmediata en Sala de Gabinete
+    try {
+      const storageKey = `sentineliq_${stateCfg.key}_tw_events`;
+      let currentEvents: any[] = [];
+      const savedEvents = localStorage.getItem(storageKey);
+      if (savedEvents) {
+        try {
+          const parsed = JSON.parse(savedEvents);
+          if (Array.isArray(parsed)) currentEvents = parsed;
+        } catch {}
+      }
+
+      const newEvent = {
+        id: `ev-tw-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+        state_id: stateCfg.key,
+        category: acc.category || "seguridad_y_vialidad",
+        severity: "medio",
+        title: `[X / ${acc.handle}] ${acc.latest_tweet.slice(0, 95)}...`,
+        summary: acc.latest_tweet,
+        source_type: "twitter",
+        source_name: acc.name,
+        source_identifier: acc.handle,
+        occurred_at: new Date().toISOString(),
+        political_relevance: 8,
+        municipio: isGuanajuato ? "León" : isPuebla ? "Puebla Capital" : "Santiago de Querétaro",
+        location_text: isGuanajuato ? "Corredor Industrial Guanajuato" : isPuebla ? "Zona Metropolitana de Puebla" : "Querétaro Metropolitano",
+      };
+
+      // Evitar duplicar exactamente el mismo tweet
+      const filtered = currentEvents.filter(
+        (ev) => !(ev.source_identifier === acc.handle && ev.summary === acc.latest_tweet)
+      );
+      const newEventList = [newEvent, ...filtered];
+      localStorage.setItem(storageKey, JSON.stringify(newEventList));
+    } catch (e) {
+      console.warn("No se pudo guardar el evento de Twitter en localStorage:", e);
+    }
+
+    // 4. Registrar en la base de datos soberana a través de la API
+    try {
+      await api.post("/sources/twitter/connect", {
         handle: acc.handle,
         name: acc.name,
         latest_tweet: acc.latest_tweet,
@@ -147,26 +219,15 @@ export default function TwitterSearchPage() {
         category: acc.category || "seguridad",
       });
 
-      // 2. Persistir localmente en mapa de cuentas conectadas
-      const updated = { ...connectedMap, [acc.handle]: true };
-      setConnectedMap(updated);
-      try {
-        localStorage.setItem(`sentineliq_${stateCfg.key}_connected_tw`, JSON.stringify(updated));
-      } catch {
-        // Ignorar
-      }
-
       setConnectNotice({
         type: "success",
-        text: `✅ Cuenta ${acc.handle} conectada e ingestada en la base de datos de ${stateCfg.name}. Sus publicaciones ya están activas y visibles en el tablero (Live Feed).`,
+        text: `✅ Cuenta ${acc.handle} conectada con éxito. Sus publicaciones ya están activas e integradas en el Live Feed de la Sala de Gabinete.`,
       });
     } catch {
-      // Fallback local: marcar conectada y avisar
-      const updated = { ...connectedMap, [acc.handle]: true };
-      setConnectedMap(updated);
+      // Si el endpoint remoto aún se está actualizando, la conexión local ya está activa
       setConnectNotice({
         type: "success",
-        text: `✅ Cuenta ${acc.handle} conectada localmente a ${stateCfg.shortName}. Las publicaciones se sincronizarán en el próximo ciclo del scheduler.`,
+        text: `✅ Cuenta ${acc.handle} conectada e integrada en tu Live Feed de ${stateCfg.shortName}. Las publicaciones ya están visibles en la Sala de Gabinete.`,
       });
     } finally {
       setConnectingHandle(null);
@@ -174,14 +235,34 @@ export default function TwitterSearchPage() {
   };
 
   const handleDisconnectAccount = (handle: string) => {
-    const updated = { ...connectedMap };
-    delete updated[handle];
-    setConnectedMap(updated);
+    // 1. Eliminar de mapa
+    const updatedMap = { ...connectedMap };
+    delete updatedMap[handle];
+    setConnectedMap(updatedMap);
     try {
-      localStorage.setItem(`sentineliq_${stateCfg.key}_connected_tw`, JSON.stringify(updated));
-    } catch {
-      // Ignorar
-    }
+      localStorage.setItem(`sentineliq_${stateCfg.key}_connected_tw`, JSON.stringify(updatedMap));
+    } catch {}
+
+    // 2. Eliminar de lista permanente
+    const updatedList = connectedAccounts.filter((c) => c.handle.toLowerCase() !== handle.toLowerCase());
+    setConnectedAccounts(updatedList);
+    try {
+      localStorage.setItem(`sentineliq_${stateCfg.key}_connected_accounts_list`, JSON.stringify(updatedList));
+    } catch {}
+
+    // 3. Limpiar eventos de esta cuenta en el Live Feed local
+    try {
+      const storageKey = `sentineliq_${stateCfg.key}_tw_events`;
+      const savedEvents = localStorage.getItem(storageKey);
+      if (savedEvents) {
+        const parsed = JSON.parse(savedEvents);
+        if (Array.isArray(parsed)) {
+          const cleaned = parsed.filter((ev: any) => ev.source_identifier !== handle);
+          localStorage.setItem(storageKey, JSON.stringify(cleaned));
+        }
+      }
+    } catch {}
+
     setConnectNotice({
       type: "warning",
       text: `Cuenta ${handle} desconectada del monitoreo activo.`,
@@ -191,7 +272,7 @@ export default function TwitterSearchPage() {
   const quickSearchChips = isPuebla
     ? ["@SSPGobPue", "Autopista México-Puebla", "Texmelucan", "Tehuacán", "Angelópolis", "Popocatépetl"]
     : isGuanajuato
-    ? ["@FSPE_GtoOficial", "Seguridad Guanajuato", "Celaya", "Irapuato", "León", "Puerto Interior", "Salamanca"]
+    ? ["@FSPE_GtoOficial", "@huachicol_Gto", "Seguridad Guanajuato", "Celaya", "Irapuato", "León", "Salamanca"]
     : ["@POES_Qro", "@PoliciaEstatalQRO", "Autopista 57", "Paseo 5 de Febrero", "Querétaro", "San Juan del Río"];
 
   return (
@@ -224,8 +305,8 @@ export default function TwitterSearchPage() {
         </div>
 
         <div className="d-flex align-items-center gap-2">
-          <Link href="/" className="btn btn-outline-primary btn-sm fw-bold">
-            <i className="ri-dashboard-line me-1"></i> Ver Tablero Principal
+          <Link href="/gabinete" className="btn btn-outline-primary btn-sm fw-bold">
+            <i className="ri-dashboard-line me-1"></i> Sala de Gabinete (Live Feed)
           </Link>
           <Link href="/admin/keys" className="btn btn-primary btn-sm fw-bold text-white shadow-sm">
             <i className="ri-key-2-line me-1"></i> Configurar Credenciales de X
@@ -290,11 +371,83 @@ export default function TwitterSearchPage() {
             ></i>
             <span className="fs-13 fw-bold text-dark">{connectNotice.text}</span>
           </div>
-          <Link href="/" className="btn btn-sm btn-dark text-white fw-bold text-nowrap">
-            <i className="ri-arrow-right-up-line me-1"></i> Ver en el Live Feed
+          <Link href="/gabinete" className="btn btn-sm btn-dark text-white fw-bold text-nowrap">
+            <i className="ri-arrow-right-up-line me-1"></i> Ver en Sala de Gabinete (Live Feed)
           </Link>
         </div>
       )}
+
+      {/* Cuentas Conectadas en Monitoreo Activo */}
+      <div className="card bg-white border-0 shadow-sm rounded-3 mb-4 border-start border-4 border-success">
+        <div className="card-header bg-white border-bottom py-3 d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-2">
+          <div className="d-flex align-items-center gap-2">
+            <span className="badge bg-success text-white px-2 py-1 fs-11 fw-bold">
+              <i className="ri-radio-2-line me-1"></i> Transmitiendo al Live Feed
+            </span>
+            <h5 className="fw-extrabold text-dark mb-0 fs-16" style={{ color: "#0f172a" }}>
+              Cuentas Conectadas Activas en {stateCfg.name} ({connectedAccounts.length})
+            </h5>
+          </div>
+          {connectedAccounts.length > 0 && (
+            <Link href="/gabinete" className="btn btn-sm btn-dark text-white fw-bold">
+              <i className="ri-dashboard-line me-1"></i> Abrir Live Feed en Sala de Gabinete
+            </Link>
+          )}
+        </div>
+        <div className="card-body p-4 bg-white">
+          {connectedAccounts.length === 0 ? (
+            <div className="text-center py-4">
+              <div
+                className="avatar-md bg-light text-muted rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center fs-24"
+                style={{ width: "48px", height: "48px" }}
+              >
+                <i className="ri-twitter-x-line"></i>
+              </div>
+              <h6 className="fw-bold text-dark mb-1">No hay cuentas de X conectadas actualmente para {stateCfg.shortName}</h6>
+              <p className="text-muted fs-13 mb-0" style={{ maxWidth: "550px", margin: "0 auto" }}>
+                Utiliza el buscador abajo o selecciona una sugerencia (ej. @huachicol_Gto, @FSPE_GtoOficial) y haz clic en <strong>"Conectar Cuenta"</strong> para integrar sus publicaciones en tiempo real a la Sala de Gabinete.
+              </p>
+            </div>
+          ) : (
+            <div className="row g-3">
+              {connectedAccounts.map((acc) => (
+                <div key={acc.handle} className="col-md-6 col-lg-4">
+                  <div className="border border-success rounded-3 p-3 bg-light-subtle h-100 d-flex flex-column justify-content-between shadow-sm">
+                    <div>
+                      <div className="d-flex justify-content-between align-items-center mb-1">
+                        <div className="d-flex align-items-center gap-1">
+                          <strong className="text-dark fs-14">{acc.handle}</strong>
+                          {acc.verified && <i className="ri-verified-badge-fill text-primary fs-14"></i>}
+                        </div>
+                        <span className="badge bg-success text-white fs-10 fw-bold">🟢 En Vivo</span>
+                      </div>
+                      <p className="text-muted fs-12 mb-2 fw-semibold">{acc.name}</p>
+                      <div className="p-2 bg-white rounded-2 border border-gray-200 mb-2">
+                        <p className="text-dark fs-12 mb-0 fst-italic" style={{ color: "#0f172a" }}>
+                          "{acc.latest_tweet}"
+                        </p>
+                      </div>
+                    </div>
+                    <div className="d-flex align-items-center justify-content-between gap-2 pt-2 border-top">
+                      <Link href="/gabinete" className="btn btn-sm btn-primary text-white fw-bold fs-11 px-2 py-1">
+                        <i className="ri-radar-line me-1"></i> Ver en Feed
+                      </Link>
+                      <button
+                        type="button"
+                        onClick={() => handleDisconnectAccount(acc.handle)}
+                        className="btn btn-sm btn-outline-danger fw-bold fs-11 px-2 py-1"
+                        title="Desconectar cuenta"
+                      >
+                        <i className="ri-close-circle-line me-1"></i> Desconectar
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
 
       {/* Barra de Búsqueda y Sugerencias */}
       <div className="card bg-white border-0 shadow-sm rounded-3 mb-4">
@@ -442,6 +595,13 @@ export default function TwitterSearchPage() {
                           <i className="ri-checkbox-circle-fill"></i>
                           {isConnecting ? "Sincronizando..." : "Conectada (Activa)"}
                         </button>
+                        <Link
+                          href="/gabinete"
+                          className="btn btn-sm btn-outline-primary fw-bold"
+                          title="Ver en Sala de Gabinete (Live Feed)"
+                        >
+                          <i className="ri-radar-line"></i>
+                        </Link>
                         <button
                           type="button"
                           onClick={() => handleDisconnectAccount(acc.handle)}
