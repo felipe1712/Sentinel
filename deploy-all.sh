@@ -8,9 +8,10 @@ echo " 🚀 Actualizando y Desplegando SentinelIQ Multi-State"
 echo "=========================================================="
 
 # 1. Obtener los últimos cambios del repositorio
-echo "📥 Descargando cambios desde GitHub (main)..."
+CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "sentineliq-v2")
+echo "📥 Descargando cambios desde GitHub (${CURRENT_BRANCH})..."
 git checkout -- . 2>/dev/null || true
-git pull origin main
+git pull origin "$CURRENT_BRANCH"
 
 # 2. Levantar primero las Bases de Datos (PostgreSQL & Redis)
 echo "----------------------------------------------------------"
@@ -64,6 +65,7 @@ if [ -f "data/seed_live_sources_36h.sql" ]; then
     echo "  -> Aplicando fuentes vivas y feed de 36 horas..."
     docker exec -i sentineliq_gto_postgres psql -U sentineliq -d sentineliq_gto < "data/seed_live_sources_36h.sql" 2>/dev/null || true
     docker exec -i sentineliq_postgres psql -U sentinel -d sentineliq < "data/seed_live_sources_36h.sql" 2>/dev/null || true
+    docker exec -i sentineliq_pue_postgres psql -U sentineliq -d sentineliq_pue < "data/seed_live_sources_36h.sql" 2>/dev/null || true
     echo "seed_live_sources_36h.sql" >> "$APPLIED_LOG"
     echo "  ✅ Fuentes vivas y eventos de 36h aplicados a bases de datos."
   fi

@@ -43,7 +43,28 @@ RUST_API_URL = os.getenv("RUST_API_URL", "http://localhost:8080").rstrip("/")
 SERVICE_TOKEN = os.getenv("SERVICE_TOKEN", "sentineliq_internal_service_token_2026")
 POLL_INTERVAL_SECONDS = int(os.getenv("GDELT_POLL_INTERVAL_SECONDS", "360"))
 
-# Consultas territoriales programadas por estado
+def get_rust_api_url_for_state(state_key: str) -> str:
+    """Resuelve la URL del API de Rust para el estado correspondiente en topología Docker o Host."""
+    state_upper = state_key.upper()
+    env_spec = os.getenv(f"RUST_API_URL_{state_upper}")
+    if env_spec:
+        return env_spec.rstrip("/")
+
+    # Hostnames en la red docker sentineliq_net
+    docker_hosts = {
+        "qro": "http://sentineliq-rust-api:8080",
+        "gto": "http://sentineliq-gto-rust-api:8080",
+        "pue": "http://sentineliq-pue-rust-api:8080",
+    }
+    
+    # Si RUST_API_URL fue configurado a localhost o IP local
+    base_env = os.getenv("RUST_API_URL", "").rstrip("/")
+    if base_env and "sentineliq-rust-api" not in base_env:
+        return base_env
+
+    return docker_hosts.get(state_key.lower(), "http://sentineliq-rust-api:8080")
+
+# Consultas territoriales predeterminadas por estado (Segob: seguridad, vialidad, gobernabilidad, proteccion civil)
 GDELT_TERRITORIAL_QUERIES = {
     "qro": {
         "state_name": "Querétaro",
@@ -79,6 +100,29 @@ GDELT_TERRITORIAL_QUERIES = {
         ]
     },
 }
+
+async def fetch_remote_gdelt_queries(state_key: str) -> List[str]:
+    """Obtiene los parámetros territoriales actualizados desde /sources/gdelt/config en la BD del estado."""
+    api_url = get_rust_api_url_for_state(state_key)
+    endpoint = f"{api_url}/sources/gdelt/config"
+    headers = {
+        "X-Service-Token": SERVICE_TOKEN,
+        "X-State-Key": state_key,
+    }
+    try:
+        async with httpx.AsyncClient(timeout=4.0) as client:
+            resp = await client.get(endpoint, headers=headers)
+            if resp.status_code == 200:
+                data = resp.json()
+                if data.get("enabled", True):
+                    queries = [q["query"] for q in data.get("queries", []) if q.get("active", True) and q.get("query")]
+                    if queries:
+                        logger.info(f"Cargados {len(queries)} descriptores territoriales parametrizados desde BD para [{state_key.upper()}]")
+                        return queries
+    except Exception as exc:
+        logger.debug(f"Consulta a /sources/gdelt/config omitida ({state_key}): {exc}")
+
+    return GDELT_TERRITORIAL_QUERIES.get(state_key, {}).get("queries", [])
 
 
 def normalize_gdelt_article(article: Dict[str, Any], state_key: str) -> Dict[str, Any]:
@@ -147,25 +191,40 @@ def normalize_gdelt_article(article: Dict[str, Any], state_key: str) -> Dict[str
 
 
 async def send_event_to_api(event_data: Dict[str, Any], state_key: str) -> Tuple[bool, bool]:
-    """Envía el evento normalizado a POST /events en Rust API."""
-    endpoint = f"{RUST_API_URL}/events"
+    """Envía el evento normalizado a POST /events en Rust API del estado correspondiente."""
+    target_api = get_rust_api_url_for_state(state_key)
     headers = {
         "Content-Type": "application/json",
         "X-Service-Token": SERVICE_TOKEN,
         "X-State-Key": state_key,
     }
 
-    try:
-        async with httpx.AsyncClient(timeout=10.0) as client:
-            resp = await client.post(endpoint, json=event_data, headers=headers)
-            if resp.status_code in (200, 201):
-                return True, True
-            else:
-                logger.warning(f"Error al enviar evento GDELT a Rust API [{resp.status_code}]: {resp.text}")
-                return False, False
-    except Exception as exc:
-        logger.error(f"Fallo de conexión enviando evento GDELT a {endpoint}: {exc}")
-        return False, False
+    # Asegurar source_type explícito para Rust API
+    payload = dict(event_data)
+    payload["source_type"] = "gdelt"
+
+    port_map = {"qro": 8085, "gto": 8086, "pue": 8087}
+    alt_port = port_map.get(state_key.lower())
+
+    endpoints = [f"{target_api}/events"]
+    if alt_port:
+        endpoints.append(f"http://127.0.0.1:{alt_port}/events")
+    if RUST_API_URL and f"{RUST_API_URL}/events" not in endpoints:
+        endpoints.append(f"{RUST_API_URL}/events")
+
+    for endpoint in endpoints:
+        try:
+            async with httpx.AsyncClient(timeout=8.0) as client:
+                resp = await client.post(endpoint, json=payload, headers=headers)
+                if resp.status_code in (200, 201):
+                    return True, True
+                else:
+                    logger.warning(f"Error al enviar evento GDELT a {endpoint} [{resp.status_code}]: {resp.text}")
+        except Exception as exc:
+            logger.debug(f"Fallo contactando {endpoint} para [{state_key.upper()}]: {exc}")
+
+    logger.error(f"No fue posible entregar evento GDELT a ningún endpoint para [{state_key.upper()}]")
+    return False, False
 
 
 async def record_query_audit(
@@ -176,7 +235,8 @@ async def record_query_audit(
     circuit_healthy: bool
 ):
     """Registra la auditoría en /admin/query-audit."""
-    endpoint = f"{RUST_API_URL}/admin/query-audit"
+    target_api = get_rust_api_url_for_state(state_key)
+    endpoint = f"{target_api}/admin/query-audit"
     state_uuid = STATE_UUIDS.get(state_key, STATE_UUIDS["qro"])
     
     headers = {
@@ -207,10 +267,12 @@ async def record_query_audit(
 
 
 async def run_single_state_cycle(state_key: str) -> Dict[str, Any]:
-    """Ejecuta consultas territoriales GDELT para un estado con pausa anti-rate limit."""
+    """Ejecuta consultas territoriales GDELT para un estado con parámetros dinámicos y pausa anti-rate limit."""
     cfg = GDELT_TERRITORIAL_QUERIES.get(state_key, {})
     state_name = cfg.get("state_name", state_key.upper())
-    queries = cfg.get("queries", [])
+    
+    # Obtener parámetros dinámicos configurados en Source Manager o predeterminados
+    queries = await fetch_remote_gdelt_queries(state_key)
     
     logger.info(f"--- Iniciando ciclo GDELT territorial para [{state_name}] ({len(queries)} consultas) ---")
     

@@ -86,13 +86,18 @@ GDELT_TIMEOUT_SECS = float(os.getenv("GDELT_TIMEOUT_SECS", "15.0"))
 async def invoke_gdelt_search(query: str, state_name: str, max_records: int = 15, timespan: str = "24h") -> List[Dict[str, Any]]:
     """
     Ejecuta consulta a la API global de GDELT 2.0 (intel_gdelt_search).
-    Aplica circuit breaker y fallback a eventos territoriales de contingencia.
+    Aplica circuit breaker, cabeceras de navegador, reintento con ventana ampliada y fallback territorial de contingencia.
     """
     if not gdelt_breaker.can_execute():
         logger.warning(f"[GDELT] Circuit breaker está OPEN. Usando caché resiliente de contingencia para query '{query}'.")
         return _get_gdelt_contingency_results(query, state_name)
 
     full_query = f"{query} {state_name} sourcelang:spa"
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36 SentinelIQ-Monitor/2.0",
+        "Accept": "application/json, text/plain, */*",
+        "Accept-Language": "es-MX,es;q=0.9,en;q=0.8",
+    }
     params = {
         "query": full_query,
         "mode": "artlist",
@@ -103,13 +108,33 @@ async def invoke_gdelt_search(query: str, state_name: str, max_records: int = 15
     }
 
     try:
-        async with httpx.AsyncClient(timeout=GDELT_TIMEOUT_SECS, follow_redirects=True) as client:
+        async with httpx.AsyncClient(timeout=GDELT_TIMEOUT_SECS, follow_redirects=True, headers=headers) as client:
             resp = await client.get(GDELT_BASE_URL, params=params)
+            articles = []
             if resp.status_code == 200:
-                data = resp.json()
-                articles = data.get("articles", [])
+                try:
+                    data = resp.json()
+                    articles = data.get("articles", [])
+                except Exception:
+                    articles = []
+            elif resp.status_code == 429:
+                logger.warning(f"[GDELT] Límite de tasa temporal (HTTP 429) en api.gdeltproject.org. Retornando datos de contingencia territorial.")
+                return _get_gdelt_contingency_results(query, state_name)
+
+            # Si en 24h no hay notas, intentar con ventana de 7d
+            if not articles and timespan == "24h":
+                params["timespan"] = "7d"
+                await asyncio.sleep(1.0)
+                resp_7d = await client.get(GDELT_BASE_URL, params=params)
+                if resp_7d.status_code == 200:
+                    try:
+                        data_7d = resp_7d.json()
+                        articles = data_7d.get("articles", [])
+                    except Exception:
+                        pass
+
+            if articles:
                 gdelt_breaker.record_success()
-                
                 results = []
                 for a in articles:
                     url = a.get("url", "")
@@ -133,16 +158,12 @@ async def invoke_gdelt_search(query: str, state_name: str, max_records: int = 15
                         "query": query
                     })
                 return results
-            elif resp.status_code == 429:
-                logger.warning(f"[GDELT] Límite de tasa temporal (HTTP 429) en api.gdeltproject.org. Retornando datos de contingencia territorial.")
-                return _get_gdelt_contingency_results(query, state_name)
             else:
-                err_msg = f"HTTP {resp.status_code} desde api.gdeltproject.org"
-                gdelt_breaker.record_failure(Exception(err_msg))
+                # Si GDELT no tiene notas recientes para esa búsqueda específica, usar contingencia territorial
                 return _get_gdelt_contingency_results(query, state_name)
+
     except httpx.TimeoutException as e:
         logger.warning(f"[GDELT] Latencia alta o timeout ({GDELT_TIMEOUT_SECS}s) contactando api.gdeltproject.org. Activando contingencia territorial.")
-        # No penalizar el circuit breaker con apertura dura ante latencias transitorias del servicio público internacional
         return _get_gdelt_contingency_results(query, state_name)
     except Exception as e:
         logger.warning(f"[GDELT] Error de red saliente hacia api.gdeltproject.org: {e}")

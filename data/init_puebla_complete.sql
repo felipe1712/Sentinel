@@ -39,7 +39,7 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE TABLE IF NOT EXISTS sources (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   state_id UUID NOT NULL REFERENCES states(id) ON DELETE CASCADE,
-  type VARCHAR(30) NOT NULL CHECK (type IN ('telegram','rss','api_federal','social','webhook')),
+  type VARCHAR(30) NOT NULL CHECK (type IN ('telegram','rss','api_federal','social','webhook','gdelt','data365_twitter','data365')),
   identifier VARCHAR(500) NOT NULL,
   name VARCHAR(200) NOT NULL,
   credibility VARCHAR(20) DEFAULT 'no_verificado' CHECK (credibility IN ('oficial','verificado','no_verificado')),
@@ -383,7 +383,9 @@ INSERT INTO sources (id, state_id, type, identifier, name, credibility, active, 
 ('77777777-7777-7777-7777-777777777734', '21212121-2121-2121-2121-212121212121', 'social', '@CentralPuebla', 'Periódico Central Puebla — Cobertura Estatal', 'verificado', true, NOW()),
 ('77777777-7777-7777-7777-777777777735', '21212121-2121-2121-2121-212121212121', 'social', '@ElSoldePuebla', 'El Sol de Puebla — OEM Periodismo Regional', 'verificado', true, NOW()),
 ('77777777-7777-7777-7777-777777777736', '21212121-2121-2121-2121-212121212121', 'api_federal', 'PC_Estatal_PUE', 'Coordinación General de Protección Civil Puebla', 'oficial', true, NOW()),
-('77777777-7777-7777-7777-777777777737', '21212121-2121-2121-2121-212121212121', 'api_federal', 'CONAGUA_Balsas_PUE', 'Organismo de Cuenca Balsas - CONAGUA', 'oficial', true, NOW())
+('77777777-7777-7777-7777-777777777737', '21212121-2121-2121-2121-212121212121', 'api_federal', 'CONAGUA_Balsas_PUE', 'Organismo de Cuenca Balsas - CONAGUA', 'oficial', true, NOW()),
+('77777777-7777-7777-7777-777777777738', '21212121-2121-2121-2121-212121212121', 'gdelt', '@gdelt_prensa', 'GDELT 2.0 Prensa y Monitoreo Territorial Puebla', 'verificado', true, NOW()),
+('77777777-7777-7777-7777-777777777739', '21212121-2121-2121-2121-212121212121', 'data365_twitter', '@data365_twitter', 'Data365 Redes Sociales Puebla', 'verificado', true, NOW())
 ON CONFLICT (id) DO UPDATE 
 SET name = EXCLUDED.name, identifier = EXCLUDED.identifier, type = EXCLUDED.type, credibility = EXCLUDED.credibility, last_checked = NOW();
 

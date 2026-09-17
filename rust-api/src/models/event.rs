@@ -44,6 +44,7 @@ pub struct CreateEventDTO {
     pub dedup_hash: Option<String>,
     pub original_url: Option<String>,
     pub source_id: Option<Uuid>,
+    pub source_type: Option<String>,
     pub occurred_at: Option<DateTime<Utc>>,
 }
 

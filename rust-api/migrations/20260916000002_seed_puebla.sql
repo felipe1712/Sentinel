@@ -68,7 +68,9 @@ INSERT INTO sources (id, state_id, type, identifier, name, credibility, active) 
 ('77777777-7777-7777-7777-777777777734', '21212121-2121-2121-2121-212121212121', 'social', '@CentralPuebla', 'Periódico Central Puebla — Cobertura Estatal', 'verificado', true),
 ('77777777-7777-7777-7777-777777777735', '21212121-2121-2121-2121-212121212121', 'social', '@ElSoldePuebla', 'El Sol de Puebla — OEM Periodismo Regional', 'verificado', true),
 ('77777777-7777-7777-7777-777777777736', '21212121-2121-2121-2121-212121212121', 'api_federal', 'PC_Estatal_PUE', 'Coordinación General de Protección Civil Puebla', 'oficial', true),
-('77777777-7777-7777-7777-777777777737', '21212121-2121-2121-2121-212121212121', 'api_federal', 'CONAGUA_Balsas_PUE', 'Organismo de Cuenca Balsas - CONAGUA', 'oficial', true)
+('77777777-7777-7777-7777-777777777737', '21212121-2121-2121-2121-212121212121', 'api_federal', 'CONAGUA_Balsas_PUE', 'Organismo de Cuenca Balsas - CONAGUA', 'oficial', true),
+('77777777-7777-7777-7777-777777777738', '21212121-2121-2121-2121-212121212121', 'gdelt', '@gdelt_prensa', 'GDELT 2.0 Prensa y Monitoreo Territorial Puebla', 'verificado', true),
+('77777777-7777-7777-7777-777777777739', '21212121-2121-2121-2121-212121212121', 'data365_twitter', '@data365_twitter', 'Data365 Redes Sociales Puebla', 'verificado', true)
 ON CONFLICT (id) DO UPDATE 
 SET name = EXCLUDED.name, identifier = EXCLUDED.identifier, type = EXCLUDED.type, credibility = EXCLUDED.credibility;
 

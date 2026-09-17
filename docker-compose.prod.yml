@@ -111,6 +111,9 @@ services:
     restart: always
     environment:
       RUST_API_URL: http://sentineliq-rust-api:8080
+      RUST_API_URL_QRO: http://sentineliq-rust-api:8080
+      RUST_API_URL_GTO: http://sentineliq-gto-rust-api:8080
+      RUST_API_URL_PUE: http://sentineliq-pue-rust-api:8080
       REDIS_URL: redis://sentineliq-redis:6379/0
       SERVICE_TOKEN: ${SERVICE_TOKEN:-sentineliq_internal_service_token_2026}
       CLAUDE_API_KEY: ${CLAUDE_API_KEY:-""}

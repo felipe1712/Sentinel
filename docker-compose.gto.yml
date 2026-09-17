@@ -56,6 +56,9 @@ services:
     depends_on:
       - sentineliq-gto-postgres
       - sentineliq-gto-redis
+    networks:
+      - default
+      - sentineliq_net
 
   # ---------------------------------------------------------------------------
   # 4. Next.js Frontend Dashboard (Guanajuato Web App on Port 3005)
@@ -78,6 +81,11 @@ services:
       ARGOS_SERVICE_TOKEN: ${ARGOS_SERVICE_TOKEN:-sentineliq_argos_token_shared_sec_2026}
       NATIONAL_VIEW_ENABLED: "true"
       PLATFORM_DOMAIN: "sentineliq.com.mx"
+
+networks:
+  sentineliq_net:
+    name: sentineliq_net
+    external: true
 
 volumes:
   gto_postgres_data:

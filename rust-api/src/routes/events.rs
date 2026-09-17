@@ -69,9 +69,30 @@ pub async fn list_live_events(
             e.title, e.summary, e.ai_summary, e.political_relevance, e.location_text,
             e.lat, e.lng, e.municipio, e.entities, e.status, e.occurred_at, e.created_at,
             e.dedup_hash, e.original_url, COALESCE(e.ingested_at, e.created_at) AS ingested_at,
-            COALESCE(s.type, 'oficial') AS source_type,
-            COALESCE(s.name, 'Fuente Oficial Monitoreada') AS source_name,
-            COALESCE(s.identifier, '@gobierno') AS source_identifier,
+            COALESCE(
+                s.type,
+                CASE 
+                    WHEN e.title LIKE '[GDELT]%' OR e.original_url LIKE '%gdelt%' THEN 'gdelt'
+                    WHEN e.title LIKE '[Data365]%' OR e.title LIKE '[X/%' OR e.title LIKE '[Twitter]%' THEN 'data365_twitter'
+                    ELSE 'oficial'
+                END
+            ) AS source_type,
+            COALESCE(
+                s.name,
+                CASE 
+                    WHEN e.title LIKE '[GDELT]%' THEN 'GDELT 2.0 Monitoreo Territorial'
+                    WHEN e.title LIKE '[Data365]%' THEN 'Data365 Monitoreo Social'
+                    ELSE 'Fuente Oficial Monitoreada'
+                END
+            ) AS source_name,
+            COALESCE(
+                s.identifier,
+                CASE 
+                    WHEN e.title LIKE '[GDELT]%' THEN '@gdelt_prensa'
+                    WHEN e.title LIKE '[Data365]%' THEN '@data365'
+                    ELSE '@gobierno'
+                END
+            ) AS source_identifier,
             COALESCE(s.credibility, 'oficial') AS source_credibility,
             r.raw_text AS raw_text
          FROM events e
@@ -84,10 +105,10 @@ pub async fn list_live_events(
            AND ($5::varchar IS NULL OR e.municipio = $5)
            AND ($6::varchar IS NULL 
                 OR s.type = $6 
-                OR ($6 = 'oficial' AND (s.type IS NULL OR s.type = 'api_federal' OR s.type = 'rss'))
-                OR ($6 = 'twitter' AND (s.type = 'twitter' OR s.type = 'x' OR s.type = 'data365_twitter'))
-                OR ($6 = 'data365' AND (s.type LIKE 'data365%'))
-                OR ($6 = 'gdelt' AND (s.type = 'gdelt' OR s.type = 'news_feed'))
+                OR ($6 = 'oficial' AND (s.type IS NULL OR s.type = 'api_federal' OR s.type = 'rss') AND NOT e.title LIKE '[GDELT]%' AND NOT e.title LIKE '[Data365]%')
+                OR ($6 = 'twitter' AND (s.type = 'twitter' OR s.type = 'x' OR s.type = 'data365_twitter' OR e.title LIKE '[Twitter]%'))
+                OR ($6 = 'data365' AND (s.type LIKE 'data365%' OR e.title LIKE '[Data365]%'))
+                OR ($6 = 'gdelt' AND (s.type = 'gdelt' OR s.type = 'news_feed' OR e.title LIKE '[GDELT]%' OR e.original_url LIKE '%gdelt%'))
                )
          ORDER BY e.occurred_at DESC 
          LIMIT $7"
@@ -130,9 +151,30 @@ pub async fn list_live_events(
                 e.title, e.summary, e.ai_summary, e.political_relevance, e.location_text,
                 e.lat, e.lng, e.municipio, e.entities, e.status, e.occurred_at, e.created_at,
                 e.dedup_hash, e.original_url, COALESCE(e.ingested_at, e.created_at) AS ingested_at,
-                COALESCE(s.type, 'oficial') AS source_type,
-                COALESCE(s.name, 'Fuente Oficial Monitoreada') AS source_name,
-                COALESCE(s.identifier, '@gobierno') AS source_identifier,
+                COALESCE(
+                    s.type,
+                    CASE 
+                        WHEN e.title LIKE '[GDELT]%' OR e.original_url LIKE '%gdelt%' THEN 'gdelt'
+                        WHEN e.title LIKE '[Data365]%' OR e.title LIKE '[X/%' OR e.title LIKE '[Twitter]%' THEN 'data365_twitter'
+                        ELSE 'oficial'
+                    END
+                ) AS source_type,
+                COALESCE(
+                    s.name,
+                    CASE 
+                        WHEN e.title LIKE '[GDELT]%' THEN 'GDELT 2.0 Monitoreo Territorial'
+                        WHEN e.title LIKE '[Data365]%' THEN 'Data365 Monitoreo Social'
+                        ELSE 'Fuente Oficial Monitoreada'
+                    END
+                ) AS source_name,
+                COALESCE(
+                    s.identifier,
+                    CASE 
+                        WHEN e.title LIKE '[GDELT]%' THEN '@gdelt_prensa'
+                        WHEN e.title LIKE '[Data365]%' THEN '@data365'
+                        ELSE '@gobierno'
+                    END
+                ) AS source_identifier,
                 COALESCE(s.credibility, 'oficial') AS source_credibility,
                 r.raw_text AS raw_text
              FROM events e
@@ -144,10 +186,10 @@ pub async fn list_live_events(
                AND ($4::varchar IS NULL OR e.municipio = $4)
                AND ($5::varchar IS NULL 
                     OR s.type = $5 
-                    OR ($5 = 'oficial' AND (s.type IS NULL OR s.type = 'api_federal' OR s.type = 'rss'))
-                    OR ($5 = 'twitter' AND (s.type = 'twitter' OR s.type = 'x' OR s.type = 'data365_twitter'))
-                    OR ($5 = 'data365' AND (s.type LIKE 'data365%'))
-                    OR ($5 = 'gdelt' AND (s.type = 'gdelt' OR s.type = 'news_feed'))
+                    OR ($5 = 'oficial' AND (s.type IS NULL OR s.type = 'api_federal' OR s.type = 'rss') AND NOT e.title LIKE '[GDELT]%' AND NOT e.title LIKE '[Data365]%')
+                    OR ($5 = 'twitter' AND (s.type = 'twitter' OR s.type = 'x' OR s.type = 'data365_twitter' OR e.title LIKE '[Twitter]%'))
+                    OR ($5 = 'data365' AND (s.type LIKE 'data365%' OR e.title LIKE '[Data365]%'))
+                    OR ($5 = 'gdelt' AND (s.type = 'gdelt' OR s.type = 'news_feed' OR e.title LIKE '[GDELT]%' OR e.original_url LIKE '%gdelt%'))
                    )
              ORDER BY e.occurred_at DESC 
              LIMIT $6"
@@ -209,6 +251,56 @@ pub async fn create_event(
     let event_id = Uuid::new_v4();
     let occurred_at = payload.occurred_at.unwrap_or_else(chrono::Utc::now);
 
+    // Auto-resolución de fuente territorial si source_id no viene especificado
+    let mut source_id = payload.source_id;
+    if source_id.is_none() {
+        let inferred_type = if let Some(ref st) = payload.source_type {
+            Some(st.clone())
+        } else if payload.title.starts_with("[GDELT]") || payload.original_url.as_deref().unwrap_or("").contains("gdelt") {
+            Some("gdelt".to_string())
+        } else if payload.title.starts_with("[Data365]") || payload.title.starts_with("[X/") || payload.title.starts_with("[Twitter]") {
+            Some("data365_twitter".to_string())
+        } else {
+            None
+        };
+
+        if let Some(st) = inferred_type {
+            let existing_source = sqlx::query_scalar::<_, Uuid>(
+                "SELECT id FROM sources WHERE state_id = $1 AND (type = $2 OR identifier = $3) LIMIT 1"
+            )
+            .bind(auth.state_id)
+            .bind(&st)
+            .bind(format!("@{}", st))
+            .fetch_optional(&pool)
+            .await?;
+
+            if let Some(sid) = existing_source {
+                source_id = Some(sid);
+            } else {
+                let (source_name, identifier) = match st.as_str() {
+                    "gdelt" | "news_feed" => ("GDELT 2.0 Monitoreo Territorial de Prensa", "@gdelt_prensa"),
+                    "data365_twitter" | "twitter" | "x" => ("Data365 Monitoreo Social Twitter/X", "@data365_twitter"),
+                    "data365_facebook" => ("Data365 Monitoreo Social Facebook", "@data365_facebook"),
+                    "data365_instagram" => ("Data365 Monitoreo Social Instagram", "@data365_instagram"),
+                    _ => ("Fuente de Monitoreo Territorial", "@monitoreo"),
+                };
+                let new_sid = sqlx::query_scalar::<_, Uuid>(
+                    "INSERT INTO sources (id, state_id, type, identifier, name, credibility, active)
+                     VALUES (gen_random_uuid(), $1, $2, $3, $4, 'verificado', true)
+                     RETURNING id"
+                )
+                .bind(auth.state_id)
+                .bind(&st)
+                .bind(identifier)
+                .bind(source_name)
+                .fetch_one(&pool)
+                .await?;
+
+                source_id = Some(new_sid);
+            }
+        }
+    }
+
     let event = sqlx::query_as::<_, Event>(
         "INSERT INTO events 
          (id, state_id, source_id, category, severity, title, summary, ai_summary, political_relevance, location_text, lat, lng, municipio, entities, dedup_hash, original_url, occurred_at)
@@ -217,7 +309,7 @@ pub async fn create_event(
     )
     .bind(event_id)
     .bind(auth.state_id)
-    .bind(payload.source_id)
+    .bind(source_id)
     .bind(&payload.category)
     .bind(&payload.severity)
     .bind(&payload.title)

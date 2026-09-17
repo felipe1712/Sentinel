@@ -174,3 +174,128 @@ pub async fn search_twitter_accounts(
         }
     ])))
 }
+
+#[derive(Debug, Clone, serde::Serialize, Deserialize)]
+pub struct GdeltQueryItem {
+    pub id: String,
+    pub query: String,
+    pub category: String,
+    pub municipio: Option<String>,
+    pub active: bool,
+}
+
+#[derive(Debug, Clone, serde::Serialize, Deserialize)]
+pub struct GdeltConfigDTO {
+    pub enabled: bool,
+    pub queries: Vec<GdeltQueryItem>,
+    pub poll_interval_seconds: Option<i32>,
+    pub timespan: Option<String>,
+}
+
+fn get_default_gdelt_queries_for_state(state_id_str: &str) -> Vec<GdeltQueryItem> {
+    if state_id_str == "00000000-0000-0000-0000-000000000011" {
+        // Guanajuato
+        vec![
+            GdeltQueryItem { id: "gto-1".into(), query: "Celaya FSPE operativo seguridad".into(), category: "seguridad".into(), municipio: Some("Celaya".into()), active: true },
+            GdeltQueryItem { id: "gto-2".into(), query: "León vialidad policía accidente".into(), category: "seguridad".into(), municipio: Some("León".into()), active: true },
+            GdeltQueryItem { id: "gto-3".into(), query: "Irapuato seguridad tránsito".into(), category: "seguridad".into(), municipio: Some("Irapuato".into()), active: true },
+            GdeltQueryItem { id: "gto-4".into(), query: "Salamanca refinería vialidad".into(), category: "seguridad".into(), municipio: Some("Salamanca".into()), active: true },
+            GdeltQueryItem { id: "gto-5".into(), query: "Carretera 45 Celaya Irapuato".into(), category: "seguridad".into(), municipio: Some("Villagrán".into()), active: true },
+            GdeltQueryItem { id: "gto-6".into(), query: "San Miguel de Allende turismo seguridad".into(), category: "seguridad".into(), municipio: Some("San Miguel de Allende".into()), active: true },
+        ]
+    } else if state_id_str == "21212121-2121-2121-2121-212121212121" {
+        // Puebla
+        vec![
+            GdeltQueryItem { id: "pue-1".into(), query: "Puebla Capital policía metropolitana seguridad".into(), category: "seguridad".into(), municipio: Some("Puebla".into()), active: true },
+            GdeltQueryItem { id: "pue-2".into(), query: "San Martín Texmelucan autopista México-Puebla".into(), category: "seguridad".into(), municipio: Some("San Martín Texmelucan".into()), active: true },
+            GdeltQueryItem { id: "pue-3".into(), query: "Tehuacán operativo protección civil".into(), category: "proteccion_civil".into(), municipio: Some("Tehuacán".into()), active: true },
+            GdeltQueryItem { id: "pue-4".into(), query: "San Andrés Cholula conurbada vialidad".into(), category: "seguridad".into(), municipio: Some("San Andrés Cholula".into()), active: true },
+            GdeltQueryItem { id: "pue-5".into(), query: "Autopista México-Puebla tráfico accidente".into(), category: "seguridad".into(), municipio: Some("Cuautlancingo".into()), active: true },
+            GdeltQueryItem { id: "pue-6".into(), query: "Atlixco seguridad patrullaje".into(), category: "seguridad".into(), municipio: Some("Atlixco".into()), active: true },
+        ]
+    } else {
+        // Querétaro
+        vec![
+            GdeltQueryItem { id: "qro-1".into(), query: "Querétaro seguridad vialidad accidente".into(), category: "seguridad".into(), municipio: Some("Santiago de Querétaro".into()), active: true },
+            GdeltQueryItem { id: "qro-2".into(), query: "San Juan del Río autopista 57".into(), category: "seguridad".into(), municipio: Some("San Juan del Río".into()), active: true },
+            GdeltQueryItem { id: "qro-3".into(), query: "El Marqués drenes prevención protección civil".into(), category: "proteccion_civil".into(), municipio: Some("El Marqués".into()), active: true },
+            GdeltQueryItem { id: "qro-4".into(), query: "Corregidora patrullaje operativo".into(), category: "seguridad".into(), municipio: Some("Corregidora".into()), active: true },
+            GdeltQueryItem { id: "qro-5".into(), query: "Paseo 5 de Febrero Querétaro movilidad".into(), category: "seguridad".into(), municipio: Some("Santiago de Querétaro".into()), active: true },
+            GdeltQueryItem { id: "qro-6".into(), query: "Colón aeropuerto AIQ industria".into(), category: "politico".into(), municipio: Some("Colón".into()), active: true },
+        ]
+    }
+}
+
+pub async fn get_gdelt_config(
+    auth: AuthUser,
+    State(pool): State<PgPool>,
+) -> Result<Json<GdeltConfigDTO>, AppError> {
+    let source = sqlx::query_as::<_, Source>(
+        "SELECT * FROM sources WHERE state_id = $1 AND type = 'gdelt' LIMIT 1"
+    )
+    .bind(auth.state_id)
+    .fetch_optional(&pool)
+    .await?;
+
+    if let Some(src) = source {
+        if let Some(cfg) = src.config {
+            if let Ok(dto) = serde_json::from_value::<GdeltConfigDTO>(cfg) {
+                return Ok(Json(dto));
+            }
+        }
+    }
+
+    let def_queries = get_default_gdelt_queries_for_state(&auth.state_id.to_string());
+    Ok(Json(GdeltConfigDTO {
+        enabled: true,
+        queries: def_queries,
+        poll_interval_seconds: Some(360),
+        timespan: Some("24h".to_string()),
+    }))
+}
+
+pub async fn update_gdelt_config(
+    auth: AuthUser,
+    State(pool): State<PgPool>,
+    Json(payload): Json<GdeltConfigDTO>,
+) -> Result<Json<serde_json::Value>, AppError> {
+    auth.require_role(&["analista", "jefe_oficina", "superadmin"])?;
+
+    let cfg_json = serde_json::to_value(&payload)
+        .map_err(|e| AppError::Internal(format!("Error serializando config: {}", e)))?;
+
+    let existing = sqlx::query_scalar::<_, Uuid>(
+        "SELECT id FROM sources WHERE state_id = $1 AND type = 'gdelt' LIMIT 1"
+    )
+    .bind(auth.state_id)
+    .fetch_optional(&pool)
+    .await?;
+
+    if let Some(sid) = existing {
+        sqlx::query(
+            "UPDATE sources SET config = $1, active = $2 WHERE id = $3"
+        )
+        .bind(&cfg_json)
+        .bind(payload.enabled)
+        .bind(sid)
+        .execute(&pool)
+        .await?;
+    } else {
+        sqlx::query(
+            "INSERT INTO sources (id, state_id, type, identifier, name, credibility, active, config)
+             VALUES (gen_random_uuid(), $1, 'gdelt', '@gdelt_prensa', 'GDELT 2.0 Monitoreo Territorial de Prensa', 'verificado', $2, $3)"
+        )
+        .bind(auth.state_id)
+        .bind(payload.enabled)
+        .bind(&cfg_json)
+        .execute(&pool)
+        .await?;
+    }
+
+    Ok(Json(json!({
+        "status": "success",
+        "message": "Parámetros territoriales de GDELT 2.0 actualizados exitosamente",
+        "queries_count": payload.queries.len()
+    })))
+}
+

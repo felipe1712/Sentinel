@@ -68,13 +68,32 @@ TERRITORIAL_QUERIES = {
 }
 
 
+def get_rust_api_url_for_state(state_key: str) -> str:
+    """Resuelve la URL del API de Rust para el estado correspondiente en topología Docker o Host."""
+    state_upper = state_key.upper()
+    env_spec = os.getenv(f"RUST_API_URL_{state_upper}")
+    if env_spec:
+        return env_spec.rstrip("/")
+
+    docker_hosts = {
+        "qro": "http://sentineliq-rust-api:8080",
+        "gto": "http://sentineliq-gto-rust-api:8080",
+        "pue": "http://sentineliq-pue-rust-api:8080",
+    }
+    base_env = os.getenv("RUST_API_URL", "").rstrip("/")
+    if base_env and "sentineliq-rust-api" not in base_env:
+        return base_env
+
+    return docker_hosts.get(state_key.lower(), "http://sentineliq-rust-api:8080")
+
+
 async def send_event_to_api(event_data: Dict[str, Any], state_key: str) -> Tuple[bool, bool]:
     """
     Envía un evento normalizado al backend Rust (`POST /events`).
     Garantiza conformidad con los CHECK constraints de PostgreSQL.
     Retorna una tupla: (éxito: bool, es_nuevo: bool)
     """
-    endpoint = f"{RUST_API_URL}/events"
+    target_api = get_rust_api_url_for_state(state_key)
     headers = {
         "Content-Type": "application/json",
         "X-Service-Token": SERVICE_TOKEN,
@@ -113,7 +132,7 @@ async def send_event_to_api(event_data: Dict[str, Any], state_key: str) -> Tuple
         relevance = 4
     relevance = max(0, min(10, relevance))
 
-    # Transformar a formato CreateEventDTO
+    # Transformar a formato CreateEventDTO con source_type preservado
     payload = {
         "title": event_data.get("title", ""),
         "summary": event_data.get("summary", ""),
@@ -126,22 +145,34 @@ async def send_event_to_api(event_data: Dict[str, Any], state_key: str) -> Tuple
         "lng": event_data.get("lng"),
         "dedup_hash": event_data.get("dedup_hash"),
         "original_url": event_data.get("original_url"),
+        "source_type": event_data.get("source_type", "data365_twitter"),
         "political_relevance": relevance,
         "entities": event_data.get("entities", {}),
         "occurred_at": event_data.get("occurred_at"),
     }
 
-    try:
-        async with httpx.AsyncClient(timeout=10.0) as client:
-            resp = await client.post(endpoint, json=payload, headers=headers)
-            if resp.status_code in (200, 201):
-                return True, True
-            else:
-                logger.warning(f"Error al enviar evento a Rust API [{resp.status_code}]: {resp.text}")
-                return False, False
-    except Exception as exc:
-        logger.error(f"Fallo de conexión enviando evento a {endpoint}: {exc}")
-        return False, False
+    port_map = {"qro": 8085, "gto": 8086, "pue": 8087}
+    alt_port = port_map.get(state_key.lower())
+
+    endpoints = [f"{target_api}/events"]
+    if alt_port:
+        endpoints.append(f"http://127.0.0.1:{alt_port}/events")
+    if RUST_API_URL and f"{RUST_API_URL}/events" not in endpoints:
+        endpoints.append(f"{RUST_API_URL}/events")
+
+    for endpoint in endpoints:
+        try:
+            async with httpx.AsyncClient(timeout=8.0) as client:
+                resp = await client.post(endpoint, json=payload, headers=headers)
+                if resp.status_code in (200, 201):
+                    return True, True
+                else:
+                    logger.warning(f"Respuesta no exitosa en {endpoint} [{resp.status_code}]: {resp.text}")
+        except Exception as exc:
+            logger.debug(f"Fallo contactando {endpoint} para [{state_key.upper()}]: {exc}")
+
+    logger.error(f"No fue posible entregar evento Data365 a ningún endpoint para [{state_key.upper()}]")
+    return False, False
 
 
 async def record_query_audit(
@@ -156,7 +187,8 @@ async def record_query_audit(
     Registra la consulta territorial en la tabla `query_audit` de la Rust API.
     query_type debe ser uno de: ('briefing','dossier','alerta','osint','narrativa','clasificacion').
     """
-    endpoint = f"{RUST_API_URL}/admin/query-audit"
+    target_api = get_rust_api_url_for_state(state_key)
+    endpoint = f"{target_api}/admin/query-audit"
     state_uuid = STATE_UUIDS.get(state_key, STATE_UUIDS["qro"])
     
     headers = {

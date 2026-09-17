@@ -63,6 +63,7 @@ pub fn create_router(pool: PgPool) -> Router {
         .route("/sources/:id/toggle", patch(sources::toggle_source))
         .route("/sources/telegram/search", post(sources::search_telegram_channels))
         .route("/sources/twitter/search", post(sources::search_twitter_accounts))
+        .route("/sources/gdelt/config", get(sources::get_gdelt_config).post(sources::update_gdelt_config))
         // Municipios
         .route("/municipios", get(municipios::list_municipios))
         .route("/municipios/:clave", get(municipios::get_municipio_detail))

@@ -56,6 +56,9 @@ services:
     depends_on:
       - sentineliq-pue-postgres
       - sentineliq-pue-redis
+    networks:
+      - default
+      - sentineliq_net
 
   # ---------------------------------------------------------------------------
   # 4. Next.js Frontend Dashboard (Puebla Web App on Port 3006)
@@ -78,6 +81,11 @@ services:
       ARGOS_SERVICE_TOKEN: ${ARGOS_SERVICE_TOKEN:-sentineliq_argos_token_shared_sec_2026}
       NATIONAL_VIEW_ENABLED: "true"
       PLATFORM_DOMAIN: "sentineliq.com.mx"
+
+networks:
+  sentineliq_net:
+    name: sentineliq_net
+    external: true
 
 volumes:
   pue_postgres_data:

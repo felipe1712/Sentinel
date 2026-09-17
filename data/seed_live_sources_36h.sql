@@ -11,7 +11,9 @@ INSERT INTO sources (id, state_id, type, identifier, name, credibility, active) 
 ('77777777-7777-7777-7777-777777777714', '00000000-0000-0000-0000-000000000011', 'social', '@FSPE_Gto', 'Fuerzas de Seguridad Pública del Estado (FSPE)', 'oficial', true),
 ('77777777-7777-7777-7777-777777777715', '00000000-0000-0000-0000-000000000011', 'social', '@PeriodismoBajio', 'Agencia Informativa & Periodismo Regional Bajío', 'verificado', true),
 ('77777777-7777-7777-7777-777777777716', '00000000-0000-0000-0000-000000000011', 'api_federal', 'PC_Estatal_GTO', 'Coordinación Estatal de Protección Civil GTO', 'oficial', true),
-('77777777-7777-7777-7777-777777777717', '00000000-0000-0000-0000-000000000011', 'api_federal', 'CONAGUA_Lerma_Santiago', 'Servicio Hidrometeorológico y Cuencas CONAGUA', 'oficial', true)
+('77777777-7777-7777-7777-777777777717', '00000000-0000-0000-0000-000000000011', 'api_federal', 'CONAGUA_Lerma_Santiago', 'Servicio Hidrometeorológico y Cuencas CONAGUA', 'oficial', true),
+('77777777-7777-7777-7777-777777777718', '00000000-0000-0000-0000-000000000011', 'gdelt', '@gdelt_prensa', 'GDELT 2.0 Prensa y Monitoreo Territorial Bajío', 'verificado', true),
+('77777777-7777-7777-7777-777777777719', '00000000-0000-0000-0000-000000000011', 'data365_twitter', '@data365_twitter', 'Data365 Redes Sociales Guanajuato', 'verificado', true)
 ON CONFLICT (id) DO UPDATE 
 SET name = EXCLUDED.name, identifier = EXCLUDED.identifier, type = EXCLUDED.type, credibility = EXCLUDED.credibility;
 
@@ -23,7 +25,9 @@ INSERT INTO sources (id, state_id, type, identifier, name, credibility, active) 
 ('77777777-7777-7777-7777-777777777724', '11111111-1111-1111-1111-111111111111', 'social', '@CIAS_Queretaro', 'Centro de Información y Análisis para la Seguridad (CIAS)', 'oficial', true),
 ('77777777-7777-7777-7777-777777777725', '11111111-1111-1111-1111-111111111111', 'api_federal', 'PC_Estatal_QRO', 'Coordinación Estatal de Protección Civil Querétaro', 'oficial', true),
 ('77777777-7777-7777-7777-777777777726', '11111111-1111-1111-1111-111111111111', 'api_federal', 'CEA_Queretaro', 'Comisión Estatal de Aguas Querétaro (CEA)', 'oficial', true),
-('77777777-7777-7777-7777-777777777727', '11111111-1111-1111-1111-111111111111', 'social', '@RadarQueretaro', 'Radar Informativo & Clúster Querétaro', 'verificado', true)
+('77777777-7777-7777-7777-777777777727', '11111111-1111-1111-1111-111111111111', 'social', '@RadarQueretaro', 'Radar Informativo & Clúster Querétaro', 'verificado', true),
+('77777777-7777-7777-7777-777777777728', '11111111-1111-1111-1111-111111111111', 'gdelt', '@gdelt_prensa', 'GDELT 2.0 Prensa y Monitoreo Territorial Querétaro', 'verificado', true),
+('77777777-7777-7777-7777-777777777729', '11111111-1111-1111-1111-111111111111', 'data365_twitter', '@data365_twitter', 'Data365 Redes Sociales Querétaro', 'verificado', true)
 ON CONFLICT (id) DO UPDATE 
 SET name = EXCLUDED.name, identifier = EXCLUDED.identifier, type = EXCLUDED.type, credibility = EXCLUDED.credibility;
 
