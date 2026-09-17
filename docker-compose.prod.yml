@@ -136,6 +136,7 @@ services:
 
 networks:
   sentineliq_net:
+    name: sentineliq_net
     driver: bridge
 
 volumes:

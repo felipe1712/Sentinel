@@ -17,6 +17,7 @@ git pull origin "$CURRENT_BRANCH"
 echo "----------------------------------------------------------"
 echo "🗄️ Inicializando Bases de Datos PostgreSQL y Redis..."
 echo "----------------------------------------------------------"
+docker network create sentineliq_net 2>/dev/null || true
 docker compose -p sentineliq-qro -f docker-compose.prod.yml up -d sentineliq-postgres sentineliq-redis
 docker compose -p sentineliq-gto -f docker-compose.gto.yml up -d sentineliq-gto-postgres sentineliq-gto-redis
 docker compose -p sentineliq-pue -f docker-compose.pue.yml up -d sentineliq-pue-postgres sentineliq-pue-redis 2>/dev/null || true
