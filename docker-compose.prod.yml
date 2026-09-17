@@ -124,6 +124,9 @@ services:
       DATA365_CALLBACK_URL: ${DATA365_CALLBACK_URL:-""}
       GDELT_BASE_URL: ${GDELT_BASE_URL:-https://api.gdeltproject.org/api/v2/doc/doc}
       GDELT_TIMEOUT_SECS: ${GDELT_TIMEOUT_SECS:-15.0}
+      TWITTER_BEARER_TOKEN: ${TWITTER_BEARER_TOKEN:-""}
+      TWITTER_API_KEY: ${TWITTER_API_KEY:-""}
+      TWITTER_API_SECRET: ${TWITTER_API_SECRET:-""}
     depends_on:
       - sentineliq-rust-api
       - sentineliq-redis

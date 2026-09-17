@@ -20,6 +20,7 @@ SERVICES = [
     ("Briefing Generator", [sys.executable, "-u", "briefing_generator.py"]),
     ("Data365 Scheduler", [sys.executable, "-u", "data365_scheduler.py"]),
     ("GDELT Scheduler", [sys.executable, "-u", "gdelt_scheduler.py"]),
+    ("Twitter Ingestor", [sys.executable, "-u", "twitter_ingestor.py"]),
 ]
 
 def main():

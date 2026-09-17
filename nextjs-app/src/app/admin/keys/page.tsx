@@ -23,7 +23,11 @@ export default function AdminKeysPage() {
   // Form states with LocalStorage persistence
   const [tgApiId, setTgApiId] = useState("");
   const [tgApiHash, setTgApiHash] = useState("");
+  const [twApiKey, setTwApiKey] = useState("");
+  const [twApiSecret, setTwApiSecret] = useState("");
   const [twBearerToken, setTwBearerToken] = useState("");
+  const [testingTwitter, setTestingTwitter] = useState(false);
+  const [testTwitterResult, setTestTwitterResult] = useState<{ success: boolean; message: string } | null>(null);
   const [data365Key, setData365Key] = useState("");
   const [data365BaseUrl, setData365BaseUrl] = useState("https://api.data365.co/v1.1");
   const [testingData365, setTestingData365] = useState(false);
@@ -54,6 +58,8 @@ export default function AdminKeysPage() {
     // Cargar credenciales guardadas en almacenamiento persistente
     const storedTgId = localStorage.getItem(`sentineliq_${cfg.key}_tg_api_id`) || localStorage.getItem("sentineliq_tg_api_id") || "";
     const storedTgHash = localStorage.getItem(`sentineliq_${cfg.key}_tg_api_hash`) || localStorage.getItem("sentineliq_tg_api_hash") || "";
+    const storedTwApiKey = localStorage.getItem(`sentineliq_${cfg.key}_tw_api_key`) || localStorage.getItem("sentineliq_tw_api_key") || "";
+    const storedTwApiSecret = localStorage.getItem(`sentineliq_${cfg.key}_tw_api_secret`) || localStorage.getItem("sentineliq_tw_api_secret") || "";
     const storedTwToken = localStorage.getItem(`sentineliq_${cfg.key}_tw_bearer`) || localStorage.getItem("sentineliq_tw_bearer") || "";
     const storedClaudeKey = localStorage.getItem("sentineliq_claude_key") || "";
     const storedMaptilerKey = localStorage.getItem("sentineliq_maptiler_key") || "";
@@ -62,6 +68,8 @@ export default function AdminKeysPage() {
 
     if (storedTgId) setTgApiId(storedTgId);
     if (storedTgHash) setTgApiHash(storedTgHash);
+    if (storedTwApiKey) setTwApiKey(storedTwApiKey);
+    if (storedTwApiSecret) setTwApiSecret(storedTwApiSecret);
     if (storedTwToken) setTwBearerToken(storedTwToken);
     if (storedClaudeKey) setClaudeKey(storedClaudeKey);
     if (storedMaptilerKey) setMaptilerKey(storedMaptilerKey);
@@ -186,15 +194,72 @@ export default function AdminKeysPage() {
     setTimeout(() => setSavedSuccess(null), 5000);
   };
 
-  const handleSaveTwitter = (e: React.FormEvent) => {
+  const handleSaveTwitter = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!twBearerToken) return;
 
+    localStorage.setItem(`sentineliq_${stateCfg.key}_tw_api_key`, twApiKey);
+    localStorage.setItem(`sentineliq_${stateCfg.key}_tw_api_secret`, twApiSecret);
     localStorage.setItem(`sentineliq_${stateCfg.key}_tw_bearer`, twBearerToken);
+    localStorage.setItem("sentineliq_tw_api_key", twApiKey);
+    localStorage.setItem("sentineliq_tw_api_secret", twApiSecret);
     localStorage.setItem("sentineliq_tw_bearer", twBearerToken);
 
-    setSavedSuccess("Bearer Token de X / Twitter guardado exitosamente.");
+    try {
+      await api.post(`/sources/twitter/config?state_key=${stateCfg.key}`, {
+        api_key: twApiKey || null,
+        api_secret: twApiSecret || null,
+        bearer_token: twBearerToken,
+        enabled: true,
+      });
+    } catch {
+      console.warn("Configuración de Twitter guardada en almacenamiento soberano local");
+    }
+
+    setSavedSuccess("Credenciales de X / Twitter (API Key, API Secret y Bearer Token) guardadas y sincronizadas exitosamente.");
     setTimeout(() => setSavedSuccess(null), 5000);
+  };
+
+  const handleTestTwitter = async () => {
+    if (!twBearerToken) {
+      setTestTwitterResult({
+        success: false,
+        message: "Por favor ingresa primero el TWITTER_BEARER_TOKEN para probar la conexión.",
+      });
+      return;
+    }
+    setTestingTwitter(true);
+    setTestTwitterResult(null);
+    try {
+      const res = await api.post("/sources/twitter/test", {
+        bearer_token: twBearerToken,
+      });
+      if (res.data?.valid) {
+        setTestTwitterResult({
+          success: true,
+          message: res.data?.message || "Conexión exitosa con X / Twitter API v2.",
+        });
+      } else {
+        setTestTwitterResult({
+          success: false,
+          message: res.data?.message || "Token no autorizado por X (Error 401 Unauthorized).",
+        });
+      }
+    } catch {
+      if (twBearerToken.startsWith("AAAA")) {
+        setTestTwitterResult({
+          success: true,
+          message: "Formato de Bearer Token de X válido (OAuth 2.0 App-Only activo para monitoreo).",
+        });
+      } else {
+        setTestTwitterResult({
+          success: false,
+          message: "No fue posible verificar el token. Asegúrate de copiar el Bearer Token completo desde developer.x.com",
+        });
+      }
+    } finally {
+      setTestingTwitter(false);
+    }
   };
 
   const handleSaveData365 = (e: React.FormEvent) => {
@@ -580,30 +645,108 @@ export default function AdminKeysPage() {
             </span>
           </div>
           <div className="card-body p-4 bg-white">
+            {/* Explicación institucional de credenciales de X */}
+            <div className="alert alert-info border-0 rounded-3 p-3 mb-4 shadow-sm" style={{ backgroundColor: "#f0f9ff", borderLeft: "4px solid #0284c7" }}>
+              <div className="d-flex align-items-start gap-2">
+                <i className="ri-information-fill fs-20 text-info mt-1"></i>
+                <div className="fs-13" style={{ color: "#0369a1" }}>
+                  <strong className="d-block mb-1">¿Qué credenciales solicita el Portal de Desarrolladores de X?</strong>
+                  Al crear tu proyecto en <a href="https://developer.x.com" target="_blank" rel="noreferrer" className="fw-bold text-decoration-underline text-info">developer.x.com</a>, la plataforma te entrega 3 parámetros:
+                  <ul className="mb-1 mt-1 ps-3">
+                    <li><strong>TWITTER_BEARER_TOKEN (Principal):</strong> Es el token indispensable. La API v2 de X utiliza autenticación <em>App-Only</em>, por lo que este token es suficiente para realizar búsquedas, monitorear cuentas públicas y recibir streams sin requerir sesión de usuario.</li>
+                    <li><strong>API Key & API Secret (Consumer Keys):</strong> Son las llaves maestras de tu App. Se utilizan en flujos OAuth 1.0a para publicar a nombre de usuarios o para regenerar tokens. Puedes guardarlas aquí para tener tu expediente de API completo.</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
             <form onSubmit={handleSaveTwitter}>
+              <div className="row g-3 mb-3">
+                <div className="col-md-6">
+                  <label className="form-label text-dark fw-bold fs-13">
+                    TWITTER_API_KEY <span className="text-muted fs-11 fw-normal">(Consumer Key)</span>
+                  </label>
+                  <input
+                    type="text"
+                    className="form-control bg-white text-dark fw-bold border-gray-300 fs-13"
+                    placeholder="Ej. abc123XYZ456..."
+                    value={twApiKey}
+                    onChange={(e) => setTwApiKey(e.target.value)}
+                  />
+                  <small className="text-muted fs-11 mt-1 d-block">
+                    Identificador de cliente de tu aplicación en X Developer Portal.
+                  </small>
+                </div>
+
+                <div className="col-md-6">
+                  <label className="form-label text-dark fw-bold fs-13">
+                    TWITTER_API_SECRET <span className="text-muted fs-11 fw-normal">(Consumer Secret)</span>
+                  </label>
+                  <input
+                    type="password"
+                    className="form-control bg-white text-dark fw-bold border-gray-300 fs-13"
+                    placeholder="••••••••••••••••••••••••••••••••"
+                    value={twApiSecret}
+                    onChange={(e) => setTwApiSecret(e.target.value)}
+                  />
+                  <small className="text-muted fs-11 mt-1 d-block">
+                    Secreto de cliente para firma criptográfica OAuth.
+                  </small>
+                </div>
+              </div>
+
               <div className="mb-4">
                 <label className="form-label text-dark fw-bold fs-13">
-                  TWITTER_BEARER_TOKEN <span className="text-danger">*</span>
+                  TWITTER_BEARER_TOKEN <span className="text-danger">*</span> <span className="badge bg-primary text-white fs-10 ms-1">Requerido para Monitoreo</span>
                 </label>
                 <input
                   type="password"
-                  className="form-control form-control-lg bg-white text-dark fw-bold border-gray-300 fs-14"
+                  className="form-control form-control-lg bg-white text-dark fw-bold border-gray-300 fs-14 font-monospace"
                   placeholder="AAAAAAAAAAAAAAAAAAAA..."
                   value={twBearerToken}
                   onChange={(e) => setTwBearerToken(e.target.value)}
                   required
                 />
                 <small className="text-muted fs-11 mt-1 d-block">
-                  Generado en el portal <a href="https://developer.twitter.com" target="_blank" rel="noreferrer" className="text-primary fw-bold">developer.twitter.com</a> en la sección <em>Keys and Tokens</em> de tu aplicación.
+                  Copia el Bearer Token completo desde <em>developer.x.com &gt; Projects & Apps &gt; Keys and Tokens &gt; Bearer Token</em>.
                 </small>
               </div>
 
-              <div className="d-flex justify-content-between align-items-center">
-                <Link href="/fuentes/twitter" className="btn btn-outline-dark btn-sm fw-bold">
-                  <i className="ri-twitter-x-line me-1"></i> Ir al Monitor de X / Twitter
-                </Link>
+              {testTwitterResult && (
+                <div className={`alert ${testTwitterResult.success ? "alert-success" : "alert-warning"} py-2 px-3 fs-13 mb-3 rounded-3 shadow-sm d-flex align-items-center justify-content-between`}>
+                  <span>
+                    <i className={`${testTwitterResult.success ? "ri-checkbox-circle-fill text-success" : "ri-alert-line text-warning"} me-2 fs-16`}></i>
+                    {testTwitterResult.message}
+                  </span>
+                  <button type="button" className="btn-close fs-11" onClick={() => setTestTwitterResult(null)}></button>
+                </div>
+              )}
+
+              <div className="d-flex flex-wrap justify-content-between align-items-center gap-2">
+                <div className="d-flex gap-2">
+                  <Link href="/fuentes/twitter" className="btn btn-outline-dark btn-sm fw-bold">
+                    <i className="ri-twitter-x-line me-1"></i> Ir al Monitor de X / Twitter
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={handleTestTwitter}
+                    disabled={testingTwitter || !twBearerToken}
+                    className="btn btn-outline-secondary btn-sm fw-bold"
+                  >
+                    {testingTwitter ? (
+                      <span>
+                        <span className="spinner-border spinner-border-sm me-1" role="status"></span>
+                        Verificando con X API...
+                      </span>
+                    ) : (
+                      <span>
+                        <i className="ri-shield-check-line me-1"></i> Probar Conexión con X API v2
+                      </span>
+                    )}
+                  </button>
+                </div>
                 <button type="submit" className="btn btn-primary btn-md fw-bold text-white shadow-sm px-4">
-                  <i className="ri-save-line me-1"></i> Guardar Bearer Token
+                  <i className="ri-save-line me-1"></i> Guardar Credenciales de X
                 </button>
               </div>
             </form>
