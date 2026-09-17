@@ -34,6 +34,14 @@ export default function TwitterSearchPage() {
   const [connectedMap, setConnectedMap] = useState<Record<string, boolean>>({});
   const [hasBearerToken, setHasBearerToken] = useState(false);
   const [searchMode, setSearchMode] = useState<"api_v2" | "soberano">("soberano");
+  const [testingConnection, setTestingConnection] = useState(false);
+  const [testResult, setTestResult] = useState<{
+    valid: boolean;
+    status_code?: number;
+    message: string;
+    raw_body?: string;
+  } | null>(null);
+  const [apiErrorNotice, setApiErrorNotice] = useState<string | null>(null);
   const [connectNotice, setConnectNotice] = useState<{
     text: string;
     type: "success" | "warning";
@@ -75,10 +83,49 @@ export default function TwitterSearchPage() {
     handleSearch(initialQ);
   }, []);
 
+  const handleTestConnection = async () => {
+    const token =
+      localStorage.getItem(`sentineliq_${stateCfg.key}_tw_bearer`) ||
+      localStorage.getItem("sentineliq_tw_bearer") ||
+      "";
+
+    if (!token) {
+      setTestResult({
+        valid: false,
+        message: "No se ha encontrado un Bearer Token guardado en tu navegador. Ve a 'Gestionar Llaves de X' para configurarlo.",
+      });
+      return;
+    }
+
+    setTestingConnection(true);
+    setTestResult(null);
+
+    try {
+      const resp = await api.post("/sources/twitter/test", {
+        bearer_token: token,
+      });
+
+      if (resp.data) {
+        setTestResult(resp.data);
+      } else {
+        throw new Error("Sin respuesta de verificación");
+      }
+    } catch (err: any) {
+      setTestResult({
+        valid: false,
+        status_code: 500,
+        message: "Error contactando el servicio de verificación: " + (err.message || "Servicio no disponible."),
+      });
+    } finally {
+      setTestingConnection(false);
+    }
+  };
+
   const handleSearch = async (searchQuery: string) => {
     if (!searchQuery.trim()) return;
     setLoading(true);
     setConnectNotice(null);
+    setApiErrorNotice(null);
 
     const token =
       localStorage.getItem(`sentineliq_${stateCfg.key}_tw_bearer`) ||
@@ -92,15 +139,33 @@ export default function TwitterSearchPage() {
         bearer_token: token || null,
       });
 
-      if (resp.data && Array.isArray(resp.data) && resp.data.length > 0) {
-        setAccounts(resp.data);
-        setSearchMode(token ? "api_v2" : "soberano");
+      let returnedAccounts: TwitterAccountResult[] = [];
+      let isReal = false;
+      let errorMsg: string | null = null;
+
+      if (resp.data && typeof resp.data === "object" && "accounts" in resp.data) {
+        returnedAccounts = resp.data.accounts || [];
+        isReal = resp.data.is_real_api === true;
+        errorMsg = resp.data.api_error || null;
+      } else if (resp.data && Array.isArray(resp.data)) {
+        returnedAccounts = resp.data;
+        isReal = returnedAccounts.some((a: any) => a.is_synthetic === false);
+        if (!isReal && token) {
+          errorMsg = "La API de X no devolvió tweets en vivo. Se activó el catálogo de contingencia institucional.";
+        }
+      }
+
+      if (returnedAccounts.length > 0) {
+        setAccounts(returnedAccounts);
+        setSearchMode(isReal ? "api_v2" : "soberano");
+        setApiErrorNotice(errorMsg);
       } else {
         throw new Error("Sin resultados de API");
       }
     } catch {
       // Fallback dinámico contextualizado con base en el término de búsqueda
       setSearchMode("soberano");
+      setApiErrorNotice("No fue posible consultar la API de X. Se presenta el catálogo institucional soberano de contingencia.");
       const cleanQ = searchQuery.replace("@", "").trim();
       const stateSuffix = isPuebla ? "Pue" : isGuanajuato ? "Gto" : "Qro";
       const stateName = stateCfg.name;
@@ -349,12 +414,111 @@ export default function TwitterSearchPage() {
               </div>
             </div>
 
-            <Link href="/admin/keys" className="btn btn-outline-dark btn-sm fw-bold text-nowrap">
-              <i className="ri-settings-3-line me-1"></i> Gestionar Llaves de X
-            </Link>
+            <div className="d-flex align-items-center gap-2 flex-wrap">
+              <button
+                type="button"
+                onClick={handleTestConnection}
+                disabled={testingConnection}
+                className="btn btn-outline-primary btn-sm fw-bold text-nowrap"
+              >
+                {testingConnection ? (
+                  <span>
+                    <span className="spinner-border spinner-border-sm me-1" role="status"></span>
+                    Verificando con X...
+                  </span>
+                ) : (
+                  <span>
+                    <i className="ri-shield-flash-line me-1"></i> Diagnosticar Conexión con X
+                  </span>
+                )}
+              </button>
+              <Link href="/admin/keys" className="btn btn-outline-dark btn-sm fw-bold text-nowrap">
+                <i className="ri-settings-3-line me-1"></i> Gestionar Llaves de X
+              </Link>
+            </div>
           </div>
         </div>
       </div>
+
+      {/* Resultado del Diagnóstico de Conexión en Vivo */}
+      {testResult && (
+        <div
+          className={`card border-0 shadow-sm rounded-3 mb-4 border-start border-4 ${
+            testResult.valid ? "border-success bg-white" : "border-danger bg-white"
+          }`}
+        >
+          <div className="card-body p-4">
+            <div className="d-flex align-items-start justify-content-between gap-2">
+              <div className="d-flex align-items-start gap-3">
+                <div
+                  className={`avatar-sm rounded-circle p-2 d-flex align-items-center justify-content-center text-white ${
+                    testResult.valid ? "bg-success" : "bg-danger"
+                  }`}
+                  style={{ width: "40px", height: "40px", minWidth: "40px" }}
+                >
+                  <i className={`${testResult.valid ? "ri-checkbox-circle-fill" : "ri-error-warning-fill"} fs-20`}></i>
+                </div>
+                <div>
+                  <div className="d-flex align-items-center gap-2 mb-1 flex-wrap">
+                    <h6 className="fw-extrabold text-dark mb-0 fs-15">
+                      {testResult.valid
+                        ? "Conexión 100% Exitosa con la API de X"
+                        : "Diagnóstico: Acceso Restringido o Rechazado por X"}
+                    </h6>
+                    {testResult.status_code && (
+                      <span
+                        className={`badge ${
+                          testResult.valid
+                            ? "bg-success text-white"
+                            : testResult.status_code === 403
+                            ? "bg-warning text-dark"
+                            : "bg-danger text-white"
+                        } fs-11 fw-bold`}
+                      >
+                        HTTP {testResult.status_code}
+                      </span>
+                    )}
+                  </div>
+                  <p className="fs-13 text-dark mb-2 fw-semibold" style={{ color: "#334155" }}>
+                    {testResult.message}
+                  </p>
+                  {testResult.status_code === 403 && (
+                    <div className="alert alert-warning border border-warning-subtle rounded-3 p-3 mt-2 mb-2 fs-13 text-dark">
+                      <strong className="d-block mb-1 text-dark">
+                        <i className="ri-information-fill me-1"></i> ¿Por qué ocurre el Error 403 con tu Token?
+                      </strong>
+                      Tu <code>TWITTER_BEARER_TOKEN</code> es válido y está reconocido por los servidores de X, pero tu cuenta en el <strong>Developer Portal de X</strong> está en el nivel gratuito (<em>Free Tier</em>).
+                      <br /><br />
+                      Elon Musk / X eliminó el endpoint de búsqueda de tweets (<code>/2/tweets/search/recent</code>) del plan gratuito en abril de 2023. Para consultar tweets abiertos por búsqueda de texto en tiempo real, X exige contratar el plan <strong>Basic ($100 USD/mes)</strong> o <strong>Pro</strong> en <a href="https://developer.x.com" target="_blank" rel="noreferrer" className="fw-bold text-primary">developer.x.com</a>.
+                      <br /><br />
+                      <strong>Consecuencia en SentinelIQ:</strong> Para que la plataforma nunca se quede en blanco, el sistema activa automáticamente el <em>Catálogo Institucional Soberano (Contingencia)</em> mientras no se cuente con el plan Basic de X.
+                    </div>
+                  )}
+                  {testResult.raw_body && (
+                    <details className="mt-2">
+                      <summary className="fs-12 text-muted fw-bold" style={{ cursor: "pointer" }}>
+                        Ver respuesta técnica cruda de api.twitter.com (JSON)
+                      </summary>
+                      <pre
+                        className="bg-dark text-light p-3 rounded-3 fs-11 mt-2 mb-0 overflow-auto"
+                        style={{ maxHeight: "160px" }}
+                      >
+                        {testResult.raw_body}
+                      </pre>
+                    </details>
+                  )}
+                </div>
+              </div>
+              <button
+                type="button"
+                className="btn-close"
+                onClick={() => setTestResult(null)}
+                aria-label="Cerrar diagnóstico"
+              ></button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Notificación interactiva de Conexión / Desconexión */}
       {connectNotice && (
@@ -520,13 +684,35 @@ export default function TwitterSearchPage() {
         </div>
       </div>
 
+      {/* Notificación si la API de X falló o está en contingencia */}
+      {apiErrorNotice && (
+        <div className="alert alert-warning border-0 rounded-3 p-3 mb-3 shadow-sm d-flex align-items-start gap-2">
+          <i className="ri-error-warning-fill fs-20 text-warning mt-1"></i>
+          <div>
+            <strong className="d-block text-dark fs-13 mb-1">Estatus del Motor de Conexión:</strong>
+            <span className="text-dark fs-13">{apiErrorNotice}</span>
+          </div>
+        </div>
+      )}
+
       {/* Resultados de la Búsqueda */}
       <div className="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
-        <h5 className="fw-extrabold text-dark mb-0 fs-18" style={{ color: "#0f172a" }}>
-          Cuentas & Canales en X Encontrados ({accounts.length})
-        </h5>
+        <div className="d-flex align-items-center gap-2">
+          <h5 className="fw-extrabold text-dark mb-0 fs-18" style={{ color: "#0f172a" }}>
+            Cuentas & Canales en X Encontrados ({accounts.length})
+          </h5>
+          <span
+            className={`badge ${
+              searchMode === "api_v2" ? "bg-success text-white" : "bg-warning text-dark"
+            } fs-11 fw-bold`}
+          >
+            {searchMode === "api_v2" ? "🟢 En Vivo vía X API v2" : "⚠️ Catálogo Soberano (Contingencia)"}
+          </span>
+        </div>
         <span className="text-muted fs-12">
-          {searchMode === "api_v2" ? "Resultados consultados vía X API v2" : "Catálogo de inteligencia soberana"}
+          {searchMode === "api_v2"
+            ? "Resultados auténticos consultados vía X API v2"
+            : "Catálogo de contingencia institucional (X API no devolvió tweets en vivo)"}
         </span>
       </div>
 

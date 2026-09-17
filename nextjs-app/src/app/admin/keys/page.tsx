@@ -245,16 +245,16 @@ export default function AdminKeysPage() {
           message: res.data?.message || "Token no autorizado por X (Error 401 Unauthorized).",
         });
       }
-    } catch {
+    } catch (err: any) {
       if (twBearerToken.startsWith("AAAA")) {
         setTestTwitterResult({
-          success: true,
-          message: "Formato de Bearer Token de X válido (OAuth 2.0 App-Only activo para monitoreo).",
+          success: false,
+          message: "Formato de Bearer Token correcto (inicia con 'AAAA'), pero no se pudo contactar el endpoint de verificación en vivo. Asegúrate de que los contenedores estén actualizados con './deploy-all.sh'.",
         });
       } else {
         setTestTwitterResult({
           success: false,
-          message: "No fue posible verificar el token. Asegúrate de copiar el Bearer Token completo desde developer.x.com",
+          message: "No fue posible verificar el token. Asegúrate de copiar el Bearer Token completo desde developer.x.com (usualmente inicia con 'AAAA')",
         });
       }
     } finally {

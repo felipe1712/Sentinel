@@ -165,6 +165,9 @@ pub async fn search_twitter_accounts(
     let state_name = if is_gto { "Guanajuato" } else { "Querétaro" };
     let clean_q = payload.query.replace("@", "").trim().to_string();
 
+    let mut api_status_code: Option<u16> = None;
+    let mut api_error_msg: Option<String> = None;
+
     // 1. Si viene Bearer Token en payload o variable de entorno, intentar llamar a la API v2 de Twitter
     let token_opt = payload.bearer_token.as_ref()
         .filter(|t| !t.trim().is_empty())
@@ -185,81 +188,108 @@ pub async fn search_twitter_accounts(
             .append_pair("expansions", "author_id")
             .append_pair("user.fields", "name,username,verified,public_metrics");
 
-        if let Ok(resp) = client
+        match client
             .get(url)
             .header("Authorization", format!("Bearer {}", token.trim()))
             .header("User-Agent", "SentinelIQ-OSINT/2.0")
             .send()
             .await
         {
-            if resp.status().is_success() {
-                if let Ok(data) = resp.json::<serde_json::Value>().await {
-                    let mut results = Vec::new();
-                    if let Some(tweets) = data.get("data").and_then(|d| d.as_array()) {
-                        let users_map: std::collections::HashMap<String, &serde_json::Value> = data
-                            .get("includes")
-                            .and_then(|inc| inc.get("users"))
-                            .and_then(|u| u.as_array())
-                            .map(|users| {
-                                users
-                                    .iter()
-                                    .filter_map(|u| {
-                                        u.get("id").and_then(|id| id.as_str()).map(|id_str| (id_str.to_string(), u))
-                                    })
-                                    .collect()
-                            })
-                            .unwrap_or_default();
+            Ok(resp) => {
+                let st = resp.status();
+                api_status_code = Some(st.as_u16());
+                if st.is_success() {
+                    if let Ok(data) = resp.json::<serde_json::Value>().await {
+                        let mut results = Vec::new();
+                        if let Some(tweets) = data.get("data").and_then(|d| d.as_array()) {
+                            let users_map: std::collections::HashMap<String, &serde_json::Value> = data
+                                .get("includes")
+                                .and_then(|inc| inc.get("users"))
+                                .and_then(|u| u.as_array())
+                                .map(|users| {
+                                    users
+                                        .iter()
+                                        .filter_map(|u| {
+                                            u.get("id").and_then(|id| id.as_str()).map(|id_str| (id_str.to_string(), u))
+                                        })
+                                        .collect()
+                                })
+                                .unwrap_or_default();
 
-                        for t in tweets {
-                            let text = t.get("text").and_then(|s| s.as_str()).unwrap_or("");
-                            let author_id = t.get("author_id").and_then(|s| s.as_str()).unwrap_or("");
-                            let user_obj = users_map.get(author_id);
+                            for t in tweets {
+                                let text = t.get("text").and_then(|s| s.as_str()).unwrap_or("");
+                                let author_id = t.get("author_id").and_then(|s| s.as_str()).unwrap_or("");
+                                let user_obj = users_map.get(author_id);
 
-                            let handle = user_obj
-                                .and_then(|u| u.get("username").and_then(|un| un.as_str()))
-                                .map(|un| format!("@{}", un))
-                                .unwrap_or_else(|| format!("@{}", clean_q));
+                                let handle = user_obj
+                                    .and_then(|u| u.get("username").and_then(|un| un.as_str()))
+                                    .map(|un| format!("@{}", un))
+                                    .unwrap_or_else(|| format!("@{}", clean_q));
 
-                            let name = user_obj
-                                .and_then(|u| u.get("name").and_then(|n| n.as_str()))
-                                .unwrap_or(&clean_q);
+                                let name = user_obj
+                                    .and_then(|u| u.get("name").and_then(|n| n.as_str()))
+                                    .unwrap_or(&clean_q);
 
-                            let verified = user_obj
-                                .and_then(|u| u.get("verified").and_then(|v| v.as_bool()))
-                                .unwrap_or(false);
+                                let verified = user_obj
+                                    .and_then(|u| u.get("verified").and_then(|v| v.as_bool()))
+                                    .unwrap_or(false);
 
-                            let followers = user_obj
-                                .and_then(|u| u.get("public_metrics").and_then(|pm| pm.get("followers_count").and_then(|fc| fc.as_i64())))
-                                .unwrap_or(12500);
+                                let followers = user_obj
+                                    .and_then(|u| u.get("public_metrics").and_then(|pm| pm.get("followers_count").and_then(|fc| fc.as_i64())))
+                                    .unwrap_or(12500);
 
-                            let metrics = t.get("public_metrics");
-                            let likes = metrics.and_then(|m| m.get("like_count").and_then(|c| c.as_i64())).unwrap_or(0);
-                            let retweets = metrics.and_then(|m| m.get("retweet_count").and_then(|c| c.as_i64())).unwrap_or(0);
-                            let replies = metrics.and_then(|m| m.get("reply_count").and_then(|c| c.as_i64())).unwrap_or(0);
-                            let impressions = metrics.and_then(|m| m.get("impression_count").and_then(|c| c.as_i64())).unwrap_or(0);
+                                let metrics = t.get("public_metrics");
+                                let likes = metrics.and_then(|m| m.get("like_count").and_then(|c| c.as_i64())).unwrap_or(0);
+                                let retweets = metrics.and_then(|m| m.get("retweet_count").and_then(|c| c.as_i64())).unwrap_or(0);
+                                let replies = metrics.and_then(|m| m.get("reply_count").and_then(|c| c.as_i64())).unwrap_or(0);
+                                let impressions = metrics.and_then(|m| m.get("impression_count").and_then(|c| c.as_i64())).unwrap_or(0);
 
-                            results.push(json!({
-                                "handle": handle,
-                                "name": name,
-                                "followers": followers,
-                                "relevance_score": 95,
-                                "category": "redes_sociales_x",
-                                "verified": verified,
-                                "latest_tweet": text,
-                                "engagement": {
-                                    "likes": likes,
-                                    "retweets": retweets,
-                                    "replies": replies,
-                                    "impressions": impressions
-                                }
-                            }));
+                                results.push(json!({
+                                    "handle": handle,
+                                    "name": name,
+                                    "followers": followers,
+                                    "relevance_score": 95,
+                                    "category": "redes_sociales_x",
+                                    "verified": verified,
+                                    "latest_tweet": text,
+                                    "is_synthetic": false,
+                                    "engagement": {
+                                        "likes": likes,
+                                        "retweets": retweets,
+                                        "replies": replies,
+                                        "impressions": impressions
+                                    }
+                                }));
+                            }
+                        }
+
+                        if !results.is_empty() {
+                            return Ok(Json(json!({
+                                "is_real_api": true,
+                                "status_code": 200,
+                                "message": "Tweets obtenidos en tiempo real desde la API de X",
+                                "accounts": results
+                            })));
                         }
                     }
-
-                    if !results.is_empty() {
-                        return Ok(Json(json!(results)));
+                } else {
+                    let raw_err = resp.text().await.unwrap_or_default();
+                    if st.as_u16() == 403 {
+                        api_error_msg = Some(format!(
+                            "X API devolvió HTTP 403 Forbidden (Plan Free): El endpoint de búsqueda reciente requiere plan Basic ($100/mes) o Pro en developer.x.com. Respuesta de X: {}",
+                            raw_err.chars().take(200).collect::<String>()
+                        ));
+                    } else if st.as_u16() == 401 {
+                        api_error_msg = Some("X API devolvió HTTP 401 Unauthorized: El Bearer Token ingresado no es válido o ha sido regenerado en el Developer Portal.".into());
+                    } else if st.as_u16() == 429 {
+                        api_error_msg = Some("X API devolvió HTTP 429 Rate Limit: Se ha excedido la cuota permitida de peticiones de tu cuenta de X.".into());
+                    } else {
+                        api_error_msg = Some(format!("X API devolvió HTTP {}: {}", st, raw_err.chars().take(150).collect::<String>()));
                     }
                 }
+            }
+            Err(e) => {
+                api_error_msg = Some(format!("No fue posible establecer conexión con api.twitter.com: {}", e));
             }
         }
     }
@@ -268,7 +298,7 @@ pub async fn search_twitter_accounts(
     let clean_q_no_space = clean_q.replace(" ", "");
     let state_suffix = if is_gto { "Gto" } else { "Qro" };
 
-    Ok(Json(json!([
+    let fallback_accounts = json!([
         {
             "handle": format!("@{}_{}", clean_q_no_space, state_suffix),
             "name": format!("{} Oficial {}", clean_q, state_name),
@@ -277,16 +307,18 @@ pub async fn search_twitter_accounts(
             "category": "seguridad_y_vialidad",
             "verified": true,
             "latest_tweet": format!("Monitoreo vial y patrullaje permanente en accesos y vías principales de {}. Cobertura activa.", clean_q),
+            "is_synthetic": true,
             "engagement": {"likes": 420, "retweets": 115, "replies": 32, "impressions": 12500}
         },
         {
-            "handle": format!("@AlertasViales{}", clean_q_no_space),
+            "handle": format!("@AlertasViales_{}", clean_q_no_space),
             "name": format!("Alertas Viales {}", clean_q),
             "followers": 89000,
             "relevance_score": 93,
             "category": "vialidad_metropolitana",
             "verified": false,
-            "latest_tweet": format!("Reporte de tránsito y obras viales en {}. Circulación con precaución en carriles laterales.", clean_q),
+            "latest_tweet": format!("Tránsito fluido en carretera principal de {}. Precaución por obra preventiva.", clean_q),
+            "is_synthetic": true,
             "engagement": {"likes": 210, "retweets": 64, "replies": 18, "impressions": 8400}
         },
         {
@@ -296,10 +328,18 @@ pub async fn search_twitter_accounts(
             "relevance_score": 88,
             "category": "noticias_locales",
             "verified": true,
-            "latest_tweet": format!("Mesa de trabajo y actualización de actividades de gobierno en {}.", clean_q),
+            "latest_tweet": format!("Reporte matutino de actividades de gobierno y cobertura de eventos en {}.", clean_q),
+            "is_synthetic": true,
             "engagement": {"likes": 180, "retweets": 45, "replies": 12, "impressions": 6100}
         }
-    ])))
+    ]);
+
+    Ok(Json(json!({
+        "is_real_api": false,
+        "status_code": api_status_code.unwrap_or(200),
+        "api_error": api_error_msg,
+        "accounts": fallback_accounts
+    })))
 }
 
 #[derive(Debug, Clone, serde::Serialize, Deserialize)]
@@ -542,35 +582,48 @@ pub async fn test_twitter_connection(
     match res {
         Ok(resp) => {
             let st = resp.status();
+            let raw_body = resp.text().await.unwrap_or_default();
             if st.is_success() {
                 Ok(Json(json!({
                     "valid": true,
                     "status_code": st.as_u16(),
-                    "message": "Conexión exitosa con X / Twitter API v2 (Bearer Token autenticado)"
+                    "message": "Conexión exitosa con X / Twitter API v2 (Bearer Token autenticado y con permisos de lectura en vivo).",
+                    "raw_body": raw_body
                 })))
             } else if st.as_u16() == 401 {
                 Ok(Json(json!({
                     "valid": false,
                     "status_code": 401,
-                    "message": "Token rechazado por X (HTTP 401 Unauthorized). Verifique que el Bearer Token esté activo en el Developer Portal."
+                    "message": "Token rechazado por X (HTTP 401 Unauthorized). El Bearer Token es incorrecto o fue revocado en developer.x.com.",
+                    "raw_body": raw_body
+                })))
+            } else if st.as_u16() == 403 {
+                Ok(Json(json!({
+                    "valid": false,
+                    "status_code": 403,
+                    "message": "Acceso restringido por X (HTTP 403 Forbidden - Plan Free). Tu Bearer Token es válido, pero el Developer Portal de X tiene tu App en nivel 'Free', el cual prohíbe búsquedas de tweets. X exige el plan Basic ($100 USD/mes) para buscar tweets libres.",
+                    "raw_body": raw_body
                 })))
             } else if st.as_u16() == 429 {
                 Ok(Json(json!({
                     "valid": true,
                     "status_code": 429,
-                    "message": "Token reconocido por X, pero la cuota de peticiones de su cuenta gratuita está en pausa temporal por límite de tasa (HTTP 429 Rate Limit)."
+                    "message": "Token reconocido por X, pero la cuota de peticiones de tu cuenta está temporalmente en pausa por límite de tasa (HTTP 429 Rate Limit Exceeded).",
+                    "raw_body": raw_body
                 })))
             } else {
                 Ok(Json(json!({
                     "valid": false,
                     "status_code": st.as_u16(),
-                    "message": format!("Respuesta de X API: HTTP {}", st)
+                    "message": format!("Respuesta de X API: HTTP {}", st),
+                    "raw_body": raw_body
                 })))
             }
         }
         Err(e) => {
             Ok(Json(json!({
                 "valid": false,
+                "status_code": 500,
                 "message": format!("No fue posible conectar con api.twitter.com: {}", e)
             })))
         }
