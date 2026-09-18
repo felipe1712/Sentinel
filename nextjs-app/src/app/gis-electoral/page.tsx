@@ -104,7 +104,7 @@ export default function GisElectoralPage() {
   useEffect(() => {
     const cfg = getStateConfig();
     setStateCfg(cfg);
-    if (cfg.key === "pue") {
+    if (cfg.key === "pue" || cfg.key === "qro") {
       setBaseBoundary("municipios");
       setElectionType("diputaciones");
       setSelectedYear(2024);
@@ -129,7 +129,13 @@ export default function GisElectoralPage() {
 
   const handleSelectElectionType = (type: "gubernatura" | "diputaciones") => {
     setElectionType(type);
-    if (stateCfg.key === "pue" || stateCfg.key === "qro") {
+    if (stateCfg.key === "qro") {
+      if (type === "gubernatura") {
+        setSelectedYear(2021);
+      } else {
+        if (selectedYear !== 2024 && selectedYear !== 2021) setSelectedYear(2024);
+      }
+    } else if (stateCfg.key === "pue") {
       if (type === "gubernatura") {
         if (selectedYear === 2024) setSelectedYear(2021);
       } else {
@@ -165,15 +171,23 @@ export default function GisElectoralPage() {
   };
 
   const currentMunicipiosList = React.useMemo(() => {
-    if (stateCfg.key === "pue") {
-      const munObj = electoralCache?.municipios?.diputaciones?.["2024"] || electoralCache?.municipios?.gubernatura?.["2021"];
+    if (stateCfg.key === "pue" || stateCfg.key === "qro") {
+      const munObj =
+        electoralCache?.municipios?.diputaciones?.["2024"] ||
+        electoralCache?.municipios?.gubernatura?.["2021"];
       if (munObj && Object.keys(munObj).length > 0) {
         const uniqueNames = new Set<string>();
         const list: { id: number; nombre: string }[] = [];
         Object.values(munObj).forEach((m: any) => {
-          if (m && m.nombre && !uniqueNames.has(m.nombre) && m.nombre !== m.nombre.toUpperCase()) {
+          if (
+            m &&
+            m.nombre &&
+            !uniqueNames.has(m.nombre) &&
+            m.nombre !== m.nombre.toUpperCase() &&
+            m.nombre !== "Santiago de Querétaro"
+          ) {
             uniqueNames.add(m.nombre);
-            list.push({ id: list.length + 1, nombre: m.nombre });
+            list.push({ id: m.clave_municipio || (list.length + 1), nombre: m.nombre });
           }
         });
         if (list.length > 0) {
@@ -243,7 +257,7 @@ export default function GisElectoralPage() {
             sectionResult={selectedSectionResult}
             associatedEvents={[]}
             selectedYear={selectedYear}
-            totalSectionsCount={stateCfg.key === "pue" ? 2847 : stateCfg.key === "qro" ? 922 : 3357}
+            totalSectionsCount={stateCfg.key === "pue" ? 2847 : stateCfg.key === "qro" ? 1090 : 3357}
             selectedMunicipio={selectedMunicipio}
             municipiosList={currentMunicipiosList}
             electoralCache={electoralCache}

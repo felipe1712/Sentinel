@@ -18,7 +18,7 @@ const ProfileMenu: React.FC = () => {
   const [active, setActive] = useState<boolean>(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const stateCfg = getStateConfig();
-  const isPuebla = stateCfg.key === "pue";
+  const isPublicDemo = stateCfg.key === "pue" || stateCfg.key === "qro";
 
   const currentRoleInfo = (role && ROLE_LABELS[role]) || ROLE_LABELS.analista;
   const stateUsers = getDefaultUsersForState(stateCfg.key);
@@ -147,8 +147,8 @@ const ProfileMenu: React.FC = () => {
             </div>
           )}
 
-          {/* Prueba de Jurisdicción Cruzada (solo para usuarios locales) */}
-          {!isGlobalSuperAdmin && otherStates.length > 0 && (
+          {/* Prueba de Jurisdicción Cruzada (solo para usuarios locales fuera de modo demo) */}
+          {!isGlobalSuperAdmin && !isPublicDemo && otherStates.length > 0 && (
             <div className="px-4 py-2 bg-red-50/50 dark:bg-red-950/20 border-t border-b border-red-100 dark:border-red-900/30">
               <span className="text-[10px] font-bold text-red-500 uppercase tracking-wider block mb-1">
                 Prueba de Aislamiento Territorial
@@ -171,8 +171,8 @@ const ProfileMenu: React.FC = () => {
             </div>
           )}
 
-          {/* Enlace a Administración si es Superadministrador (fuera de Puebla) */}
-          {!isPuebla && isSuperAdmin && (
+          {/* Enlace a Administración si es Superadministrador (fuera de modo demo) */}
+          {!isPublicDemo && isSuperAdmin && (
             <div className="px-3 pt-2">
               <Link
                 href="/admin"

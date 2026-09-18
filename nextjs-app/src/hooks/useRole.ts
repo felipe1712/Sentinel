@@ -184,6 +184,17 @@ export const PUEBLA_DEMO_USER: UserProfile = {
   active: true,
 };
 
+// Usuario Demo Institucional para Querétaro (Acceso libre de demostración sin credenciales)
+export const QUERETARO_DEMO_USER: UserProfile = {
+  id: "u_qro_demo",
+  name: "Invitado Demo Querétaro",
+  email: "demo@queretaro.gob.mx",
+  cargo: "Demostración Institucional / Gabinete",
+  role: "gabinete",
+  state_key: "qro",
+  active: true,
+};
+
 export function getDefaultUsersForState(stateKey: string): UserProfile[] {
   const normalized = stateKey.toLowerCase().trim();
   if (normalized === "pue") {
@@ -191,6 +202,13 @@ export function getDefaultUsersForState(stateKey: string): UserProfile[] {
     return [
       PUEBLA_DEMO_USER,
       ...PREDEFINED_USERS_BY_STATE["pue"].filter((u) => u.role !== "superadmin"),
+    ];
+  }
+  if (normalized === "qro") {
+    // Para Querétaro solo retornar usuarios no-administradores y demo
+    return [
+      QUERETARO_DEMO_USER,
+      ...PREDEFINED_USERS_BY_STATE["qro"].filter((u) => u.role !== "superadmin"),
     ];
   }
   const list = PREDEFINED_USERS_BY_STATE[normalized] || [];
@@ -207,12 +225,18 @@ export function getStoredUser(): UserProfile | null {
       if (stateCfg.key === "pue") {
         return PUEBLA_DEMO_USER;
       }
+      if (stateCfg.key === "qro") {
+        return QUERETARO_DEMO_USER;
+      }
       return null;
     }
     const parsed = JSON.parse(userStr) as UserProfile;
-    // Si estamos en Puebla pero el usuario almacenado es superadmin o de otro estado, forzar perfil demo
+    // Si estamos en Puebla o Querétaro pero el usuario almacenado es superadmin o de otro estado, forzar perfil demo
     if (stateCfg.key === "pue" && (parsed.role === "superadmin" || parsed.state_key !== "pue")) {
       return PUEBLA_DEMO_USER;
+    }
+    if (stateCfg.key === "qro" && (parsed.role === "superadmin" || parsed.state_key !== "qro")) {
+      return QUERETARO_DEMO_USER;
     }
     return parsed;
   } catch {
@@ -237,8 +261,8 @@ export function logout(): void {
   localStorage.removeItem("sentineliq_token");
   document.cookie = "authUser=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
   window.dispatchEvent(new Event("sentineliq_auth_change"));
-  if (stateCfg.key === "pue") {
-    // En Puebla regresa a /situacion en modo demo público
+  if (stateCfg.key === "pue" || stateCfg.key === "qro") {
+    // En Puebla y Querétaro regresa a /situacion en modo demo público
     window.location.href = "/situacion";
   } else {
     window.location.href = "/login";
@@ -256,6 +280,13 @@ export function useRole() {
       if (!current || current.role === "superadmin" || current.state_key !== "pue") {
         current = PUEBLA_DEMO_USER;
         setStoredUser(PUEBLA_DEMO_USER);
+        localStorage.setItem("sentineliq_token", "sentineliq_internal_service_token_2026");
+        document.cookie = "authUser=sentineliq_internal_service_token_2026; path=/; max-age=86400";
+      }
+    } else if (stateCfg.key === "qro") {
+      if (!current || current.role === "superadmin" || current.state_key !== "qro") {
+        current = QUERETARO_DEMO_USER;
+        setStoredUser(QUERETARO_DEMO_USER);
         localStorage.setItem("sentineliq_token", "sentineliq_internal_service_token_2026");
         document.cookie = "authUser=sentineliq_internal_service_token_2026; path=/; max-age=86400";
       }

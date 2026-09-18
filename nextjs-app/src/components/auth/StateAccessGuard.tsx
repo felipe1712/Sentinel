@@ -15,7 +15,7 @@ export default function StateAccessGuard({ children }: StateAccessGuardProps) {
   const { user, role, loaded, isAuthenticated } = useRole();
   const stateCfg = getStateConfig();
 
-  const isPuebla = stateCfg.key === "pue";
+  const isPublicDemo = stateCfg.key === "pue" || stateCfg.key === "qro";
 
   // Rutas exentas de validación de sesión (login y flujos auth)
   const isAuthRoute =
@@ -23,12 +23,12 @@ export default function StateAccessGuard({ children }: StateAccessGuardProps) {
     pathname === "/login/" ||
     pathname.startsWith("/authentication/");
 
-  // Redirigir de manera segura dentro de useEffect si no está autenticado (excepto en Puebla demo)
+  // Redirigir de manera segura dentro de useEffect si no está autenticado (excepto en demo público Puebla / Querétaro)
   useEffect(() => {
-    if (loaded && !isAuthenticated && !isAuthRoute && !isPuebla) {
+    if (loaded && !isAuthenticated && !isAuthRoute && !isPublicDemo) {
       router.replace("/login");
     }
-  }, [loaded, isAuthenticated, isAuthRoute, isPuebla, router]);
+  }, [loaded, isAuthenticated, isAuthRoute, isPublicDemo, router]);
 
   if (!loaded) {
     return (
@@ -144,11 +144,11 @@ export default function StateAccessGuard({ children }: StateAccessGuardProps) {
     );
   }
 
-  // 3. Bloqueo total de administración y operación/fuentes en Puebla Demo
+  // 3. Bloqueo total de administración y operación/fuentes en Puebla / Querétaro Demo
   const isAdminRoute = pathname.startsWith("/admin") || pathname.startsWith("/auditoria");
   const isOperacionRoute = pathname.startsWith("/fuentes") || pathname.startsWith("/ciberseguridad");
 
-  if (isPuebla && (isAdminRoute || isOperacionRoute)) {
+  if (isPublicDemo && (isAdminRoute || isOperacionRoute)) {
     return (
       <div className="min-h-[70vh] flex items-center justify-center p-4">
         <div className="max-w-md w-full bg-white dark:bg-[#0c1427] border border-red-500/30 rounded-2xl p-6 text-center shadow-lg">

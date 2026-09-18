@@ -21,9 +21,17 @@ export const SwingAnalysisModal: React.FC<SwingModalProps> = ({
 
   if (!isOpen) return null;
 
-  const availableYears = Object.keys(electoralCache).map(Number).sort((a, b) => a - b);
-  const data1 = electoralCache[String(year1)] || {};
-  const data2 = electoralCache[String(year2)] || {};
+  const availableYears = Object.keys(electoralCache || {})
+    .map(Number)
+    .filter((n) => !isNaN(n) && n >= 2000)
+    .sort((a, b) => a - b);
+  const validYears = availableYears.length > 0 ? availableYears : [2021, 2024];
+
+  const effectiveYear1 = validYears.includes(year1) ? year1 : validYears[0];
+  const effectiveYear2 = validYears.includes(year2) ? year2 : validYears[validYears.length - 1];
+
+  const data1 = electoralCache[String(effectiveYear1)] || {};
+  const data2 = electoralCache[String(effectiveYear2)] || {};
 
   // Calcular secciones con alternancia entre ambos años
   let totalCompared = 0;
@@ -69,12 +77,14 @@ export const SwingAnalysisModal: React.FC<SwingModalProps> = ({
                 <label className="form-label text-dark fw-bold fs-12 text-uppercase">Elección Base (Año 1):</label>
                 <select
                   className="form-select bg-white text-dark fw-bold border-gray-300 fs-14"
-                  value={year1}
+                  value={effectiveYear1}
                   onChange={(e) => setYear1(Number(e.target.value))}
                 >
-                  <option value={2018}>Proceso Electoral 2018</option>
-                  <option value={2021}>Proceso Electoral 2021</option>
-                  <option value={2024}>Proceso Electoral 2024</option>
+                  {validYears.map((yr) => (
+                    <option key={yr} value={yr}>
+                      Proceso Electoral {yr}
+                    </option>
+                  ))}
                 </select>
               </div>
 
@@ -82,12 +92,14 @@ export const SwingAnalysisModal: React.FC<SwingModalProps> = ({
                 <label className="form-label text-dark fw-bold fs-12 text-uppercase">Elección a Comparar (Año 2):</label>
                 <select
                   className="form-select bg-white text-dark fw-bold border-gray-300 fs-14"
-                  value={year2}
+                  value={effectiveYear2}
                   onChange={(e) => setYear2(Number(e.target.value))}
                 >
-                  <option value={2024}>Proceso Electoral 2024</option>
-                  <option value={2021}>Proceso Electoral 2021</option>
-                  <option value={2018}>Proceso Electoral 2018</option>
+                  {[...validYears].reverse().map((yr) => (
+                    <option key={yr} value={yr}>
+                      Proceso Electoral {yr}
+                    </option>
+                  ))}
                 </select>
               </div>
             </div>

@@ -13,9 +13,11 @@ export default function RootPage() {
       ? localStorage.getItem("sentinel_token") || localStorage.getItem("sentineliq_token")
       : null;
 
+    const isPublicDemo = cfg.key === "pue" || cfg.key === "qro";
+
     if (token) {
-      router.replace(cfg.key === "pue" ? "/situacion" : "/gabinete");
-    } else if (cfg.key === "pue") {
+      router.replace(isPublicDemo ? "/situacion" : "/gabinete");
+    } else if (isPublicDemo) {
       router.replace("/situacion");
     } else {
       router.replace("/login");

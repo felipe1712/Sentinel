@@ -9,6 +9,7 @@ import {
   getDefaultUsersForState,
   PREDEFINED_USERS_BY_STATE,
   PUEBLA_DEMO_USER,
+  QUERETARO_DEMO_USER,
 } from "@/hooks/useRole";
 import { getStateConfig, getStateConfigByKey, StateConfig } from "@/lib/stateConfig";
 import { api, SERVICE_TOKEN } from "@/lib/api";
@@ -24,8 +25,9 @@ export default function LoginPage() {
   useEffect(() => {
     const cfg = getStateConfig();
     setStateCfg(cfg);
-    if (cfg.key === "pue") {
-      setStoredUser(PUEBLA_DEMO_USER);
+    if (cfg.key === "pue" || cfg.key === "qro") {
+      const demoUser = cfg.key === "qro" ? QUERETARO_DEMO_USER : PUEBLA_DEMO_USER;
+      setStoredUser(demoUser);
       localStorage.setItem("sentineliq_token", SERVICE_TOKEN);
       document.cookie = `authUser=${SERVICE_TOKEN}; path=/; max-age=86400`;
       router.replace("/situacion");

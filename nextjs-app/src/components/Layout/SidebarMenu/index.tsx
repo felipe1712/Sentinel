@@ -28,7 +28,7 @@ const SidebarMenu: React.FC<SidebarMenuProps> = ({ toggleActive }) => {
         : "text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#15203c] hover:text-black dark:hover:text-white"
     }`;
 
-  const isPuebla = stateCfg.key === "pue";
+  const isPublicDemo = stateCfg.key === "pue" || stateCfg.key === "qro";
 
   return (
     <div className="sidebar-area bg-white dark:bg-[#0c1427] fixed z-[7] top-0 h-screen transition-all rounded-r-md border-r border-gray-100 dark:border-[#172036]">
@@ -137,8 +137,8 @@ const SidebarMenu: React.FC<SidebarMenuProps> = ({ toggleActive }) => {
           </Link>
         </nav>
 
-        {/* SECCION: OPERACION & FUENTES (OCULTO EN PUEBLA) */}
-        {!isPuebla && (
+        {/* SECCION: OPERACION & FUENTES (OCULTO EN PUEBLA Y QUERÉTARO DEMO) */}
+        {!isPublicDemo && (
           <>
             <span className="block font-bold uppercase text-gray-400 dark:text-gray-500 px-3 mb-2 text-[11px] tracking-wider">
               Operación & Fuentes
@@ -182,8 +182,8 @@ const SidebarMenu: React.FC<SidebarMenuProps> = ({ toggleActive }) => {
           </>
         )}
 
-        {/* SECCION: ADMINISTRACION (EXCLUSIVA SUPERADMINISTRADOR FUERA DE PUEBLA) */}
-        {!isPuebla && isSuperAdmin && (
+        {/* SECCION: ADMINISTRACION (EXCLUSIVA SUPERADMINISTRADOR FUERA DE DEMO) */}
+        {!isPublicDemo && isSuperAdmin && (
           <>
             <span className="block font-bold uppercase text-gray-400 dark:text-gray-500 px-3 mb-2 text-[11px] tracking-wider">
               Administración
