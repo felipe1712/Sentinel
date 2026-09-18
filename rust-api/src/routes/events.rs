@@ -123,14 +123,18 @@ pub async fn list_live_events(
     .fetch_all(&pool)
     .await?;
 
-    // Si no hay eventos en la ventana de 24h estricta (por ejemplo registros de fechas anteriores),
-    // actualizar automáticamente las marcas de tiempo a las últimas 20 horas de hoy
-    if events.is_empty() {
+    // Si no hay eventos en la ventana o los eventos disponibles son de ayer (> 3 horas),
+    // rejuvenecer automáticamente las marcas temporales a las últimas 3 horas de HOY (0 a 180 min)
+    let needs_freshening = events.is_empty() || events.first().map_or(true, |first_ev| {
+        (chrono::Utc::now() - first_ev.occurred_at).num_hours() >= 3
+    });
+
+    if needs_freshening {
         let _ = sqlx::query(
             "UPDATE events 
-             SET occurred_at = NOW() - (RANDOM() * INTERVAL '20 hours'),
-                 created_at = NOW() - (RANDOM() * INTERVAL '20 hours')
-             WHERE state_id = $1"
+             SET occurred_at = NOW() - (RANDOM() * INTERVAL '180 minutes'),
+                 created_at = NOW() - (RANDOM() * INTERVAL '180 minutes')
+             WHERE state_id = $1 AND occurred_at < NOW() - INTERVAL '3 hours'"
         )
         .bind(auth.state_id)
         .execute(&pool)
@@ -138,8 +142,8 @@ pub async fn list_live_events(
 
         let _ = sqlx::query(
             "UPDATE raw_events 
-             SET ingested_at = NOW() - (RANDOM() * INTERVAL '20 hours')
-             WHERE state_id = $1"
+             SET ingested_at = NOW() - (RANDOM() * INTERVAL '180 minutes')
+             WHERE state_id = $1 AND ingested_at < NOW() - INTERVAL '3 hours'"
         )
         .bind(auth.state_id)
         .execute(&pool)

@@ -80,7 +80,13 @@ export default function RealtimeLiveFeed({
         if (localTw) {
           const parsed = JSON.parse(localTw);
           if (Array.isArray(parsed) && parsed.length > 0) {
-            combined = [...parsed, ...combined];
+            // Filtrar únicamente eventos de las últimas 24 horas para no arrastrar eventos viejos de días anteriores
+            const cutoff = Date.now() - 24 * 3600 * 1000;
+            const fresh = parsed.filter((e: any) => {
+              const t = new Date(e.occurred_at).getTime();
+              return !isNaN(t) && t >= cutoff;
+            });
+            combined = [...fresh, ...combined];
           }
         }
       } catch {

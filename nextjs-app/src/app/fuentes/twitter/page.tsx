@@ -57,28 +57,58 @@ export default function TwitterSearchPage() {
     const initialQ = cfg.key === "pue" ? "SSP Puebla" : cfg.key === "gto" ? "FSPE Guanajuato" : "Policía Estatal Querétaro";
     setQuery(initialQ);
 
-    // Verificar si existe Bearer Token en almacenamiento
-    const token = localStorage.getItem(`sentineliq_${cfg.key}_tw_bearer`) || localStorage.getItem("sentineliq_tw_bearer");
-    if (token && token.trim().length > 10) {
-      setHasBearerToken(true);
-    }
-
-    // Cargar cuentas previamente conectadas en este navegador
-    try {
-      const savedMap = localStorage.getItem(`sentineliq_${cfg.key}_connected_tw`);
-      if (savedMap) {
-        setConnectedMap(JSON.parse(savedMap));
-      }
-      const savedAccounts = localStorage.getItem(`sentineliq_${cfg.key}_connected_accounts_list`);
-      if (savedAccounts) {
-        const parsedList: TwitterAccountResult[] = JSON.parse(savedAccounts);
-        if (Array.isArray(parsedList)) {
-          setConnectedAccounts(parsedList);
+    // 1. Cargar cuentas conectadas permanentemente desde PostgreSQL
+    async function loadConnectedFromBackend() {
+      try {
+        const resp = await api.get("/sources/twitter/connected");
+        if (resp.data && Array.isArray(resp.data) && resp.data.length > 0) {
+          setConnectedAccounts(resp.data);
+          const m: Record<string, boolean> = {};
+          resp.data.forEach((a: TwitterAccountResult) => {
+            m[a.handle] = true;
+          });
+          setConnectedMap(m);
+          localStorage.setItem(`sentineliq_${cfg.key}_connected_tw`, JSON.stringify(m));
+          localStorage.setItem(`sentineliq_${cfg.key}_connected_accounts_list`, JSON.stringify(resp.data));
+          return;
         }
+      } catch (e) {
+        console.debug("Consultando cuentas conectadas locales:", e);
       }
-    } catch {
-      // Ignorar error de parseo
+
+      // Fallback a almacenamiento local si el backend aún no responde
+      try {
+        const savedMap = localStorage.getItem(`sentineliq_${cfg.key}_connected_tw`);
+        if (savedMap) {
+          setConnectedMap(JSON.parse(savedMap));
+        }
+        const savedAccounts = localStorage.getItem(`sentineliq_${cfg.key}_connected_accounts_list`);
+        if (savedAccounts) {
+          const parsedList: TwitterAccountResult[] = JSON.parse(savedAccounts);
+          if (Array.isArray(parsedList)) {
+            setConnectedAccounts(parsedList);
+          }
+        }
+      } catch {}
     }
+    loadConnectedFromBackend();
+
+    // 2. Verificar si existe Bearer Token en base de datos o almacenamiento local
+    async function checkToken() {
+      const token = localStorage.getItem(`sentineliq_${cfg.key}_tw_bearer`) || localStorage.getItem("sentineliq_tw_bearer");
+      if (token && token.trim().length > 10) {
+        setHasBearerToken(true);
+        return;
+      }
+      try {
+        const cfgResp = await api.get("/sources/twitter/config");
+        if (cfgResp.data?.bearer_token && cfgResp.data.bearer_token.trim().length > 10) {
+          setHasBearerToken(true);
+          localStorage.setItem(`sentineliq_${cfg.key}_tw_bearer`, cfgResp.data.bearer_token.trim());
+        }
+      } catch {}
+    }
+    checkToken();
 
     handleSearch(initialQ);
   }, []);
@@ -284,12 +314,26 @@ export default function TwitterSearchPage() {
         category: acc.category || "seguridad",
       });
 
+      // Refrescar lista de fuentes conectadas desde el backend
+      try {
+        const cResp = await api.get("/sources/twitter/connected");
+        if (cResp.data && Array.isArray(cResp.data) && cResp.data.length > 0) {
+          setConnectedAccounts(cResp.data);
+          const m: Record<string, boolean> = {};
+          cResp.data.forEach((a: TwitterAccountResult) => {
+            m[a.handle] = true;
+          });
+          setConnectedMap(m);
+          localStorage.setItem(`sentineliq_${stateCfg.key}_connected_tw`, JSON.stringify(m));
+          localStorage.setItem(`sentineliq_${stateCfg.key}_connected_accounts_list`, JSON.stringify(cResp.data));
+        }
+      } catch {}
+
       setConnectNotice({
         type: "success",
         text: `✅ Cuenta ${acc.handle} conectada con éxito. Sus publicaciones ya están activas e integradas en el Live Feed de la Sala de Gabinete.`,
       });
     } catch {
-      // Si el endpoint remoto aún se está actualizando, la conexión local ya está activa
       setConnectNotice({
         type: "success",
         text: `✅ Cuenta ${acc.handle} conectada e integrada en tu Live Feed de ${stateCfg.shortName}. Las publicaciones ya están visibles en la Sala de Gabinete.`,
@@ -299,8 +343,18 @@ export default function TwitterSearchPage() {
     }
   };
 
-  const handleDisconnectAccount = (handle: string) => {
-    // 1. Eliminar de mapa
+  const handleDisconnectAccount = async (handle: string) => {
+    // 1. Notificar al backend la desconexión
+    try {
+      await api.post("/sources/twitter/disconnect", {
+        handle,
+        state_key: stateCfg.key,
+      });
+    } catch (e) {
+      console.warn("No fue posible notificar desconexión al backend:", e);
+    }
+
+    // 2. Eliminar de mapa
     const updatedMap = { ...connectedMap };
     delete updatedMap[handle];
     setConnectedMap(updatedMap);
@@ -308,14 +362,14 @@ export default function TwitterSearchPage() {
       localStorage.setItem(`sentineliq_${stateCfg.key}_connected_tw`, JSON.stringify(updatedMap));
     } catch {}
 
-    // 2. Eliminar de lista permanente
+    // 3. Eliminar de lista permanente
     const updatedList = connectedAccounts.filter((c) => c.handle.toLowerCase() !== handle.toLowerCase());
     setConnectedAccounts(updatedList);
     try {
       localStorage.setItem(`sentineliq_${stateCfg.key}_connected_accounts_list`, JSON.stringify(updatedList));
     } catch {}
 
-    // 3. Limpiar eventos de esta cuenta en el Live Feed local
+    // 4. Limpiar eventos de esta cuenta en el Live Feed local
     try {
       const storageKey = `sentineliq_${stateCfg.key}_tw_events`;
       const savedEvents = localStorage.getItem(storageKey);

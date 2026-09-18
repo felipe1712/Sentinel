@@ -92,24 +92,43 @@ async def ingest_tweets_for_state(state_key: str, base_api_url: str):
     Consulta tweets recientes de las cuentas conectadas y los ingesta en la base de datos del estado.
     """
     token = os.getenv("TWITTER_BEARER_TOKEN", TWITTER_BEARER_TOKEN)
-    headers = {"Authorization": f"Bearer {SERVICE_TOKEN}"}
+    headers = {"Authorization": f"Bearer {SERVICE_TOKEN}", "X-Service-Token": SERVICE_TOKEN}
     
-    # 1. Obtener fuentes de Twitter conectadas para este estado
+    # 1. Obtener token de configuración si no viene por entorno
+    if not token or not token.strip():
+        try:
+            async with httpx.AsyncClient(timeout=5.0) as client:
+                cfg_resp = await client.get(f"{base_api_url}/sources/twitter/config", headers=headers)
+                if cfg_resp.status_code == 200:
+                    cfg_token = cfg_resp.json().get("bearer_token")
+                    if cfg_token and cfg_token.strip():
+                        token = cfg_token.strip()
+        except Exception as e:
+            logger.debug(f"Error consultando config de Twitter: {e}")
+
+    # 2. Obtener fuentes de Twitter conectadas para este estado
     monitors = DEFAULT_MONITORS.get(state_key, [])
     try:
         async with httpx.AsyncClient(timeout=8.0) as client:
-            resp = await client.get(f"{base_api_url}/sources", headers=headers)
+            resp = await client.get(f"{base_api_url}/sources/twitter/connected", headers=headers)
             if resp.status_code == 200:
-                sources = resp.json()
-                active_tw = [s["identifier"] for s in sources if s.get("type") == "twitter" and s.get("active", True) and s.get("identifier", "").startswith("@")]
+                accs = resp.json()
+                active_tw = [a["handle"] for a in accs if a.get("handle", "").startswith("@")]
                 if active_tw:
                     monitors = list(set(monitors + active_tw))
+            else:
+                resp2 = await client.get(f"{base_api_url}/sources", headers=headers)
+                if resp2.status_code == 200:
+                    sources = resp2.json()
+                    active_tw = [s["identifier"] for s in sources if s.get("type") in ("twitter", "social") and s.get("active", True) and s.get("identifier", "").startswith("@")]
+                    if active_tw:
+                        monitors = list(set(monitors + active_tw))
     except Exception as e:
         logger.debug(f"No fue posible consultar fuentes activas en {base_api_url}: {e}")
 
     logger.info(f"[{state_key.upper()}] Monitoreando {len(monitors)} cuentas en X: {', '.join(monitors)}")
 
-    # 2. Si hay token de X, consultar los tweets reales de las cuentas
+    # 3. Si hay token de X, consultar los tweets reales de las cuentas
     if token:
         tw_headers = {"Authorization": f"Bearer {token.strip()}", "User-Agent": "SentinelIQ-OSINT/2.0"}
         async with httpx.AsyncClient(timeout=10.0) as tw_client, httpx.AsyncClient(timeout=8.0) as api_client:
@@ -118,26 +137,39 @@ async def ingest_tweets_for_state(state_key: str, base_api_url: str):
                 try:
                     tw_url = f"https://api.twitter.com/2/tweets/search/recent?query=from:{clean_handle}&max_results=5&tweet.fields=created_at,public_metrics"
                     tw_resp = await tw_client.get(tw_url, headers=tw_headers)
+                    tweets = []
                     if tw_resp.status_code == 200:
-                        tw_data = tw_resp.json()
-                        for tweet in tw_data.get("data", []):
-                            tweet_text = tweet.get("text", "").strip()
-                            event_payload = {
-                                "title": f"[X / Twitter] {handle}: {tweet_text[:70]}...",
-                                "summary": tweet_text,
-                                "category": "seguridad",
-                                "severity": "medio",
-                                "source_type": "twitter",
-                                "raw_text": tweet_text,
-                                "political_relevance": 8,
-                                "occurred_at": tweet.get("created_at", datetime.now(timezone.utc).isoformat())
-                            }
-                            post_resp = await api_client.post(f"{base_api_url}/events", json=event_payload, headers=headers)
-                            if post_resp.status_code in (200, 201):
-                                logger.info(f"[{state_key.upper()}] Tweet de {handle} ingestada en Live Feed.")
+                        tweets = tw_resp.json().get("data", [])
                     elif tw_resp.status_code == 429:
                         logger.warning(f"Límite de tasa de X alcanzado (HTTP 429). Pausando consultas.")
                         break
+                    
+                    # Si from:handle no arroja tweets recientes en los últimos 7 días, probar con búsqueda directa
+                    if not tweets and tw_resp.status_code != 429:
+                        tw_url_kw = f"https://api.twitter.com/2/tweets/search/recent?query={clean_handle}&max_results=5&tweet.fields=created_at,public_metrics"
+                        tw_resp_kw = await tw_client.get(tw_url_kw, headers=tw_headers)
+                        if tw_resp_kw.status_code == 200:
+                            tweets = tw_resp_kw.json().get("data", [])
+
+                    for tweet in tweets:
+                        tweet_text = tweet.get("text", "").strip()
+                        if not tweet_text:
+                            continue
+                        tweet_id = tweet.get("id", str(hash(tweet_text)))
+                        event_payload = {
+                            "title": f"[X / Twitter] {handle}: {tweet_text[:75]}...",
+                            "summary": tweet_text,
+                            "category": "seguridad",
+                            "severity": "medio",
+                            "source_type": "twitter",
+                            "raw_text": tweet_text,
+                            "political_relevance": 8,
+                            "dedup_hash": f"tw:{tweet_id}",
+                            "occurred_at": tweet.get("created_at", datetime.now(timezone.utc).isoformat())
+                        }
+                        post_resp = await api_client.post(f"{base_api_url}/events", json=event_payload, headers=headers)
+                        if post_resp.status_code in (200, 201):
+                            logger.info(f"[{state_key.upper()}] Tweet de {handle} ingestado en Live Feed.")
                 except Exception as e:
                     logger.debug(f"Error procesando {handle} en X: {e}")
 

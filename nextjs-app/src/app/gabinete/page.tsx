@@ -109,13 +109,14 @@ export default function GabineteView() {
 
         liveTimeline = uniqueEvents.map((ev: EnrichedEvent) => {
           const d = new Date(ev.occurred_at);
+          const isToday = d.toDateString() === new Date().toDateString();
           const day = d.getDate().toString().padStart(2, "0");
           const months = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
           const month = months[d.getMonth()];
           const hours = d.getHours().toString().padStart(2, "0");
           const mins = d.getMinutes().toString().padStart(2, "0");
           return {
-            time: `${day} ${month} · ${hours}:${mins} hrs`,
+            time: isToday ? `Hoy · ${hours}:${mins} hrs` : `${day} ${month} · ${hours}:${mins} hrs`,
             text: ev.title,
             source: ev.source_identifier
               ? `${
