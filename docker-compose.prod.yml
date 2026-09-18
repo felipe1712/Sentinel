@@ -137,7 +137,7 @@ services:
 networks:
   sentineliq_net:
     name: sentineliq_net
-    driver: bridge
+    external: true
 
 volumes:
   sentineliq_pgdata:
