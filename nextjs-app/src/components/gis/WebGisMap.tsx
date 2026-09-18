@@ -105,7 +105,7 @@ export const WebGisMap: React.FC<WebGisMapProps> = ({
   // 3. Cargar GeoJSON según la Capa Base Seleccionada y Estado Activo
   useEffect(() => {
     setLoadingGeo(true);
-    let filePath = "/data/gto_secciones.geojson";
+    let filePath = "";
     if (activeCfg.key === "pue") {
       if (baseBoundary === "municipios") filePath = "/data/pue_municipios.geojson";
       else if (baseBoundary === "distritos_locales") filePath = "/data/pue_distritos_locales.geojson";
@@ -120,6 +120,7 @@ export const WebGisMap: React.FC<WebGisMapProps> = ({
       if (baseBoundary === "municipios") filePath = "/data/gto_municipios.geojson";
       else if (baseBoundary === "distritos_locales") filePath = "/data/gto_distritos_locales.geojson";
       else if (baseBoundary === "distritos_federales") filePath = "/data/gto_distritos_federales.geojson";
+      else filePath = "/data/gto_secciones.geojson";
     }
 
     fetch(filePath)

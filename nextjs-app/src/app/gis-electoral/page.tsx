@@ -72,13 +72,19 @@ const MUNICIPIOS_GTO = [
 ];
 
 export default function GisElectoralPage() {
-  const [stateCfg, setStateCfg] = useState<StateConfig>(getStateConfig());
+  const [stateCfg, setStateCfg] = useState<StateConfig>(() => getStateConfig());
 
   // Estados del WebGIS
-  const [baseBoundary, setBaseBoundary] = useState<BaseLayerType>("secciones");
+  const [baseBoundary, setBaseBoundary] = useState<BaseLayerType>(() => {
+    const cfg = getStateConfig();
+    return cfg.key === "pue" ? "municipios" : "secciones";
+  });
   const [choroplethMode, setChoroplethMode] = useState<ChoroplethMode>("ganador");
   const [selectedYear, setSelectedYear] = useState<number>(2024);
-  const [electionType, setElectionType] = useState<"gubernatura" | "diputaciones">("gubernatura");
+  const [electionType, setElectionType] = useState<"gubernatura" | "diputaciones">(() => {
+    const cfg = getStateConfig();
+    return cfg.key === "pue" || cfg.key === "qro" ? "diputaciones" : "gubernatura";
+  });
   const [selectedMunicipio, setSelectedMunicipio] = useState<number | null>(null);
   const [tileProvider, setTileProvider] = useState<"osm" | "carto" | "satellite">("carto");
 

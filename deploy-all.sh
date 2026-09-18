@@ -103,7 +103,8 @@ echo "----------------------------------------------------------"
 echo "🟦 Desplegando Querétaro & ARGOS Gateway (:3004, :8085, :8088)..."
 echo "----------------------------------------------------------"
 rm -rf nextjs-app/.next 2>/dev/null || true
-docker compose -p sentineliq-qro -f docker-compose.prod.yml up -d --build --remove-orphans
+docker compose -p sentineliq-qro -f docker-compose.prod.yml build --no-cache sentineliq-nextjs
+docker compose -p sentineliq-qro -f docker-compose.prod.yml up -d --remove-orphans
 
 # 5. Recompilar y levantar Guanajuato
 echo "----------------------------------------------------------"
