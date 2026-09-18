@@ -345,7 +345,9 @@ export const ElectoralStatsPanel: React.FC<StatsPanelProps> = ({
               <span className="fs-11 text-muted fw-bold text-uppercase d-block mb-1">
                 Marco Geográfico Activo
               </span>
-              <h5 className="fw-extrabold text-dark mb-1">Estado de {stateCfg?.name || "Guanajuato"}</h5>
+              <h5 className="fw-extrabold text-dark mb-1">
+                {stateCfg?.name?.startsWith("Estado") ? stateCfg.name : `Estado de ${stateCfg?.name || "Guanajuato"}`}
+              </h5>
               <div className="d-flex justify-content-between fs-12 text-muted fw-bold">
                 <span>{totalSectionsCount.toLocaleString()} Secciones Electorales</span>
                 <span>{municipiosList.length || stateCfg?.totalMunicipios || 46} Municipios</span>

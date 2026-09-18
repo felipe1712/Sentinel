@@ -104,8 +104,12 @@ export default function GisElectoralPage() {
   useEffect(() => {
     const cfg = getStateConfig();
     setStateCfg(cfg);
-    if (cfg.key === "pue" || cfg.key === "qro") {
+    if (cfg.key === "pue") {
       setBaseBoundary("municipios");
+      setElectionType("diputaciones");
+      setSelectedYear(2024);
+    } else if (cfg.key === "qro") {
+      setBaseBoundary("secciones");
       setElectionType("diputaciones");
       setSelectedYear(2024);
     }

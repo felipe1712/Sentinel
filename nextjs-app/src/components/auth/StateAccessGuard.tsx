@@ -48,8 +48,8 @@ export default function StateAccessGuard({ children }: StateAccessGuardProps) {
     return <>{children}</>;
   }
 
-  // Si no está autenticado, renderizar pantalla de transición mientras useEffect redirige
-  if (!isAuthenticated) {
+  // Si no está autenticado y no es modo demo público, renderizar pantalla de transición mientras useEffect redirige
+  if (!isAuthenticated && !isPublicDemo) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#0b1120] text-white">
         <div className="text-center p-6">
@@ -71,7 +71,7 @@ export default function StateAccessGuard({ children }: StateAccessGuardProps) {
         user.state_key === "*")
   );
 
-  if (isGlobalSuperAdmin) {
+  if (isGlobalSuperAdmin || isPublicDemo) {
     return <>{children}</>;
   }
 

@@ -35,17 +35,31 @@ export const TerritorialDetailModal: React.FC<TerritorialDetailModalProps> = ({
   // Sincronizar estado inicial al abrir modal
   useEffect(() => {
     if (isOpen) {
-      setModalYear(currentYear);
+      let yr = currentYear;
+      if (stateCfg.key === "qro") {
+        if (currentElectionType === "gubernatura") {
+          yr = 2021;
+        } else if (yr === 2018) {
+          yr = 2024;
+        }
+      }
+      setModalYear(yr);
       setModalElectionType(currentElectionType);
       setActiveTab("resultados");
       setSectionFilter("");
     }
-  }, [isOpen, currentYear, currentElectionType]);
+  }, [isOpen, currentYear, currentElectionType, stateCfg.key]);
 
   // Si se cambia a gubernatura en Puebla o Querétaro, ajustar a 2021 si era 2024
   const handleElectionTypeChange = (type: "gubernatura" | "diputaciones") => {
     setModalElectionType(type);
-    if (stateCfg.key === "pue" || stateCfg.key === "qro") {
+    if (stateCfg.key === "qro") {
+      if (type === "gubernatura") {
+        setModalYear(2021);
+      } else if (modalYear === 2018) {
+        setModalYear(2024);
+      }
+    } else if (stateCfg.key === "pue") {
       if (type === "gubernatura" && modalYear === 2024) {
         setModalYear(2021);
       }
@@ -178,13 +192,14 @@ export const TerritorialDetailModal: React.FC<TerritorialDetailModalProps> = ({
     return res || initialResult;
   }, [selectedSection, electoralCache, modalYear, modalElectionType, baseBoundary, territoryId, initialResult]);
 
-  // Obtener resultados históricos para la pestaña de Swing (2018, 2021, 2024)
+  // Obtener resultados históricos para la pestaña de Swing
   const historicalResults = useMemo(() => {
     if (!selectedSection || !electoralCache) return {};
     const idKey = String(territoryId);
     const results: Record<number, any> = {};
 
-    [2018, 2021, 2024].forEach((yr) => {
+    const yearsToLoad = stateCfg.key === "qro" ? [2021, 2024] : [2018, 2021, 2024];
+    yearsToLoad.forEach((yr) => {
       const yrStr = String(yr);
       let res: any = null;
       try {
@@ -282,14 +297,17 @@ export const TerritorialDetailModal: React.FC<TerritorialDetailModalProps> = ({
       results[yr] = res;
     });
     return results;
-  }, [selectedSection, electoralCache, modalElectionType, baseBoundary, territoryId]);
+  }, [selectedSection, electoralCache, modalElectionType, baseBoundary, territoryId, stateCfg.key]);
 
-  // Años y datos para la gráfica de tendencias
+  // Años y datos para la gráfica de tendencias y botones de ciclo
   const trendYears = useMemo(() => {
+    if (stateCfg.key === "qro") {
+      return modalElectionType === "gubernatura" ? [2021] : [2021, 2024];
+    }
     if (modalElectionType === "diputaciones") {
       return [2018, 2021, 2024];
     }
-    return (stateCfg.key === "pue" || stateCfg.key === "qro") ? [2018, 2021] : [2018, 2024];
+    return stateCfg.key === "pue" ? [2018, 2021] : [2018, 2024];
   }, [modalElectionType, stateCfg.key]);
 
   const trendData = useMemo(() => {
@@ -594,7 +612,7 @@ export const TerritorialDetailModal: React.FC<TerritorialDetailModalProps> = ({
                 <i className="ri-calendar-line text-primary me-1"></i> Ciclo:
               </span>
               <div className="btn-group" role="group">
-                {(modalElectionType === "diputaciones" ? [2018, 2021, 2024] : ((stateCfg.key === "pue" || stateCfg.key === "qro") ? [2018, 2021] : [2018, 2024])).map((yr) => (
+                {trendYears.map((yr) => (
                   <button
                     key={yr}
                     type="button"
@@ -1214,33 +1232,34 @@ export const TerritorialDetailModal: React.FC<TerritorialDetailModalProps> = ({
                         Diagnóstico de Estabilidad Territorial
                       </span>
                       {(() => {
-                        const r2018 = historicalResults[2018]?.ganador_partido;
+                        const baseYear = stateCfg.key === "qro" ? 2021 : 2018;
+                        const rBase = historicalResults[baseYear]?.ganador_partido;
                         const r2024 = historicalResults[2024]?.ganador_partido;
 
                         if (
-                          !r2018 ||
+                          !rBase ||
                           !r2024 ||
-                          r2018 === "Sin datos" ||
+                          rBase === "Sin datos" ||
                           r2024 === "Sin datos" ||
-                          r2018.includes("Sin votación") ||
+                          rBase.includes("Sin votación") ||
                           r2024.includes("Sin votación")
                         ) {
                           return <span className="fs-13 text-muted">Datos insuficientes para determinar comparativa histórica.</span>;
                         }
 
-                        const sameWinner = r2018 === r2024;
+                        const sameWinner = rBase === r2024;
                         if (sameWinner) {
                           return (
                             <div className="alert alert-secondary d-flex align-items-center gap-2 mb-0 py-2 fs-13 fw-bold text-dark border">
                               <i className="ri-shield-check-fill fs-18 text-primary"></i>
-                              Continuidad Electoral: Ganado por {r2024} en ambos ciclos (2018 y 2024).
+                              Continuidad Electoral: Ganado por {r2024} en ambos ciclos ({baseYear} y 2024).
                             </div>
                           );
                         } else {
                           return (
                             <div className="alert alert-info d-flex align-items-center gap-2 mb-0 py-2 fs-13 fw-bold text-dark border">
                               <i className="ri-swap-line fs-18 text-primary"></i>
-                              Alternancia Electoral: Ganado por {r2018} en 2018 y ganado por {r2024} en 2024.
+                              Alternancia Electoral: Ganado por {rBase} en {baseYear} y ganado por {r2024} en 2024.
                             </div>
                           );
                         }

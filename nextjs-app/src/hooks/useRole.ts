@@ -220,24 +220,16 @@ export function getStoredUser(): UserProfile | null {
   if (typeof window === "undefined") return null;
   try {
     const stateCfg = getStateConfig();
-    const userStr = localStorage.getItem("sentineliq_user");
-    if (!userStr) {
-      if (stateCfg.key === "pue") {
-        return PUEBLA_DEMO_USER;
-      }
-      if (stateCfg.key === "qro") {
-        return QUERETARO_DEMO_USER;
-      }
-      return null;
-    }
-    const parsed = JSON.parse(userStr) as UserProfile;
-    // Si estamos en Puebla o Querétaro pero el usuario almacenado es superadmin o de otro estado, forzar perfil demo
-    if (stateCfg.key === "pue" && (parsed.role === "superadmin" || parsed.state_key !== "pue")) {
+    // En instancias de demostración pública (Puebla y Querétaro), forzar SIEMPRE el usuario demo
+    if (stateCfg.key === "pue") {
       return PUEBLA_DEMO_USER;
     }
-    if (stateCfg.key === "qro" && (parsed.role === "superadmin" || parsed.state_key !== "qro")) {
+    if (stateCfg.key === "qro") {
       return QUERETARO_DEMO_USER;
     }
+    const userStr = localStorage.getItem("sentineliq_user");
+    if (!userStr) return null;
+    const parsed = JSON.parse(userStr) as UserProfile;
     return parsed;
   } catch {
     return null;
@@ -270,26 +262,22 @@ export function logout(): void {
 }
 
 export function useRole() {
-  const [user, setUser] = useState<UserProfile | null>(null);
+  const [user, setUser] = useState<UserProfile | null>(() => getStoredUser());
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     const stateCfg = getStateConfig();
     let current = getStoredUser();
     if (stateCfg.key === "pue") {
-      if (!current || current.role === "superadmin" || current.state_key !== "pue") {
-        current = PUEBLA_DEMO_USER;
-        setStoredUser(PUEBLA_DEMO_USER);
-        localStorage.setItem("sentineliq_token", "sentineliq_internal_service_token_2026");
-        document.cookie = "authUser=sentineliq_internal_service_token_2026; path=/; max-age=86400";
-      }
+      current = PUEBLA_DEMO_USER;
+      setStoredUser(PUEBLA_DEMO_USER);
+      localStorage.setItem("sentineliq_token", "sentineliq_internal_service_token_2026");
+      document.cookie = "authUser=sentineliq_internal_service_token_2026; path=/; max-age=86400";
     } else if (stateCfg.key === "qro") {
-      if (!current || current.role === "superadmin" || current.state_key !== "qro") {
-        current = QUERETARO_DEMO_USER;
-        setStoredUser(QUERETARO_DEMO_USER);
-        localStorage.setItem("sentineliq_token", "sentineliq_internal_service_token_2026");
-        document.cookie = "authUser=sentineliq_internal_service_token_2026; path=/; max-age=86400";
-      }
+      current = QUERETARO_DEMO_USER;
+      setStoredUser(QUERETARO_DEMO_USER);
+      localStorage.setItem("sentineliq_token", "sentineliq_internal_service_token_2026");
+      document.cookie = "authUser=sentineliq_internal_service_token_2026; path=/; max-age=86400";
     }
     setUser(current);
     setLoaded(true);
@@ -347,7 +335,9 @@ export function useRole() {
     isGobernador: role === "gobernador",
     isAnalista: role === "analista",
     isJefeOficina: role === "superadmin" || role === "gabinete",
-    isAuthenticated: Boolean(user && (user.id || user.email || user.name) && role),
+    isAuthenticated:
+      Boolean(user && (user.id || user.email || user.name) && role) ||
+      (typeof window !== "undefined" && (getStateConfig().key === "pue" || getStateConfig().key === "qro")),
     switchGlobalState,
     loaded,
     logout,

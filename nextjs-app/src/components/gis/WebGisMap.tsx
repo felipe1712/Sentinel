@@ -96,6 +96,12 @@ export const WebGisMap: React.FC<WebGisMapProps> = ({
     tileLayerRef.current.setUrl(TILE_URLS[tileProvider] || TILE_URLS.carto);
   }, [tileProvider]);
 
+  // 2.1 Actualizar Centro y Zoom al cambiar Estado
+  useEffect(() => {
+    if (!mapInstanceRef.current || !activeCfg.center) return;
+    mapInstanceRef.current.setView(activeCfg.center, activeCfg.zoom || 9);
+  }, [activeCfg.key, activeCfg.center, activeCfg.zoom]);
+
   // 3. Cargar GeoJSON según la Capa Base Seleccionada y Estado Activo
   useEffect(() => {
     setLoadingGeo(true);
