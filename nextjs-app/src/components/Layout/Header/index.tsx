@@ -53,9 +53,14 @@ const Header: React.FC<HeaderProps> = ({ toggleActive }) => {
               <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
             </span>
             <div>
-              <span className="text-base sm:text-lg md:text-xl font-black text-gray-900 dark:text-white tracking-tight block leading-tight">
-                {stateCfg.name}
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="text-base sm:text-lg md:text-xl font-black text-gray-900 dark:text-white tracking-tight block leading-tight">
+                  {stateCfg.name}
+                </span>
+                <span className="bg-primary-50 text-primary-700 dark:bg-primary-950 dark:text-primary-300 text-[10px] font-extrabold px-1.5 py-0.5 rounded border border-primary-200 dark:border-primary-800">
+                  v3.6.2
+                </span>
+              </div>
               <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block leading-tight mt-0.5">
                 SentinelIQ · Sistema de Información Geográfica
               </span>

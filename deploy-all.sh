@@ -8,10 +8,11 @@ echo " 🚀 Actualizando y Desplegando SentinelIQ Multi-State"
 echo "=========================================================="
 
 # 1. Obtener los últimos cambios del repositorio
+echo "📥 Sincronizando con GitHub (sentineliq-v2)..."
+git fetch --all 2>/dev/null || true
 CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "sentineliq-v2")
-echo "📥 Descargando cambios desde GitHub (${CURRENT_BRANCH})..."
-git checkout -- . 2>/dev/null || true
-git pull origin "$CURRENT_BRANCH"
+git checkout "$CURRENT_BRANCH" 2>/dev/null || git checkout -b "$CURRENT_BRANCH" "origin/$CURRENT_BRANCH" 2>/dev/null || true
+git reset --hard "origin/$CURRENT_BRANCH" 2>/dev/null || git pull origin "$CURRENT_BRANCH"
 
 # 2. Levantar primero las Bases de Datos (PostgreSQL & Redis)
 echo "----------------------------------------------------------"
@@ -104,7 +105,9 @@ echo "🟦 Desplegando Querétaro & ARGOS Gateway (:3004, :8085, :8088)..."
 echo "----------------------------------------------------------"
 rm -rf nextjs-app/.next 2>/dev/null || true
 docker compose -p sentineliq-qro -f docker-compose.prod.yml build --no-cache sentineliq-nextjs
-docker compose -p sentineliq-qro -f docker-compose.prod.yml up -d --remove-orphans
+docker stop sentineliq_nextjs 2>/dev/null || true
+docker rm sentineliq_nextjs 2>/dev/null || true
+docker compose -p sentineliq-qro -f docker-compose.prod.yml up -d --force-recreate --remove-orphans
 
 # 5. Recompilar y levantar Guanajuato
 echo "----------------------------------------------------------"
@@ -136,6 +139,8 @@ echo " 🩺 Verificando Estado de Puertos Internos..."
 echo "=========================================================="
 sleep 2
 curl -s -I http://127.0.0.1:3004 | head -n 1 && echo "  - Querétaro Next.js (:3004): OK" || echo "  - Querétaro Next.js (:3004): ERROR"
+curl -s http://127.0.0.1:3004/version.json | grep -q "3.6.2" && echo "  - Querétaro Versión: v3.6.2 (Verificado ✅)" || echo "  - Querétaro Versión: Desactualizado ⚠️"
+curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:3004/data/qro_secciones.geojson | grep -q "200" && echo "  - Cartografía Querétaro (1,090 secciones): OK ✅" || echo "  - Cartografía Querétaro: No accesible ⚠️"
 curl -s -I http://127.0.0.1:3005 | head -n 1 && echo "  - Guanajuato Next.js (:3005): OK" || echo "  - Guanajuato Next.js (:3005): ERROR"
 curl -s -I http://127.0.0.1:8088/health | head -n 1 && echo "  - ARGOS Gateway (:8088): OK" || echo "  - ARGOS Gateway (:8088): ERROR"
 

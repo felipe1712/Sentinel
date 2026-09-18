@@ -1,0 +1,15 @@
+﻿{
+  "app": "SentinelIQ",
+  "version": "3.6.2-qro-complete",
+  "state": "Querétaro (QRO)",
+  "build_id": "2026-09-18-v2-qro",
+  "features": {
+    "qro_secciones": 1090,
+    "qro_municipios": 18,
+    "qro_distritos_locales": 15,
+    "qro_distritos_federales": 6,
+    "electoral_years": [2021, 2024],
+    "default_view": "diputaciones-2024-secciones",
+    "public_demo": true
+  }
+}
