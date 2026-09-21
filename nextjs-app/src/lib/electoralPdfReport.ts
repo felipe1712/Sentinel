@@ -360,6 +360,19 @@ export function generateElectoralPdfReportHtml(data: ElectoralPdfReportParams): 
     .btn-action:hover {
       background: #b91c1c;
     }
+    .btn-secondary {
+      background: #334155;
+      color: #ffffff;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    .btn-secondary:hover {
+      background: #1e293b;
+    }
     .btn-close-view {
       background: #475569;
       color: #ffffff;
@@ -397,15 +410,29 @@ export function generateElectoralPdfReportHtml(data: ElectoralPdfReportParams): 
       background: #ffffff;
     }
   </style>
+  <script src="/js/html2pdf.bundle.min.js"></script>
+  <script>
+    if (typeof html2pdf === 'undefined') {
+      var s = document.createElement('script');
+      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
+      document.head.appendChild(s);
+    }
+  </script>
 </head>
 <body>
   <div class="no-print">
-    <div style="font-weight: bold; font-size: 13px; display: flex; align-items: center; gap: 8px;">
+    <div style="font-weight: bold; font-size: 13px; display: flex; align-items: center; gap: 10px;">
       <span>SENTINELIQ | Reporte Ejecutivo Territorial</span>
+      <span id="download-status" style="font-size: 11px; padding: 3px 8px; border-radius: 4px; background: rgba(255,255,255,0.15); color: #cbd5e1; font-weight: normal;">
+        Descargando PDF en automático...
+      </span>
     </div>
     <div style="display: flex; gap: 10px;">
-      <button class="btn-action" onclick="window.print();">
-        Guardar como PDF / Imprimir
+      <button class="btn-action" onclick="downloadPdfDirect();">
+        Descargar PDF
+      </button>
+      <button class="btn-secondary" onclick="window.print();">
+        Imprimir
       </button>
       <button class="btn-close-view" onclick="window.close();">
         Cerrar
@@ -413,12 +440,12 @@ export function generateElectoralPdfReportHtml(data: ElectoralPdfReportParams): 
     </div>
   </div>
 
-  <div class="container">
+  <div id="report-container" class="container">
     <!-- Header Institucional -->
     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #0f172a; padding-bottom: 10px; margin-bottom: 16px;">
       <div>
         <div style="font-size: 18px; font-weight: 900; letter-spacing: -0.5px; color: #0f172a;">SENTINEL<span style="color: #0055b8;">IQ</span></div>
-        <div style="font-size: 11px; color: #64748b; font-weight: bold; text-transform: uppercase;">Sistema de Inteligencia Electoral y Territorial · INE ${stateShortName}</div>
+        <div style="font-size: 11px; color: #64748b; font-weight: bold; text-transform: uppercase;">Sistema Electoral y Territorial · INE ${stateShortName}</div>
       </div>
       <div style="text-align: right; font-size: 11px; color: #64748b;">
         <div><strong>Emisión:</strong> ${reportDate}</div>
@@ -541,16 +568,51 @@ export function generateElectoralPdfReportHtml(data: ElectoralPdfReportParams): 
 
     <!-- Footer del Documento -->
     <div style="margin-top: 24px; padding-top: 10px; border-top: 1px solid #cbd5e1; display: flex; justify-content: space-between; font-size: 10px; color: #94a3b8;">
-      <span>SentinelIQ · Plataforma de Inteligencia Política y Monitoreo Estratégico</span>
+      <span>SentinelIQ · Plataforma de Análisis Político y Monitoreo Estratégico</span>
       <span>Documento Confidencial · Prohibida su reproducción no autorizada</span>
     </div>
   </div>
 
   <script>
+    function downloadPdfDirect() {
+      var statusEl = document.getElementById('download-status');
+      if (statusEl) {
+        statusEl.innerHTML = '⏳ Generando archivo PDF...';
+        statusEl.style.color = '#fef08a';
+      }
+      var element = document.getElementById('report-container');
+      if (!element) return;
+
+      if (typeof html2pdf !== 'undefined') {
+        var opt = {
+          margin: [8, 8, 8, 8],
+          filename: '${docTitle}.pdf',
+          image: { type: 'jpeg', quality: 0.98 },
+          html2canvas: { scale: 2, useCORS: true, logging: false, scrollY: 0 },
+          jsPDF: { unit: 'mm', format: 'letter', orientation: 'portrait' },
+          pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+        };
+        html2pdf().set(opt).from(element).save()
+          .then(function() {
+            if (statusEl) {
+              statusEl.innerHTML = '✅ Descarga completada';
+              statusEl.style.color = '#86efac';
+            }
+          })
+          .catch(function(err) {
+            console.error('Error al generar PDF directo:', err);
+            if (statusEl) statusEl.innerHTML = '⚠️ Abriendo diálogo de impresión...';
+            window.print();
+          });
+      } else {
+        window.print();
+      }
+    }
+
     window.addEventListener('load', function() {
       setTimeout(function() {
-        window.print();
-      }, 500);
+        downloadPdfDirect();
+      }, 700);
     });
   <\/script>
 </body>
