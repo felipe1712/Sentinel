@@ -94,13 +94,13 @@ export const TerritorialDetailModal: React.FC<TerritorialDetailModalProps> = ({
     let res: ElectoralResult | null = null;
     try {
       if (baseBoundary === "secciones") {
-        res = electoralCache[modalElectionType]?.[yr]?.[idKey] || null;
+        res = electoralCache[modalElectionType]?.[yr]?.[idKey] || electoralCache[yr]?.[idKey] || null;
       } else if (baseBoundary === "distritos_locales") {
         res = electoralCache["distritos_locales"]?.[modalElectionType]?.[yr]?.[idKey] || null;
       } else if (baseBoundary === "distritos_federales") {
         res = electoralCache["distritos_federales"]?.[modalElectionType]?.[yr]?.[idKey] || null;
       } else if (baseBoundary === "municipios") {
-        const munMap = electoralCache["municipios"]?.[modalElectionType]?.[yr];
+        const munMap = electoralCache["municipios"]?.[modalElectionType]?.[yr] || electoralCache["municipios"]?.[yr];
         if (munMap) {
           const munName = selectedSection?.nombre || selectedSection?.featureTitle || "";
           const munNorm = munName.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
@@ -123,7 +123,7 @@ export const TerritorialDetailModal: React.FC<TerritorialDetailModalProps> = ({
 
     // Fallback: calcular agregado dinámico desde las secciones del año
     if (baseBoundary !== "secciones") {
-      const sectionsMap = electoralCache[modalElectionType]?.[yr] || {};
+      const sectionsMap = electoralCache[modalElectionType]?.[yr] || electoralCache[yr] || {};
       let tot = 0;
       let ln = 0;
       const vpAcc: Record<string, number> = {};
@@ -211,13 +211,13 @@ export const TerritorialDetailModal: React.FC<TerritorialDetailModalProps> = ({
       let res: any = null;
       try {
         if (baseBoundary === "secciones") {
-          res = electoralCache[modalElectionType]?.[yrStr]?.[idKey] || null;
+          res = electoralCache[modalElectionType]?.[yrStr]?.[idKey] || electoralCache[yrStr]?.[idKey] || null;
         } else if (baseBoundary === "distritos_locales") {
           res = electoralCache["distritos_locales"]?.[modalElectionType]?.[yrStr]?.[idKey] || null;
         } else if (baseBoundary === "distritos_federales") {
           res = electoralCache["distritos_federales"]?.[modalElectionType]?.[yrStr]?.[idKey] || null;
         } else if (baseBoundary === "municipios") {
-          const munMap = electoralCache["municipios"]?.[modalElectionType]?.[yrStr];
+          const munMap = electoralCache["municipios"]?.[modalElectionType]?.[yrStr] || electoralCache["municipios"]?.[yrStr];
           if (munMap) {
             const munName = selectedSection?.nombre || selectedSection?.featureTitle || "";
             const munNorm = munName.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
@@ -235,7 +235,7 @@ export const TerritorialDetailModal: React.FC<TerritorialDetailModalProps> = ({
       }
 
       if ((!res || !res.total_votos || res.total_votos === 0) && baseBoundary !== "secciones") {
-        const sectionsMap = electoralCache[modalElectionType]?.[yrStr] || {};
+        const sectionsMap = electoralCache[modalElectionType]?.[yrStr] || electoralCache[yrStr] || {};
         let tot = 0;
         let ln = 0;
         const vpAcc: Record<string, number> = {};
@@ -338,13 +338,20 @@ export const TerritorialDetailModal: React.FC<TerritorialDetailModalProps> = ({
         0
       );
 
+      const priVotes = Number(
+        vp["PRI-PVEM-NA-PT"] ??
+        vp["PRI"] ??
+        0
+      );
+
       const mcVotes = Number(vp["MC"] ?? 0);
-      const totalVotes = Number(hRes?.total_votos || (panVotes + morenaVotes + mcVotes));
+      const totalVotes = Number(hRes?.total_votos || (panVotes + morenaVotes + priVotes + mcVotes));
 
       return {
         year: yr,
         panVotes,
         morenaVotes,
+        priVotes,
         mcVotes,
         totalVotes,
         winner: hRes?.ganador_partido || null,
@@ -366,7 +373,7 @@ export const TerritorialDetailModal: React.FC<TerritorialDetailModalProps> = ({
     const plotW = width - paddingLeft - paddingRight;
     const plotH = height - paddingTop - paddingBottom;
 
-    const allVotes = trendData.flatMap((d) => [d.panVotes, d.morenaVotes, d.mcVotes]);
+    const allVotes = trendData.flatMap((d) => [d.panVotes, d.morenaVotes, d.priVotes, d.mcVotes]);
     const rawMax = Math.max(...allVotes, 10);
     const yMax = Math.ceil(rawMax * 1.25);
 
@@ -381,10 +388,14 @@ export const TerritorialDetailModal: React.FC<TerritorialDetailModalProps> = ({
 
     const panPoints = trendData.map((d, i) => ({ x: getX(i), y: getY(d.panVotes), votes: d.panVotes, year: d.year }));
     const morenaPoints = trendData.map((d, i) => ({ x: getX(i), y: getY(d.morenaVotes), votes: d.morenaVotes, year: d.year }));
+    const priPoints = trendData.map((d, i) => ({ x: getX(i), y: getY(d.priVotes), votes: d.priVotes, year: d.year }));
     const mcPoints = trendData.map((d, i) => ({ x: getX(i), y: getY(d.mcVotes), votes: d.mcVotes, year: d.year }));
+
+    const hasPri = trendData.some((d) => d.priVotes > 0);
 
     const panPathD = panPoints.map((p, i) => `${i === 0 ? "M" : "L"} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(" ");
     const morenaPathD = morenaPoints.map((p, i) => `${i === 0 ? "M" : "L"} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(" ");
+    const priPathD = priPoints.map((p, i) => `${i === 0 ? "M" : "L"} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(" ");
     const mcPathD = mcPoints.map((p, i) => `${i === 0 ? "M" : "L"} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(" ");
 
     const gridTicks = [0, 0.25, 0.5, 0.75, 1.0].map((ratio) => {
@@ -407,11 +418,14 @@ export const TerritorialDetailModal: React.FC<TerritorialDetailModalProps> = ({
       plotH,
       yMax,
       gridTicks,
+      hasPri,
       panPoints,
       morenaPoints,
+      priPoints,
       mcPoints,
       panPathD,
       morenaPathD,
+      priPathD,
       mcPathD,
     };
   }, [trendData, trendYears]);
@@ -422,7 +436,7 @@ export const TerritorialDetailModal: React.FC<TerritorialDetailModalProps> = ({
     if (baseBoundary === "secciones") return [];
 
     const yr = String(modalYear);
-    const sectionsMap = electoralCache[modalElectionType]?.[yr] || {};
+    const sectionsMap = electoralCache[modalElectionType]?.[yr] || electoralCache[yr] || {};
     const list: any[] = [];
 
     const munNameNorm = (selectedSection?.nombre || selectedSection?.featureTitle || "")
@@ -543,11 +557,593 @@ export const TerritorialDetailModal: React.FC<TerritorialDetailModalProps> = ({
   const winnerParty = isNoData ? "Sin votación registrada" : rawWinner;
   const winnerColor = isNoData ? "#64748b" : getPartyColor(winnerParty);
 
-  // Voto de coalición vs Voto Puro
-  const vPanAli = activeResult?.votos_partidos?.["PAN_ALIANZA"] ?? activeResult?.votos_partidos?.["PAN-PRI-PRD"] ?? activeResult?.votos_partidos?.["PAN-PRD-MC"] ?? 0;
+  // Desglose dinámico de partidos y coaliciones con soporte para candidaturas individuales y alianzas
+  const partyBreakdown = useMemo(() => {
+    if (!activeResult?.votos_partidos || !activeResult.total_votos) return [];
+
+    const ignoredKeys = new Set(["PAN_PURO", "OPOSICION_ALIANZA", "TOTAL", "total_votos"]);
+    const hasPanAli = Boolean(
+      activeResult.votos_partidos["PAN_ALIANZA"] ||
+      activeResult.votos_partidos["PAN-PRI-PRD"] ||
+      activeResult.votos_partidos["PAN-PRD-MC"]
+    );
+
+    const entries: {
+      party: string;
+      rawParty: string;
+      votes: number;
+      pct: number;
+      color: string;
+      pureVotes?: number;
+      allyVotes?: number;
+    }[] = [];
+
+    Object.entries(activeResult.votos_partidos).forEach(([rawParty, v]) => {
+      const votes = Number(v || 0);
+      if (votes <= 0 || ignoredKeys.has(rawParty)) return;
+
+      // Si existe una alianza explícita que contiene al PAN, no duplicar la fila con "PAN"
+      if (hasPanAli && rawParty === "PAN") return;
+
+      let pureVotes: number | undefined = undefined;
+      let allyVotes: number | undefined = undefined;
+
+      const isPanGroup =
+        rawParty === "PAN_ALIANZA" ||
+        rawParty === "PAN-PRI-PRD" ||
+        rawParty === "PAN-PRD-MC" ||
+        rawParty === "PAN";
+
+      if (isPanGroup) {
+        const pPuro = Number(
+          activeResult.votos_partidos["PAN_PURO"] ??
+          (rawParty === "PAN" ? votes : 0)
+        );
+        pureVotes = pPuro;
+        allyVotes = Math.max(0, votes - pPuro);
+      }
+
+      const pct = Math.round((votes / activeResult.total_votos) * 1000) / 10;
+      entries.push({
+        party: rawParty === "PAN_ALIANZA" ? "Coalición PAN (PAN + Aliados)" : rawParty,
+        rawParty,
+        votes,
+        pct,
+        color: getPartyColor(rawParty),
+        pureVotes,
+        allyVotes,
+      });
+    });
+
+    return entries.sort((a, b) => b.votes - a.votes);
+  }, [activeResult]);
+
+  // Voto de coalición vs Voto Puro (con fallback para PAN en solitario)
+  const vPanAli = activeResult?.votos_partidos?.["PAN_ALIANZA"] ?? activeResult?.votos_partidos?.["PAN-PRI-PRD"] ?? activeResult?.votos_partidos?.["PAN-PRD-MC"] ?? activeResult?.votos_partidos?.["PAN"] ?? 0;
   const vPanPuro = activeResult?.votos_partidos?.["PAN_PURO"] ?? activeResult?.votos_partidos?.["PAN"] ?? vPanAli;
   const vOppAli = activeResult?.votos_partidos?.["MORENA-PT-PVEM"] ?? activeResult?.votos_partidos?.["MORENA-PT-PES"] ?? activeResult?.votos_partidos?.["OPOSICION_ALIANZA"] ?? activeResult?.votos_partidos?.["MORENA"] ?? 0;
   const vMc = activeResult?.votos_partidos?.["MC"] ?? 0;
+
+  // Generador e Impresor de Reporte PDF Ejecutivo
+  const handleDownloadPdf = () => {
+    if (!selectedSection) return;
+
+    const printWin = window.open("", "_blank");
+    if (!printWin) {
+      alert("Por favor permita ventanas emergentes (pop-ups) en su navegador para visualizar y guardar el Reporte PDF.");
+      return;
+    }
+
+    const reportDate = new Date().toLocaleDateString("es-MX", {
+      day: "2-digit",
+      month: "long",
+      year: "numeric",
+    });
+
+    const winnerBg = winnerColor;
+    const panColor = PARTY_COLORS["PAN"] || "#0055B8";
+    const morenaColor = PARTY_COLORS["MORENA"] || "#70112C";
+    const priColor = PARTY_COLORS["PRI"] || "#D92128";
+    const mcColor = PARTY_COLORS["MC"] || "#FF8200";
+
+    // Generación del SVG de Tendencia para PDF
+    const svgGridLines = chartLayout.gridTicks
+      .map(
+        (t) => `
+        <line x1="${chartLayout.paddingLeft}" y1="${t.y}" x2="${chartLayout.width - chartLayout.paddingRight}" y2="${t.y}" stroke="#e2e8f0" stroke-dasharray="3 3" stroke-width="1" />
+        <text x="${chartLayout.paddingLeft - 8}" y="${t.y + 4}" text-anchor="end" font-size="10" fill="#64748b" font-family="sans-serif">${t.label}</text>
+      `
+      )
+      .join("");
+
+    const svgXLabels = trendYears
+      .map((yr, idx) => {
+        const x = chartLayout.panPoints[idx]?.x || chartLayout.paddingLeft;
+        const y = chartLayout.height - chartLayout.paddingBottom + 18;
+        return `<text x="${x}" y="${y}" text-anchor="middle" font-size="11" font-weight="bold" fill="#334155" font-family="sans-serif">${yr}</text>`;
+      })
+      .join("");
+
+    const svgPanNodes = chartLayout.panPoints
+      .map((pt, idx) => {
+        const isHigher = pt.votes >= (chartLayout.morenaPoints[idx]?.votes || 0);
+        const bY = isHigher ? pt.y - 12 : pt.y + 16;
+        return `
+          <circle cx="${pt.x}" cy="${pt.y}" r="5" fill="${panColor}" stroke="#ffffff" stroke-width="2" />
+          <rect x="${pt.x - 26}" y="${bY - 9}" width="52" height="14" rx="3" fill="${panColor}" />
+          <text x="${pt.x}" y="${bY + 2}" text-anchor="middle" font-size="9" font-weight="bold" fill="#ffffff" font-family="sans-serif">${pt.votes.toLocaleString()}</text>
+        `;
+      })
+      .join("");
+
+    const svgMorenaNodes = chartLayout.morenaPoints
+      .map((pt, idx) => {
+        const isHigher = pt.votes > (chartLayout.panPoints[idx]?.votes || 0);
+        const bY = isHigher ? pt.y - 12 : pt.y + 16;
+        return `
+          <circle cx="${pt.x}" cy="${pt.y}" r="5" fill="${morenaColor}" stroke="#ffffff" stroke-width="2" />
+          <rect x="${pt.x - 26}" y="${bY - 9}" width="52" height="14" rx="3" fill="${morenaColor}" />
+          <text x="${pt.x}" y="${bY + 2}" text-anchor="middle" font-size="9" font-weight="bold" fill="#ffffff" font-family="sans-serif">${pt.votes.toLocaleString()}</text>
+        `;
+      })
+      .join("");
+
+    const svgPriNodes = chartLayout.hasPri
+      ? chartLayout.priPoints
+          .map(
+            (pt) => `
+          <circle cx="${pt.x}" cy="${pt.y}" r="4.5" fill="${priColor}" stroke="#ffffff" stroke-width="1.5" />
+          ${pt.votes > 0 ? `<text x="${pt.x}" y="${pt.y - 8}" text-anchor="middle" font-size="8.5" font-weight="bold" fill="${priColor}" font-family="sans-serif">${pt.votes.toLocaleString()}</text>` : ""}
+        `
+          )
+          .join("")
+      : "";
+
+    const svgMcNodes = chartLayout.mcPoints
+      .map(
+        (pt) => `
+        <circle cx="${pt.x}" cy="${pt.y}" r="4" fill="${mcColor}" stroke="#ffffff" stroke-width="1.5" />
+        <text x="${pt.x}" y="${pt.y + 12}" text-anchor="middle" font-size="8" font-weight="bold" fill="${mcColor}" font-family="sans-serif">${pt.votes > 0 ? pt.votes.toLocaleString() : "0"}</text>
+      `
+      )
+      .join("");
+
+    const svgTrendChart = `
+      <svg viewBox="0 0 ${chartLayout.width} ${chartLayout.height}" style="width: 100%; max-width: 650px; height: auto; display: block; margin: 10px auto; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px;">
+        ${svgGridLines}
+        <line x1="${chartLayout.paddingLeft}" y1="${chartLayout.height - chartLayout.paddingBottom}" x2="${chartLayout.width - chartLayout.paddingRight}" y2="${chartLayout.height - chartLayout.paddingBottom}" stroke="#94a3b8" stroke-width="1.5" />
+        <path d="${chartLayout.panPathD}" fill="none" stroke="${panColor}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+        <path d="${chartLayout.morenaPathD}" fill="none" stroke="${morenaColor}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+        ${chartLayout.hasPri ? `<path d="${chartLayout.priPathD}" fill="none" stroke="${priColor}" stroke-width="2.5" stroke-dasharray="4 2" stroke-linecap="round" stroke-linejoin="round" />` : ""}
+        <path d="${chartLayout.mcPathD}" fill="none" stroke="${mcColor}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+        ${svgPanNodes}
+        ${svgMorenaNodes}
+        ${svgPriNodes}
+        ${svgMcNodes}
+        ${svgXLabels}
+      </svg>
+    `;
+
+    // Partidos para desglose en PDF
+    const partyRowsHtml = partyBreakdown
+      .map((p) => {
+        const hasSub = p.pureVotes !== undefined && p.allyVotes !== undefined && p.allyVotes > 0;
+        return `
+          <div style="margin-bottom: 12px;">
+            <div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: bold; margin-bottom: 4px; color: #1e293b;">
+              <span style="display: flex; align-items: center; gap: 6px;">
+                <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background-color: ${p.color};"></span>
+                ${p.party}
+              </span>
+              <span>${p.votes.toLocaleString()} votos (${p.pct}%)</span>
+            </div>
+            <div style="background: #e2e8f0; height: 10px; border-radius: 5px; overflow: hidden;">
+              <div style="background-color: ${p.color}; width: ${Math.min(100, p.pct)}%; height: 100%;"></div>
+            </div>
+            ${hasSub ? `
+              <div style="display: flex; justify-content: space-between; font-size: 10px; color: #64748b; margin-top: 3px;">
+                <span>Voto Puro: <strong>${p.pureVotes?.toLocaleString()}</strong></span>
+                <span>Aporte Aliados: <strong>${p.allyVotes?.toLocaleString()}</strong></span>
+              </div>
+            ` : ""}
+          </div>
+        `;
+      })
+      .join("");
+
+    // Tabla de evolución histórica
+    const evolutionTableRows = `
+      <tr>
+        <td style="padding: 6px 10px; font-weight: bold; color: ${panColor};">PAN / Coalición PAN</td>
+        ${trendYears.map((yr, idx) => `<td style="padding: 6px 10px; text-align: right; font-weight: 600;">${trendData[idx]?.panVotes.toLocaleString()}</td>`).join("")}
+        ${(() => {
+          const f = trendData[0]?.panVotes || 0;
+          const l = trendData[trendData.length - 1]?.panVotes || 0;
+          const d = l - f;
+          const p = f > 0 ? ((d / f) * 100).toFixed(1) : "0.0";
+          return `
+            <td style="padding: 6px 10px; text-align: right; font-weight: bold; color: ${d >= 0 ? "#16a34a" : "#dc2626"};">${d >= 0 ? `+${d.toLocaleString()}` : d.toLocaleString()}</td>
+            <td style="padding: 6px 10px; text-align: right; font-weight: bold; color: ${d >= 0 ? "#16a34a" : "#dc2626"};">${d >= 0 ? `+${p}%` : `${p}%`}</td>
+          `;
+        })()}
+      </tr>
+      <tr>
+        <td style="padding: 6px 10px; font-weight: bold; color: ${morenaColor};">MORENA / Coalición MORENA</td>
+        ${trendYears.map((yr, idx) => `<td style="padding: 6px 10px; text-align: right; font-weight: 600;">${trendData[idx]?.morenaVotes.toLocaleString()}</td>`).join("")}
+        ${(() => {
+          const f = trendData[0]?.morenaVotes || 0;
+          const l = trendData[trendData.length - 1]?.morenaVotes || 0;
+          const d = l - f;
+          const p = f > 0 ? ((d / f) * 100).toFixed(1) : "0.0";
+          return `
+            <td style="padding: 6px 10px; text-align: right; font-weight: bold; color: ${d >= 0 ? "#16a34a" : "#dc2626"};">${d >= 0 ? `+${d.toLocaleString()}` : d.toLocaleString()}</td>
+            <td style="padding: 6px 10px; text-align: right; font-weight: bold; color: ${d >= 0 ? "#16a34a" : "#dc2626"};">${d >= 0 ? `+${p}%` : `${p}%`}</td>
+          `;
+        })()}
+      </tr>
+      ${chartLayout.hasPri ? `
+        <tr>
+          <td style="padding: 6px 10px; font-weight: bold; color: ${priColor};">PRI / Coalición PRI</td>
+          ${trendYears.map((yr, idx) => `<td style="padding: 6px 10px; text-align: right; font-weight: 600;">${trendData[idx]?.priVotes.toLocaleString()}</td>`).join("")}
+          ${(() => {
+            const f = trendData[0]?.priVotes || 0;
+            const l = trendData[trendData.length - 1]?.priVotes || 0;
+            const d = l - f;
+            const p = f > 0 ? ((d / f) * 100).toFixed(1) : "0.0";
+            return `
+              <td style="padding: 6px 10px; text-align: right; font-weight: bold; color: ${d >= 0 ? "#16a34a" : "#dc2626"};">${d >= 0 ? `+${d.toLocaleString()}` : d.toLocaleString()}</td>
+              <td style="padding: 6px 10px; text-align: right; font-weight: bold; color: ${d >= 0 ? "#16a34a" : "#dc2626"};">${d >= 0 ? `+${p}%` : `${p}%`}</td>
+            `;
+          })()}
+        </tr>
+      ` : ""}
+      <tr>
+        <td style="padding: 6px 10px; font-weight: bold; color: ${mcColor};">Movimiento Ciudadano</td>
+        ${trendYears.map((yr, idx) => `<td style="padding: 6px 10px; text-align: right; font-weight: 600;">${trendData[idx]?.mcVotes.toLocaleString()}</td>`).join("")}
+        ${(() => {
+          const f = trendData[0]?.mcVotes || 0;
+          const l = trendData[trendData.length - 1]?.mcVotes || 0;
+          const d = l - f;
+          const p = f > 0 ? ((d / f) * 100).toFixed(1) : "0.0";
+          return `
+            <td style="padding: 6px 10px; text-align: right; font-weight: bold; color: ${d >= 0 ? "#16a34a" : "#dc2626"};">${d >= 0 ? `+${d.toLocaleString()}` : d.toLocaleString()}</td>
+            <td style="padding: 6px 10px; text-align: right; font-weight: bold; color: ${d >= 0 ? "#16a34a" : "#dc2626"};">${d >= 0 ? `+${p}%` : `${p}%`}</td>
+          `;
+        })()}
+      </tr>
+    `;
+
+    // Tabla de secciones (para municipios y distritos)
+    let sectionsSectionHtml = "";
+    if (constituentSections.length > 0) {
+      const rows = constituentSections
+        .map((s, idx) => {
+          const isWinPan = Boolean(s.ganador_partido?.includes("PAN"));
+          const mg = Number(s.margen_victoria_pct || 0);
+          let badgeBg = "#fee2e2";
+          let badgeColor = "#991b1b";
+          let badgeText = "Oposición";
+          if (isWinPan && mg >= 15) {
+            badgeBg = "#dcfce7";
+            badgeColor = "#166534";
+            badgeText = "Bastión Azul";
+          } else if (isWinPan && mg < 15) {
+            badgeBg = "#fef9c3";
+            badgeColor = "#854d0e";
+            badgeText = "Competido Azul";
+          }
+          const pCol = getPartyColor(s.ganador_partido);
+          return `
+            <tr style="${idx % 2 === 1 ? "background-color: #f8fafc;" : ""}">
+              <td style="padding: 5px 8px; text-align: center; font-weight: bold; border-bottom: 1px solid #e2e8f0;">${s.seccion}</td>
+              <td style="padding: 5px 8px; border-bottom: 1px solid #e2e8f0; font-size: 11px;">${s.municipio_nombre || territoryTitle}</td>
+              <td style="padding: 5px 8px; text-align: right; border-bottom: 1px solid #e2e8f0; font-size: 11px;">${Number(s.lista_nominal || 0).toLocaleString()}</td>
+              <td style="padding: 5px 8px; text-align: right; border-bottom: 1px solid #e2e8f0; font-size: 11px; font-weight: 600;">${Number(s.total_votos || 0).toLocaleString()}</td>
+              <td style="padding: 5px 8px; text-align: right; border-bottom: 1px solid #e2e8f0; font-size: 11px;">${s.participacion_pct || 0}%</td>
+              <td style="padding: 5px 8px; border-bottom: 1px solid #e2e8f0; text-align: center;">
+                <span style="background-color: ${pCol}; color: #ffffff; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; display: inline-block;">${s.ganador_partido || "Sin datos"}</span>
+              </td>
+              <td style="padding: 5px 8px; text-align: right; border-bottom: 1px solid #e2e8f0; font-size: 11px; font-weight: 600;">${Number(s.ganador_votos || 0).toLocaleString()}</td>
+              <td style="padding: 5px 8px; text-align: right; border-bottom: 1px solid #e2e8f0; font-size: 11px; font-weight: bold;">${s.ganador_pct || 0}%</td>
+              <td style="padding: 5px 8px; text-align: right; border-bottom: 1px solid #e2e8f0; font-size: 11px; font-weight: bold; color: #0055b8;">+${mg}%</td>
+              <td style="padding: 5px 8px; text-align: center; border-bottom: 1px solid #e2e8f0;">
+                <span style="background-color: ${badgeBg}; color: ${badgeColor}; padding: 2px 6px; border-radius: 4px; font-size: 9.5px; font-weight: bold; display: inline-block;">${badgeText}</span>
+              </td>
+            </tr>
+          `;
+        })
+        .join("");
+
+      sectionsSectionHtml = `
+        <div style="margin-top: 24px; page-break-before: auto;">
+          <div style="border-bottom: 2px solid #0f172a; padding-bottom: 4px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: flex-end;">
+            <h3 style="font-size: 14px; font-weight: 800; color: #0f172a; text-transform: uppercase; margin: 0;">Matriz de Secciones Electorales</h3>
+            <span style="font-size: 11px; color: #64748b; font-weight: bold;">Total: ${constituentSections.length} secciones constitutivas</span>
+          </div>
+          <table style="width: 100%; border-collapse: collapse; font-family: sans-serif; font-size: 11px;">
+            <thead>
+              <tr style="background-color: #0f172a; color: #ffffff;">
+                <th style="padding: 6px 8px; text-align: center; font-size: 10px; text-transform: uppercase;">Sección</th>
+                <th style="padding: 6px 8px; text-align: left; font-size: 10px; text-transform: uppercase;">Municipio</th>
+                <th style="padding: 6px 8px; text-align: right; font-size: 10px; text-transform: uppercase;">L. Nominal</th>
+                <th style="padding: 6px 8px; text-align: right; font-size: 10px; text-transform: uppercase;">Votos Totales</th>
+                <th style="padding: 6px 8px; text-align: right; font-size: 10px; text-transform: uppercase;">Part. %</th>
+                <th style="padding: 6px 8px; text-align: center; font-size: 10px; text-transform: uppercase;">Ganador</th>
+                <th style="padding: 6px 8px; text-align: right; font-size: 10px; text-transform: uppercase;">Votos Ganador</th>
+                <th style="padding: 6px 8px; text-align: right; font-size: 10px; text-transform: uppercase;">% Ganador</th>
+                <th style="padding: 6px 8px; text-align: right; font-size: 10px; text-transform: uppercase;">Margen</th>
+                <th style="padding: 6px 8px; text-align: center; font-size: 10px; text-transform: uppercase;">Diagnóstico</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rows}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    // Diagnóstico de continuidad / alternancia
+    const baseTrendYr = trendYears[0];
+    const lastTrendYr = trendYears[trendYears.length - 1];
+    const winBase = historicalResults[baseTrendYr]?.ganador_partido;
+    const winLast = historicalResults[lastTrendYr]?.ganador_partido;
+    let diagText = "Datos insuficientes para determinar alternancia histórica.";
+    if (winBase && winLast && winBase !== "Sin datos" && winLast !== "Sin datos") {
+      if (winBase === winLast) {
+        diagText = `CONTINUIDAD POLÍTICA: Retenido por ${winLast} en ambos ciclos analizados (${baseTrendYr} y ${lastTrendYr}).`;
+      } else {
+        diagText = `ALTERNANCIA POLÍTICA: Cambio de preferencia electoral. En ${baseTrendYr} triunfo de ${winBase} hacia ${winLast} en ${lastTrendYr}.`;
+      }
+    }
+
+    const docTitle = `Reporte_Electoral_${territoryTitle.replace(/[^a-zA-Z0-9_-]/g, "_")}_${modalYear}`;
+
+    const fullHtml = `<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>${docTitle}</title>
+  <style>
+    @page {
+      size: letter portrait;
+      margin: 12mm 10mm;
+    }
+    * {
+      box-sizing: border-box;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      color: #0f172a;
+      background-color: #ffffff;
+      font-size: 12px;
+      line-height: 1.4;
+    }
+    .no-print {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #0f172a;
+      color: #ffffff;
+      padding: 10px 20px;
+      position: sticky;
+      top: 0;
+      z-index: 9999;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+    }
+    .btn-action {
+      background: #dc2626;
+      color: #ffffff;
+      border: none;
+      padding: 8px 18px;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 13px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-action:hover {
+      background: #b91c1c;
+    }
+    .btn-close-view {
+      background: #475569;
+      color: #ffffff;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    .container {
+      max-width: 820px;
+      margin: 0 auto;
+      padding: 16px 20px;
+    }
+    @media print {
+      .no-print {
+        display: none !important;
+      }
+      .container {
+        padding: 0;
+        max-width: 100%;
+      }
+      tr {
+        page-break-inside: avoid;
+      }
+      .card-box {
+        page-break-inside: avoid;
+      }
+    }
+    .card-box {
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 14px;
+      margin-bottom: 16px;
+      background: #ffffff;
+    }
+  </style>
+</head>
+<body>
+  <div class="no-print">
+    <div style="font-weight: bold; font-size: 13px; display: flex; align-items: center; gap: 8px;">
+      <span>SENTINELIQ | Reporte Ejecutivo Territorial</span>
+    </div>
+    <div style="display: flex; gap: 10px;">
+      <button class="btn-action" onclick="window.print();">
+        Guardar como PDF / Imprimir
+      </button>
+      <button class="btn-close-view" onclick="window.close();">
+        Cerrar
+      </button>
+    </div>
+  </div>
+
+  <div class="container">
+    <!-- Header Institucional -->
+    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #0f172a; padding-bottom: 10px; margin-bottom: 16px;">
+      <div>
+        <div style="font-size: 18px; font-weight: 900; letter-spacing: -0.5px; color: #0f172a;">SENTINEL<span style="color: #0055b8;">IQ</span></div>
+        <div style="font-size: 11px; color: #64748b; font-weight: bold; text-transform: uppercase;">Sistema de Inteligencia Electoral y Territorial · INE ${stateCfg.shortName}</div>
+      </div>
+      <div style="text-align: right; font-size: 11px; color: #64748b;">
+        <div><strong>Emisión:</strong> ${reportDate}</div>
+        <div><strong>Capa:</strong> ${baseBoundary.replace("_", " ").toUpperCase()}</div>
+      </div>
+    </div>
+
+    <!-- Banner del Territorio -->
+    <div style="background: linear-gradient(135deg, ${winnerBg} 0%, #0f172a 120%); color: #ffffff; border-radius: 8px; padding: 16px 20px; margin-bottom: 16px;">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <span style="background: rgba(255,255,255,0.25); padding: 3px 8px; border-radius: 12px; font-size: 10px; font-weight: bold; text-transform: uppercase;">
+            ${baseBoundary.replace("_", " ")} · ${stateCfg.shortName}
+          </span>
+          <h1 style="font-size: 20px; font-weight: 900; margin: 6px 0 2px 0;">${territoryTitle}</h1>
+          <div style="font-size: 12px; opacity: 0.85;">${territorySubtitle} · Elección de ${modalElectionType.toUpperCase()} ${modalYear}</div>
+        </div>
+        <div style="text-align: right; background: rgba(0,0,0,0.2); padding: 8px 14px; border-radius: 8px;">
+          <div style="font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.85;">Partido Ganador</div>
+          <div style="font-size: 16px; font-weight: 900;">${winnerParty}</div>
+          <div style="font-size: 12px; font-weight: bold;">${activeResult?.ganador_pct || 0}% de los votos</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Resumen Ejecutivo (KPI Cards) -->
+    <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin-bottom: 16px;">
+      <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px; text-align: center;">
+        <span style="font-size: 10px; color: #64748b; font-weight: bold; text-transform: uppercase; display: block;">Total Votos</span>
+        <span style="font-size: 15px; font-weight: 800; color: #0f172a;">${Number(activeResult?.total_votos || 0).toLocaleString()}</span>
+      </div>
+      <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px; text-align: center;">
+        <span style="font-size: 10px; color: #64748b; font-weight: bold; text-transform: uppercase; display: block;">Lista Nominal</span>
+        <span style="font-size: 15px; font-weight: 800; color: #0f172a;">${Number(activeResult?.lista_nominal || 0).toLocaleString()}</span>
+      </div>
+      <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px; text-align: center;">
+        <span style="font-size: 10px; color: #64748b; font-weight: bold; text-transform: uppercase; display: block;">Participación</span>
+        <span style="font-size: 15px; font-weight: 800; color: #0f172a;">${activeResult?.participacion_pct || 0}%</span>
+      </div>
+      <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px; text-align: center;">
+        <span style="font-size: 10px; color: #64748b; font-weight: bold; text-transform: uppercase; display: block;">Votos Ganador</span>
+        <span style="font-size: 15px; font-weight: 800; color: ${winnerBg};">${Number(activeResult?.ganador_votos || 0).toLocaleString()}</span>
+      </div>
+      <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px; text-align: center;">
+        <span style="font-size: 10px; color: #64748b; font-weight: bold; text-transform: uppercase; display: block;">Margen Vic.</span>
+        <span style="font-size: 15px; font-weight: 800; color: #0055b8;">+${activeResult?.margen_victoria_pct || 0}%</span>
+      </div>
+      <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px; text-align: center;">
+        <span style="font-size: 10px; color: #64748b; font-weight: bold; text-transform: uppercase; display: block;">2do Lugar</span>
+        <span style="font-size: 13px; font-weight: 800; color: #475569; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${activeResult?.segundo_partido || 'N/A'}</span>
+        <span style="font-size: 10px; color: #64748b;">${activeResult?.segundo_pct || 0}%</span>
+      </div>
+    </div>
+
+    <!-- Desglose por Partidos y Coaliciones -->
+    <div class="card-box">
+      <div style="font-size: 13px; font-weight: 800; color: #0f172a; text-transform: uppercase; margin-bottom: 12px; border-bottom: 1px solid #e2e8f0; padding-bottom: 6px;">
+        Desglose de Resultados Electorales (${modalElectionType.toUpperCase()} ${modalYear})
+      </div>
+      ${partyRowsHtml}
+    </div>
+
+    <!-- Tendencia Histórica y Gráfica SVG -->
+    <div class="card-box">
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; padding-bottom: 6px; margin-bottom: 12px;">
+        <span style="font-size: 13px; font-weight: 800; color: #0f172a; text-transform: uppercase;">
+          Evolución y Tendencia Electoral (${trendYears.join(" - ")})
+        </span>
+        <div style="display: flex; gap: 12px; font-size: 10px; font-weight: bold;">
+          <span style="display: flex; align-items: center; gap: 4px;">
+            <span style="width: 10px; height: 3px; background: ${panColor}; display: inline-block;"></span> PAN
+          </span>
+          <span style="display: flex; align-items: center; gap: 4px;">
+            <span style="width: 10px; height: 3px; background: ${morenaColor}; display: inline-block;"></span> MORENA
+          </span>
+          ${chartLayout.hasPri ? `
+            <span style="display: flex; align-items: center; gap: 4px;">
+              <span style="width: 10px; height: 3px; background: ${priColor}; display: inline-block;"></span> PRI
+            </span>
+          ` : ""}
+          <span style="display: flex; align-items: center; gap: 4px;">
+            <span style="width: 10px; height: 3px; background: ${mcColor}; display: inline-block;"></span> MC
+          </span>
+        </div>
+      </div>
+
+      <!-- Gráfica Vectorial SVG -->
+      ${svgTrendChart}
+
+      <!-- Tabla Comparativa de Ciclos -->
+      <table style="width: 100%; border-collapse: collapse; margin-top: 14px; font-size: 11px;">
+        <thead>
+          <tr style="background: #f1f5f9; border-bottom: 1px solid #cbd5e1;">
+            <th style="padding: 6px 10px; text-align: left;">Fuerza Política</th>
+            ${trendYears.map((yr) => `<th style="padding: 6px 10px; text-align: right;">Ciclo ${yr}</th>`).join("")}
+            <th style="padding: 6px 10px; text-align: right;">Dif. Votos (Δ)</th>
+            <th style="padding: 6px 10px; text-align: right;">Var. % (Δ%)</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${evolutionTableRows}
+        </tbody>
+      </table>
+
+      <!-- Diagnóstico Político -->
+      <div style="margin-top: 12px; padding: 8px 12px; background: #f8fafc; border-left: 3px solid #0055b8; border-radius: 4px; font-size: 11px; font-weight: bold; color: #1e293b;">
+        ${diagText}
+      </div>
+    </div>
+
+    <!-- Matriz de Secciones Electorales (Municipios / Distritos) -->
+    ${sectionsSectionHtml}
+
+    <!-- Footer del Documento -->
+    <div style="margin-top: 24px; padding-top: 10px; border-top: 1px solid #cbd5e1; display: flex; justify-content: space-between; font-size: 10px; color: #94a3b8;">
+      <span>SentinelIQ · Plataforma de Inteligencia Política y Monitoreo Estratégico</span>
+      <span>Documento Confidencial · Prohibida su reproducción no autorizada</span>
+    </div>
+  </div>
+
+  <script>
+    window.addEventListener('load', function() {
+      setTimeout(function() {
+        window.print();
+      }, 500);
+    });
+  </script>
+</body>
+</html>`;
+
+    printWin.document.open();
+    printWin.document.write(fullHtml);
+    printWin.document.close();
+  };
 
   return (
     <div
@@ -771,72 +1367,41 @@ export const TerritorialDetailModal: React.FC<TerritorialDetailModalProps> = ({
                         </span>
                       </div>
                       <div className="card-body p-3">
-                        {/* Fila PAN */}
-                        <div className="mb-3">
-                          <div className="d-flex justify-content-between align-items-center mb-1 fs-12 fw-bold text-dark">
-                            <span>
-                              <i className="ri-checkbox-blank-circle-fill me-1" style={{ color: PARTY_COLORS["PAN"] }}></i>
-                              Coalición PAN (PAN + Aliados)
-                            </span>
-                            <span>{Number(vPanAli).toLocaleString()} votos ({activeResult?.total_votos ? ((Number(vPanAli) / activeResult.total_votos) * 100).toFixed(1) : 0}%)</span>
+                        {partyBreakdown.map((item, idx) => {
+                          const showPuroAli = item.pureVotes !== undefined && item.allyVotes !== undefined && (item.pureVotes > 0 || item.allyVotes > 0);
+                          return (
+                            <div key={item.rawParty} className={idx < partyBreakdown.length - 1 ? "mb-3" : ""}>
+                              <div className="d-flex justify-content-between align-items-center mb-1 fs-12 fw-bold text-dark">
+                                <span className="d-flex align-items-center gap-1">
+                                  <i className="ri-checkbox-blank-circle-fill me-1" style={{ color: item.color }}></i>
+                                  {item.party}
+                                </span>
+                                <span>{item.votes.toLocaleString()} votos ({item.pct}%)</span>
+                              </div>
+                              <div className="progress" style={{ height: "10px" }}>
+                                <div
+                                  className="progress-bar"
+                                  role="progressbar"
+                                  style={{
+                                    width: `${Math.min(100, item.pct)}%`,
+                                    backgroundColor: item.color,
+                                  }}
+                                ></div>
+                              </div>
+                              {showPuroAli && item.allyVotes! > 0 && (
+                                <div className="d-flex justify-content-between fs-11 text-muted mt-1">
+                                  <span>Voto Puro: <strong>{item.pureVotes?.toLocaleString()}</strong></span>
+                                  <span>Aporte Aliados: <strong>{item.allyVotes?.toLocaleString()}</strong></span>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                        {partyBreakdown.length === 0 && (
+                          <div className="text-muted fs-12 text-center py-2">
+                            Sin desglose de partidos registrado para este ciclo.
                           </div>
-                          <div className="progress" style={{ height: "10px" }}>
-                            <div
-                              className="progress-bar"
-                              role="progressbar"
-                              style={{
-                                width: `${activeResult?.total_votos ? (Number(vPanAli) / activeResult.total_votos) * 100 : 0}%`,
-                                backgroundColor: PARTY_COLORS["PAN"],
-                              }}
-                            ></div>
-                          </div>
-                          <div className="d-flex justify-content-between fs-11 text-muted mt-1">
-                            <span>Voto Puro PAN: <strong>{Number(vPanPuro).toLocaleString()}</strong></span>
-                            <span>Aporte Aliados: <strong>{Math.max(0, Number(vPanAli) - Number(vPanPuro)).toLocaleString()}</strong></span>
-                          </div>
-                        </div>
-
-                        {/* Fila Coalición MORENA */}
-                        <div className="mb-3">
-                          <div className="d-flex justify-content-between align-items-center mb-1 fs-12 fw-bold text-dark">
-                            <span>
-                              <i className="ri-checkbox-blank-circle-fill me-1" style={{ color: PARTY_COLORS["MORENA"] }}></i>
-                              Coalición MORENA (MORENA + Aliados)
-                            </span>
-                            <span>{Number(vOppAli).toLocaleString()} votos ({activeResult?.total_votos ? ((Number(vOppAli) / activeResult.total_votos) * 100).toFixed(1) : 0}%)</span>
-                          </div>
-                          <div className="progress" style={{ height: "10px" }}>
-                            <div
-                              className="progress-bar"
-                              role="progressbar"
-                              style={{
-                                width: `${activeResult?.total_votos ? (Number(vOppAli) / activeResult.total_votos) * 100 : 0}%`,
-                                backgroundColor: PARTY_COLORS["MORENA"],
-                              }}
-                            ></div>
-                          </div>
-                        </div>
-
-                        {/* Fila MC */}
-                        <div>
-                          <div className="d-flex justify-content-between align-items-center mb-1 fs-12 fw-bold text-dark">
-                            <span>
-                              <i className="ri-checkbox-blank-circle-fill me-1" style={{ color: PARTY_COLORS["MC"] }}></i>
-                              Movimiento Ciudadano (MC)
-                            </span>
-                            <span>{Number(vMc).toLocaleString()} votos ({activeResult?.total_votos ? ((Number(vMc) / activeResult.total_votos) * 100).toFixed(1) : 0}%)</span>
-                          </div>
-                          <div className="progress" style={{ height: "10px" }}>
-                            <div
-                              className="progress-bar"
-                              role="progressbar"
-                              style={{
-                                width: `${activeResult?.total_votos ? (Number(vMc) / activeResult.total_votos) * 100 : 0}%`,
-                                backgroundColor: PARTY_COLORS["MC"],
-                              }}
-                            ></div>
-                          </div>
-                        </div>
+                        )}
                       </div>
                     </div>
 
@@ -874,6 +1439,12 @@ export const TerritorialDetailModal: React.FC<TerritorialDetailModalProps> = ({
                           <span style={{ width: 12, height: 4, backgroundColor: PARTY_COLORS["MORENA"], borderRadius: 2, display: "inline-block" }}></span>
                           Coalición MORENA
                         </span>
+                        {chartLayout.hasPri && (
+                          <span className="d-flex align-items-center gap-1">
+                            <span style={{ width: 12, height: 4, backgroundColor: PARTY_COLORS["PRI"] || "#D92128", borderRadius: 2, display: "inline-block" }}></span>
+                            PRI / Coalición PRI
+                          </span>
+                        )}
                         <span className="d-flex align-items-center gap-1">
                           <span style={{ width: 12, height: 4, backgroundColor: PARTY_COLORS["MC"], borderRadius: 2, display: "inline-block" }}></span>
                           MC
@@ -992,6 +1563,19 @@ export const TerritorialDetailModal: React.FC<TerritorialDetailModalProps> = ({
                             strokeLinejoin="round"
                           />
 
+                          {/* 4. PRI / Coalición PRI */}
+                          {chartLayout.hasPri && (
+                            <path
+                              d={chartLayout.priPathD}
+                              fill="none"
+                              stroke={PARTY_COLORS["PRI"] || "#D92128"}
+                              strokeWidth="3"
+                              strokeDasharray="5 3"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                          )}
+
                           {/* Nodos / Puntos y Etiquetas para PAN */}
                           {chartLayout.panPoints.map((pt, i) => {
                             const isHigher = pt.votes >= chartLayout.morenaPoints[i]?.votes;
@@ -1091,6 +1675,33 @@ export const TerritorialDetailModal: React.FC<TerritorialDetailModalProps> = ({
                               </text>
                             </g>
                           ))}
+
+                          {/* Nodos / Puntos para PRI */}
+                          {chartLayout.hasPri &&
+                            chartLayout.priPoints.map((pt, i) => (
+                              <g key={`pri-pt-${i}`}>
+                                <circle
+                                  cx={pt.x}
+                                  cy={pt.y}
+                                  r="5"
+                                  fill={PARTY_COLORS["PRI"] || "#D92128"}
+                                  stroke="#ffffff"
+                                  strokeWidth="2"
+                                />
+                                {pt.votes > 0 && (
+                                  <text
+                                    x={pt.x}
+                                    y={pt.y - 12}
+                                    textAnchor="middle"
+                                    fontSize="9"
+                                    fontWeight="bold"
+                                    fill="#b91c1c"
+                                  >
+                                    {pt.votes.toLocaleString()}
+                                  </text>
+                                )}
+                              </g>
+                            ))}
 
                           {/* Etiquetas del Eje X (Años) */}
                           {trendYears.map((yr, i) => {
@@ -1199,6 +1810,38 @@ export const TerritorialDetailModal: React.FC<TerritorialDetailModalProps> = ({
                               );
                             })()}
                           </tr>
+                          {chartLayout.hasPri && (
+                            <tr>
+                              <td className="fw-bold">
+                                <i className="ri-checkbox-blank-circle-fill me-1" style={{ color: PARTY_COLORS["PRI"] || "#D92128" }}></i>
+                                PRI / Coalición PRI
+                              </td>
+                              {trendYears.map((yr, idx) => (
+                                <td key={yr} className="text-end fw-semibold">
+                                  {trendData[idx]?.priVotes.toLocaleString()}
+                                </td>
+                              ))}
+                              {(() => {
+                                const first = trendData[0]?.priVotes || 0;
+                                const last = trendData[trendData.length - 1]?.priVotes || 0;
+                                const diff = last - first;
+                                const pct = first > 0 ? ((diff / first) * 100).toFixed(1) : "0.0";
+                                const isPos = diff >= 0;
+                                return (
+                                  <>
+                                    <td className={`text-end fw-extrabold ${isPos ? "text-success" : "text-danger"}`}>
+                                      {isPos ? `+${diff.toLocaleString()}` : diff.toLocaleString()}
+                                    </td>
+                                    <td className="text-end">
+                                      <span className={`badge ${isPos ? "bg-success-subtle text-success" : "bg-danger-subtle text-danger"} fw-bold`}>
+                                        {isPos ? `+${pct}%` : `${pct}%`}
+                                      </span>
+                                    </td>
+                                  </>
+                                );
+                              })()}
+                            </tr>
+                          )}
                           <tr>
                             <td className="fw-bold">
                               <i className="ri-checkbox-blank-circle-fill me-1" style={{ color: PARTY_COLORS["MC"] }}></i>
@@ -1239,34 +1882,35 @@ export const TerritorialDetailModal: React.FC<TerritorialDetailModalProps> = ({
                         Diagnóstico de Estabilidad Territorial
                       </span>
                       {(() => {
-                        const baseYear = stateCfg.key === "qro" ? 2021 : 2018;
+                        const baseYear = trendYears[0];
+                        const lastYear = trendYears[trendYears.length - 1];
                         const rBase = historicalResults[baseYear]?.ganador_partido;
-                        const r2024 = historicalResults[2024]?.ganador_partido;
+                        const rLast = historicalResults[lastYear]?.ganador_partido;
 
                         if (
                           !rBase ||
-                          !r2024 ||
+                          !rLast ||
                           rBase === "Sin datos" ||
-                          r2024 === "Sin datos" ||
+                          rLast === "Sin datos" ||
                           rBase.includes("Sin votación") ||
-                          r2024.includes("Sin votación")
+                          rLast.includes("Sin votación")
                         ) {
                           return <span className="fs-13 text-muted">Datos insuficientes para determinar comparativa histórica.</span>;
                         }
 
-                        const sameWinner = rBase === r2024;
+                        const sameWinner = rBase === rLast;
                         if (sameWinner) {
                           return (
                             <div className="alert alert-secondary d-flex align-items-center gap-2 mb-0 py-2 fs-13 fw-bold text-dark border">
                               <i className="ri-shield-check-fill fs-18 text-primary"></i>
-                              Continuidad Electoral: Ganado por {r2024} en ambos ciclos ({baseYear} y 2024).
+                              Continuidad Electoral: Ganado por {rLast} en ambos ciclos ({baseYear} y {lastYear}).
                             </div>
                           );
                         } else {
                           return (
                             <div className="alert alert-info d-flex align-items-center gap-2 mb-0 py-2 fs-13 fw-bold text-dark border">
                               <i className="ri-swap-line fs-18 text-primary"></i>
-                              Alternancia Electoral: Ganado por {rBase} en {baseYear} y ganado por {r2024} en 2024.
+                              Alternancia Electoral: Ganado por {rBase} en {baseYear} y ganado por {rLast} en {lastYear}.
                             </div>
                           );
                         }
@@ -1355,13 +1999,23 @@ export const TerritorialDetailModal: React.FC<TerritorialDetailModalProps> = ({
           </div>
 
           {/* Footer del Modal */}
-          <div className="modal-footer bg-light border-0 py-2 px-4 d-flex justify-content-between">
+          <div className="modal-footer bg-light border-0 py-2 px-4 d-flex justify-content-between align-items-center">
             <span className="text-muted fs-11">
               <i className="ri-information-line me-1"></i> Análisis electoral SentinelIQ · INE {stateCfg.shortName}
             </span>
-            <button type="button" className="btn btn-secondary btn-sm fw-bold px-4" onClick={onClose}>
-              Cerrar Ficha
-            </button>
+            <div className="d-flex align-items-center gap-2">
+              <button
+                type="button"
+                className="btn btn-danger btn-sm fw-bold px-3 d-flex align-items-center gap-2 shadow-sm"
+                onClick={handleDownloadPdf}
+                title="Descargar Reporte Ejecutivo en formato PDF con gráficas y desglose completo"
+              >
+                <i className="ri-file-pdf-2-line fs-14"></i> Reporte PDF
+              </button>
+              <button type="button" className="btn btn-secondary btn-sm fw-bold px-4" onClick={onClose}>
+                Cerrar Ficha
+              </button>
+            </div>
           </div>
         </div>
       </div>
