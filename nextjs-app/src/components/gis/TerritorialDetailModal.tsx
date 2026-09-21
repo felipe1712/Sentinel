@@ -364,8 +364,8 @@ export const TerritorialDetailModal: React.FC<TerritorialDetailModalProps> = ({
 
   // Layout geométrico del gráfico SVG de Líneas
   const chartLayout = useMemo(() => {
-    const width = 640;
-    const height = 270;
+    const width = 720;
+    const height = 280;
     const paddingLeft = 70;
     const paddingRight = 45;
     const paddingTop = 35;
@@ -979,7 +979,7 @@ export const TerritorialDetailModal: React.FC<TerritorialDetailModalProps> = ({
 
                     {/* Contenedor de la Gráfica de Líneas SVG */}
                     <div className="card border border-gray-200 rounded-3 shadow-sm mb-3 overflow-hidden bg-white p-2">
-                      <div className="w-100" style={{ height: "270px" }}>
+                      <div className="w-100" style={{ height: "280px" }}>
                         <svg
                           viewBox={`0 0 ${chartLayout.width} ${chartLayout.height}`}
                           className="w-100 h-100"

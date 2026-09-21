@@ -165,7 +165,7 @@ export function generateElectoralPdfReportHtml(data: ElectoralPdfReportParams): 
     .join("");
 
   const svgTrendChart = `
-    <svg viewBox="0 0 ${chartLayout.width} ${chartLayout.height}" style="width: 100%; max-width: 650px; height: auto; display: block; margin: 10px auto; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px;">
+    <svg id="trend-chart-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${chartLayout.width} ${chartLayout.height}" width="${chartLayout.width}" height="${chartLayout.height}" style="width: 100%; height: auto; display: block; margin: 10px auto; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px;">
       ${svgGridLines}
       <line x1="${chartLayout.paddingLeft}" y1="${chartLayout.height - chartLayout.paddingBottom}" x2="${chartLayout.width - chartLayout.paddingRight}" y2="${chartLayout.height - chartLayout.paddingBottom}" stroke="#94a3b8" stroke-width="1.5" />
       <path d="${chartLayout.panPathD}" fill="none" stroke="${panColor}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
@@ -574,39 +574,94 @@ export function generateElectoralPdfReportHtml(data: ElectoralPdfReportParams): 
   </div>
 
   <script>
+    function convertSvgToCanvas(svg) {
+      return new Promise(function(resolve) {
+        try {
+          var bbox = svg.getBoundingClientRect();
+          var width = Math.round(bbox.width) || ${chartLayout.width};
+          var height = Math.round(bbox.height) || ${chartLayout.height};
+
+          var xml = new XMLSerializer().serializeToString(svg);
+          var svgBlob = new Blob([xml], { type: 'image/svg+xml;charset=utf-8' });
+          var url = URL.createObjectURL(svgBlob);
+
+          var img = new Image();
+          img.crossOrigin = 'anonymous';
+          img.onload = function() {
+            var canvas = document.createElement('canvas');
+            canvas.width = width * 2;
+            canvas.height = height * 2;
+            canvas.style.width = '100%';
+            canvas.style.height = 'auto';
+            canvas.style.display = 'block';
+            canvas.style.margin = '10px auto';
+            canvas.style.border = '1px solid #e2e8f0';
+            canvas.style.borderRadius = '8px';
+            canvas.style.background = '#ffffff';
+
+            var ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+            URL.revokeObjectURL(url);
+            if (svg.parentNode) {
+              svg.parentNode.replaceChild(canvas, svg);
+            }
+            resolve(canvas);
+          };
+          img.onerror = function(e) {
+            console.warn('Could not load SVG as image for canvas conversion:', e);
+            URL.revokeObjectURL(url);
+            resolve(null);
+          };
+          img.src = url;
+        } catch (err) {
+          console.warn('SVG canvas conversion exception:', err);
+          resolve(null);
+        }
+      });
+    }
+
     function downloadPdfDirect() {
       var statusEl = document.getElementById('download-status');
       if (statusEl) {
-        statusEl.innerHTML = '⏳ Generando archivo PDF...';
+        statusEl.innerHTML = '⏳ Preparando gráficas y descargando PDF...';
         statusEl.style.color = '#fef08a';
       }
-      var element = document.getElementById('report-container');
-      if (!element) return;
 
-      if (typeof html2pdf !== 'undefined') {
-        var opt = {
-          margin: [8, 8, 8, 8],
-          filename: '${docTitle}.pdf',
-          image: { type: 'jpeg', quality: 0.98 },
-          html2canvas: { scale: 2, useCORS: true, logging: false, scrollY: 0 },
-          jsPDF: { unit: 'mm', format: 'letter', orientation: 'portrait' },
-          pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
-        };
-        html2pdf().set(opt).from(element).save()
-          .then(function() {
-            if (statusEl) {
-              statusEl.innerHTML = '✅ Descarga completada';
-              statusEl.style.color = '#86efac';
-            }
-          })
-          .catch(function(err) {
-            console.error('Error al generar PDF directo:', err);
-            if (statusEl) statusEl.innerHTML = '⚠️ Abriendo diálogo de impresión...';
-            window.print();
-          });
-      } else {
-        window.print();
-      }
+      var svg = document.getElementById('trend-chart-svg');
+      var promise = svg ? convertSvgToCanvas(svg) : Promise.resolve(null);
+
+      promise.then(function() {
+        var element = document.getElementById('report-container');
+        if (!element) return;
+
+        if (typeof html2pdf !== 'undefined') {
+          var opt = {
+            margin: [8, 8, 8, 8],
+            filename: '${docTitle}.pdf',
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2, useCORS: true, logging: false, scrollY: 0 },
+            jsPDF: { unit: 'mm', format: 'letter', orientation: 'portrait' },
+            pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+          };
+          html2pdf().set(opt).from(element).save()
+            .then(function() {
+              if (statusEl) {
+                statusEl.innerHTML = '✅ Descarga completada';
+                statusEl.style.color = '#86efac';
+              }
+            })
+            .catch(function(err) {
+              console.error('Error al generar PDF directo:', err);
+              if (statusEl) statusEl.innerHTML = '⚠️ Abriendo diálogo de impresión...';
+              window.print();
+            });
+        } else {
+          window.print();
+        }
+      });
     }
 
     window.addEventListener('load', function() {
