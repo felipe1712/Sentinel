@@ -64,7 +64,7 @@ fi
 # Ingesta masiva de resultados electorales para Querétaro
 if [ -f "data/electoral/ingest_queretaro_electoral_results.sql" ]; then
   if ! grep -Fxq "ingest_queretaro_electoral_results.sql" "$APPLIED_LOG" || [ "$1" == "--force-migrations" ]; then
-    echo "  -> Aplicando resultados electorales masivos de Querétaro (2,735 registros)..."
+    echo "  -> Aplicando resultados electorales masivos de Querétaro (4,454 registros)..."
     docker exec -i sentineliq_postgres psql -U sentinel -d sentineliq < "data/electoral/ingest_queretaro_electoral_results.sql" 2>/dev/null || true
     echo "ingest_queretaro_electoral_results.sql" >> "$APPLIED_LOG"
     echo "  ✅ Resultados electorales aplicados a sentineliq (Querétaro)."
