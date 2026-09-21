@@ -1958,16 +1958,45 @@ export const TerritorialDetailModal: React.FC<TerritorialDetailModalProps> = ({
                         }
                       })()}
                     </div>
+
+                    {/* Acción Directa: Descarga Reporte PDF dentro de Tendencias */}
+                    <div className="mt-3 p-3 bg-light rounded-3 border border-gray-200 d-flex justify-content-between align-items-center shadow-sm">
+                      <div>
+                        <span className="fw-extrabold text-dark fs-12 d-block">
+                          <i className="ri-file-pdf-2-line text-danger me-1"></i> Expediente Electoral Territorial
+                        </span>
+                        <small className="text-muted fs-11">
+                          Descarga el informe ejecutivo en PDF con gráficas de resultados, tendencias y matriz de secciones.
+                        </small>
+                      </div>
+                      <button
+                        type="button"
+                        className="btn btn-danger btn-sm fw-bold px-3 py-2 d-flex align-items-center gap-2 shadow-sm"
+                        onClick={handleDownloadPdf}
+                        title="Descargar Reporte PDF de este territorio"
+                      >
+                        <i className="ri-file-pdf-2-line fs-15"></i> Reporte PDF
+                      </button>
+                    </div>
                   </div>
                 )}
 
                 {activeTab === "secciones" && baseBoundary !== "secciones" && (
                   <div>
-                    <div className="d-flex justify-content-between align-items-center mb-3">
+                    <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
                       <h6 className="fw-extrabold text-dark text-uppercase fs-13 mb-0">
                         Matriz de Secciones Electorales ({constituentSections.length})
                       </h6>
-                      <div className="input-group input-group-sm" style={{ maxWidth: "220px" }}>
+                      <div className="d-flex align-items-center gap-2">
+                        <button
+                          type="button"
+                          className="btn btn-danger btn-sm fw-bold px-3 d-flex align-items-center gap-2 shadow-sm"
+                          onClick={handleDownloadPdf}
+                          title="Descargar Reporte PDF de este territorio"
+                        >
+                          <i className="ri-file-pdf-2-line fs-14"></i> Reporte PDF
+                        </button>
+                        <div className="input-group input-group-sm" style={{ maxWidth: "220px" }}>
                         <span className="input-group-text bg-white border-end-0">
                           <i className="ri-search-line text-muted"></i>
                         </span>
