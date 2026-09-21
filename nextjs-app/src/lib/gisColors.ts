@@ -6,6 +6,8 @@ export const PARTY_COLORS: Record<string, string> = {
   PRD: "#1B5E20",             // Verde Oscuro PRD (solicitado)
   MC: "#FF8200",              // Naranja Movimiento Ciudadano
   PT: "#E31B23",              // Rojo Partido del Trabajo
+  "NUEVA ALIANZA": "#00A896", // Turquesa Nueva Alianza
+  NA: "#00A896",
   INDEPENDIENTE: "#8B5CF6",   // Púrpura Candidaturas Independientes
   SIN_DATOS: "#94A3B8",       // Gris Slate neutro
 };
@@ -64,7 +66,12 @@ export function getPartyColor(party?: string | null): string {
     return PARTY_COLORS.PT;
   }
 
-  // 8. Independientes
+  // 8. Nueva Alianza (Turquesa)
+  if (p === "NUEVA ALIANZA" || p === "NA" || p.includes("NUEVA-ALIANZA") || p.includes("NUEVA ALIANZA")) {
+    return PARTY_COLORS["NUEVA ALIANZA"];
+  }
+
+  // 9. Independientes
   if (p.includes("CAND-IND") || p.includes("INDEPENDIENTE") || p.startsWith("CI")) {
     return PARTY_COLORS.INDEPENDIENTE;
   }

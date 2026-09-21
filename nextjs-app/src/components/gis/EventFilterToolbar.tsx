@@ -45,8 +45,8 @@ export const EventFilterToolbar: React.FC<EventFilterToolbarProps> = ({
         : [2018, 2021, 2024]
       : stateKey === "qro"
       ? electionType === "gubernatura"
-        ? [2021]
-        : [2021, 2024]
+        ? [2015, 2021]
+        : [2018, 2021, 2024]
       : electionType === "diputaciones"
       ? [2018, 2021, 2024]
       : [2018, 2024];

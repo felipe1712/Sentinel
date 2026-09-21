@@ -38,9 +38,9 @@ export const TerritorialDetailModal: React.FC<TerritorialDetailModalProps> = ({
       let yr = currentYear;
       if (stateCfg.key === "qro") {
         if (currentElectionType === "gubernatura") {
-          yr = 2021;
-        } else if (yr === 2018) {
-          yr = 2024;
+          if (yr !== 2021 && yr !== 2015) yr = 2021;
+        } else {
+          if (yr !== 2024 && yr !== 2021 && yr !== 2018) yr = 2024;
         }
       }
       setModalYear(yr);
@@ -50,14 +50,14 @@ export const TerritorialDetailModal: React.FC<TerritorialDetailModalProps> = ({
     }
   }, [isOpen, currentYear, currentElectionType, stateCfg.key]);
 
-  // Si se cambia a gubernatura en Puebla o Querétaro, ajustar a 2021 si era 2024
+  // Si se cambia a gubernatura en Puebla o Querétaro, ajustar según años disponibles
   const handleElectionTypeChange = (type: "gubernatura" | "diputaciones") => {
     setModalElectionType(type);
     if (stateCfg.key === "qro") {
       if (type === "gubernatura") {
-        setModalYear(2021);
-      } else if (modalYear === 2018) {
-        setModalYear(2024);
+        if (modalYear !== 2021 && modalYear !== 2015) setModalYear(2021);
+      } else {
+        if (modalYear !== 2024 && modalYear !== 2021 && modalYear !== 2018) setModalYear(2024);
       }
     } else if (stateCfg.key === "pue") {
       if (type === "gubernatura" && modalYear === 2024) {
@@ -198,7 +198,14 @@ export const TerritorialDetailModal: React.FC<TerritorialDetailModalProps> = ({
     const idKey = String(territoryId);
     const results: Record<number, any> = {};
 
-    const yearsToLoad = stateCfg.key === "qro" ? [2021, 2024] : [2018, 2021, 2024];
+    const yearsToLoad =
+      stateCfg.key === "qro"
+        ? modalElectionType === "gubernatura"
+          ? [2015, 2021]
+          : [2018, 2021, 2024]
+        : stateCfg.key === "pue" && modalElectionType === "gubernatura"
+        ? [2018, 2021]
+        : [2018, 2021, 2024];
     yearsToLoad.forEach((yr) => {
       const yrStr = String(yr);
       let res: any = null;
@@ -302,7 +309,7 @@ export const TerritorialDetailModal: React.FC<TerritorialDetailModalProps> = ({
   // Años y datos para la gráfica de tendencias y botones de ciclo
   const trendYears = useMemo(() => {
     if (stateCfg.key === "qro") {
-      return modalElectionType === "gubernatura" ? [2021] : [2021, 2024];
+      return modalElectionType === "gubernatura" ? [2015, 2021] : [2018, 2021, 2024];
     }
     if (modalElectionType === "diputaciones") {
       return [2018, 2021, 2024];

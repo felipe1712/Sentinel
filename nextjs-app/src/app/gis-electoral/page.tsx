@@ -141,9 +141,9 @@ export default function GisElectoralPage() {
     setElectionType(type);
     if (stateCfg.key === "qro") {
       if (type === "gubernatura") {
-        setSelectedYear(2021);
+        if (selectedYear !== 2021 && selectedYear !== 2015) setSelectedYear(2021);
       } else {
-        if (selectedYear !== 2024 && selectedYear !== 2021) setSelectedYear(2024);
+        if (selectedYear !== 2024 && selectedYear !== 2021 && selectedYear !== 2018) setSelectedYear(2024);
       }
     } else if (stateCfg.key === "pue") {
       if (type === "gubernatura") {
