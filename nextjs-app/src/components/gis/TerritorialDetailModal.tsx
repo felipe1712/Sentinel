@@ -550,8 +550,6 @@ export const TerritorialDetailModal: React.FC<TerritorialDetailModalProps> = ({
     return pathD;
   }, [selectedSection]);
 
-  if (!isOpen || !selectedSection) return null;
-
   const hasVotes = Boolean(activeResult && activeResult.total_votos && activeResult.total_votos > 0);
   const rawWinner = activeResult?.ganador_partido;
   const isNoData = !hasVotes || !rawWinner || rawWinner === "Sin datos";
@@ -647,6 +645,8 @@ export const TerritorialDetailModal: React.FC<TerritorialDetailModalProps> = ({
       historicalResults,
     });
   };
+
+  if (!isOpen || !selectedSection) return null;
 
   return (
     <div
