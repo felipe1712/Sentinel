@@ -98,16 +98,27 @@ export const ElectoralStatsPanel: React.FC<StatsPanelProps> = ({
         {selectedSection ? (
           /* 1. VISTA DETALLADA DE LA SECCIÓN O DISTRITO SELECCIONADO */
           <div>
-            {/* Botón Acceso a Ficha Técnica con Silueta */}
+            {/* Botón Acceso a Ficha Técnica y Reporte PDF */}
             {onOpenDetailModal && (
-              <button
-                type="button"
-                className="btn btn-primary btn-sm w-100 fw-bold d-flex align-items-center justify-content-center gap-2 mb-3 shadow-sm py-2"
-                onClick={onOpenDetailModal}
-              >
-                <i className="ri-file-list-3-line fs-15"></i>
-                Ficha Técnica
-              </button>
+              <div className="d-flex gap-2 mb-3">
+                <button
+                  type="button"
+                  className="btn btn-primary btn-sm flex-grow-1 fw-bold d-flex align-items-center justify-content-center gap-2 shadow-sm py-2"
+                  onClick={onOpenDetailModal}
+                >
+                  <i className="ri-file-list-3-line fs-15"></i>
+                  Ficha Técnica
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-danger btn-sm fw-bold d-flex align-items-center justify-content-center gap-1 shadow-sm px-3 py-2"
+                  onClick={onOpenDetailModal}
+                  title="Abrir Ficha Técnica y descargar Reporte PDF"
+                >
+                  <i className="ri-file-pdf-2-line fs-15"></i>
+                  Reporte PDF
+                </button>
+              </div>
             )}
 
             {/* Ficha Territorial INE */}

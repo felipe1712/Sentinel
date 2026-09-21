@@ -1152,13 +1152,20 @@ export const TerritorialDetailModal: React.FC<TerritorialDetailModalProps> = ({
       role="dialog"
       style={{ backgroundColor: "rgba(15, 23, 42, 0.65)", backdropFilter: "blur(4px)", zIndex: 1060 }}
     >
-      <div className="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable">
-        <div className="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+      <div
+        className="modal-dialog modal-dialog-centered modal-xl"
+        style={{ maxHeight: "92vh", height: "92vh", display: "flex", flexDirection: "column" }}
+      >
+        <div
+          className="modal-content border-0 shadow-lg rounded-4 overflow-hidden"
+          style={{ height: "100%", maxHeight: "100%", display: "flex", flexDirection: "column" }}
+        >
           {/* Header con gradiente según partido ganador */}
           <div
             className="modal-header border-0 py-3 px-4 text-white d-flex align-items-center justify-content-between"
             style={{
               background: `linear-gradient(135deg, ${winnerColor} 0%, #0f172a 120%)`,
+              flexShrink: 0,
             }}
           >
             <div className="d-flex align-items-center gap-3">
@@ -1178,16 +1185,31 @@ export const TerritorialDetailModal: React.FC<TerritorialDetailModalProps> = ({
               </div>
             </div>
 
-            <button
-              type="button"
-              className="btn-close btn-close-white"
-              aria-label="Close"
-              onClick={onClose}
-            ></button>
+            <div className="d-flex align-items-center gap-3">
+              <button
+                type="button"
+                className="btn btn-light btn-sm fw-bold px-3 d-flex align-items-center gap-2 shadow-sm border-0"
+                onClick={handleDownloadPdf}
+                style={{ borderRadius: "6px" }}
+                title="Descargar Reporte PDF Ejecutivo"
+              >
+                <i className="ri-file-pdf-2-line fs-16 text-danger"></i>
+                <span className="text-danger fw-extrabold">Reporte PDF</span>
+              </button>
+              <button
+                type="button"
+                className="btn-close btn-close-white"
+                aria-label="Close"
+                onClick={onClose}
+              ></button>
+            </div>
           </div>
 
           {/* Subheader: Barra de Filtros Internos del Modal */}
-          <div className="bg-light border-bottom px-4 py-2 d-flex flex-wrap align-items-center justify-content-between gap-3">
+          <div
+            className="bg-light border-bottom px-4 py-2 d-flex flex-wrap align-items-center justify-content-between gap-3"
+            style={{ flexShrink: 0 }}
+          >
             <div className="d-flex align-items-center gap-2">
               <span className="fs-12 text-dark fw-bold text-uppercase">
                 <i className="ri-government-line text-primary me-1"></i> Elección:
@@ -1260,7 +1282,7 @@ export const TerritorialDetailModal: React.FC<TerritorialDetailModalProps> = ({
           </div>
 
           {/* Cuerpo del Modal */}
-          <div className="modal-body p-4 bg-white">
+          <div className="modal-body p-4 bg-white" style={{ flex: "1 1 auto", minHeight: 0, overflowY: "auto" }}>
             <div className="row g-4">
               {/* Columna Izquierda: Silueta Vectorial y Tarjeta de Ganador */}
               <div className="col-12 col-lg-4 text-center">
@@ -1414,6 +1436,26 @@ export const TerritorialDetailModal: React.FC<TerritorialDetailModalProps> = ({
                         <span>{Number(activeResult.segundo_votos || 0).toLocaleString()} votos</span>
                       </div>
                     )}
+
+                    {/* Acción Directa: Descarga Reporte PDF dentro de Resultados */}
+                    <div className="mt-3 p-3 bg-light rounded-3 border border-gray-200 d-flex justify-content-between align-items-center shadow-sm">
+                      <div>
+                        <span className="fw-extrabold text-dark fs-12 d-block">
+                          <i className="ri-file-pdf-2-line text-danger me-1"></i> Expediente Electoral Territorial
+                        </span>
+                        <small className="text-muted fs-11">
+                          Descarga el informe ejecutivo en PDF con gráficas de resultados, tendencias y matriz de secciones.
+                        </small>
+                      </div>
+                      <button
+                        type="button"
+                        className="btn btn-danger btn-sm fw-bold px-3 py-2 d-flex align-items-center gap-2 shadow-sm"
+                        onClick={handleDownloadPdf}
+                        title="Descargar Reporte PDF de este territorio"
+                      >
+                        <i className="ri-file-pdf-2-line fs-15"></i> Reporte PDF
+                      </button>
+                    </div>
                   </div>
                 )}
 
@@ -1999,7 +2041,10 @@ export const TerritorialDetailModal: React.FC<TerritorialDetailModalProps> = ({
           </div>
 
           {/* Footer del Modal */}
-          <div className="modal-footer bg-light border-0 py-2 px-4 d-flex justify-content-between align-items-center">
+          <div
+            className="modal-footer bg-light border-top py-2 px-4 d-flex justify-content-between align-items-center shadow-sm"
+            style={{ flexShrink: 0, zIndex: 10 }}
+          >
             <span className="text-muted fs-11">
               <i className="ri-information-line me-1"></i> Análisis electoral SentinelIQ · INE {stateCfg.shortName}
             </span>
