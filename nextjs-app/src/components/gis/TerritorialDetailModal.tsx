@@ -17,6 +17,17 @@ interface TerritorialDetailModalProps {
   municipiosList: { id: number; nombre: string }[];
 }
 
+function getAvailableYears(stateKey: string, electionType: "gubernatura" | "diputaciones"): number[] {
+  if (stateKey === "qro") {
+    return electionType === "gubernatura" ? [2015, 2021] : [2018, 2021, 2024];
+  }
+  if (stateKey === "pue") {
+    return electionType === "gubernatura" ? [2018, 2021] : [2018, 2021, 2024];
+  }
+  // GTO y otros
+  return electionType === "gubernatura" ? [2018, 2024] : [2018, 2021, 2024];
+}
+
 export const TerritorialDetailModal: React.FC<TerritorialDetailModalProps> = ({
   isOpen,
   onClose,
@@ -36,14 +47,8 @@ export const TerritorialDetailModal: React.FC<TerritorialDetailModalProps> = ({
   // Sincronizar estado inicial al abrir modal
   useEffect(() => {
     if (isOpen) {
-      let yr = currentYear;
-      if (stateCfg.key === "qro") {
-        if (currentElectionType === "gubernatura") {
-          if (yr !== 2021 && yr !== 2015) yr = 2021;
-        } else {
-          if (yr !== 2024 && yr !== 2021 && yr !== 2018) yr = 2024;
-        }
-      }
+      const validYears = getAvailableYears(stateCfg.key, currentElectionType);
+      const yr = validYears.includes(currentYear) ? currentYear : validYears[validYears.length - 1];
       setModalYear(yr);
       setModalElectionType(currentElectionType);
       setActiveTab("resultados");
@@ -51,23 +56,12 @@ export const TerritorialDetailModal: React.FC<TerritorialDetailModalProps> = ({
     }
   }, [isOpen, currentYear, currentElectionType, stateCfg.key]);
 
-  // Si se cambia a gubernatura en Puebla o Querétaro, ajustar según años disponibles
+  // Si se cambia el tipo de elección, ajustar el año según los disponibles para el estado
   const handleElectionTypeChange = (type: "gubernatura" | "diputaciones") => {
     setModalElectionType(type);
-    if (stateCfg.key === "qro") {
-      if (type === "gubernatura") {
-        if (modalYear !== 2021 && modalYear !== 2015) setModalYear(2021);
-      } else {
-        if (modalYear !== 2024 && modalYear !== 2021 && modalYear !== 2018) setModalYear(2024);
-      }
-    } else if (stateCfg.key === "pue") {
-      if (type === "gubernatura" && modalYear === 2024) {
-        setModalYear(2021);
-      }
-    } else {
-      if (type === "gubernatura" && modalYear === 2021) {
-        setModalYear(2024);
-      }
+    const validYears = getAvailableYears(stateCfg.key, type);
+    if (!validYears.includes(modalYear)) {
+      setModalYear(validYears[validYears.length - 1]);
     }
   };
 
@@ -142,12 +136,22 @@ export const TerritorialDetailModal: React.FC<TerritorialDetailModalProps> = ({
             .normalize("NFD")
             .replace(/[\u0300-\u036f]/g, "")
             .trim();
-          if (secData.clave_municipio === territoryId || (munNameNorm && secMunNorm === munNameNorm)) {
+          if (
+            secData.clave_municipio === territoryId ||
+            Number(secData.clave_municipio) === Number(territoryId) ||
+            (munNameNorm && secMunNorm === munNameNorm)
+          ) {
             matches = true;
           }
-        } else if (baseBoundary === "distritos_locales" && secData.distrito_local === territoryId) {
+        } else if (
+          baseBoundary === "distritos_locales" &&
+          (secData.distrito_local === territoryId || Number(secData.distrito_local) === Number(territoryId))
+        ) {
           matches = true;
-        } else if (baseBoundary === "distritos_federales" && secData.distrito_federal === territoryId) {
+        } else if (
+          baseBoundary === "distritos_federales" &&
+          (secData.distrito_federal === territoryId || Number(secData.distrito_federal) === Number(territoryId))
+        ) {
           matches = true;
         }
 
@@ -193,21 +197,18 @@ export const TerritorialDetailModal: React.FC<TerritorialDetailModalProps> = ({
     return res || initialResult;
   }, [selectedSection, electoralCache, modalYear, modalElectionType, baseBoundary, territoryId, initialResult]);
 
-  // Obtener resultados históricos para la pestaña de Swing
+  // Años disponibles para la elección y estado activos
+  const trendYears = useMemo(() => {
+    return getAvailableYears(stateCfg.key, modalElectionType);
+  }, [modalElectionType, stateCfg.key]);
+
+  // Obtener resultados históricos para la pestaña de Swing / Tendencias
   const historicalResults = useMemo(() => {
     if (!selectedSection || !electoralCache) return {};
     const idKey = String(territoryId);
     const results: Record<number, any> = {};
 
-    const yearsToLoad =
-      stateCfg.key === "qro"
-        ? modalElectionType === "gubernatura"
-          ? [2015, 2021]
-          : [2018, 2021, 2024]
-        : stateCfg.key === "pue" && modalElectionType === "gubernatura"
-        ? [2018, 2021]
-        : [2018, 2021, 2024];
-    yearsToLoad.forEach((yr) => {
+    trendYears.forEach((yr) => {
       const yrStr = String(yr);
       let res: any = null;
       try {
@@ -254,12 +255,22 @@ export const TerritorialDetailModal: React.FC<TerritorialDetailModalProps> = ({
               .normalize("NFD")
               .replace(/[\u0300-\u036f]/g, "")
               .trim();
-            if (secData.clave_municipio === territoryId || (munNameNorm && secMunNorm === munNameNorm)) {
+            if (
+              secData.clave_municipio === territoryId ||
+              Number(secData.clave_municipio) === Number(territoryId) ||
+              (munNameNorm && secMunNorm === munNameNorm)
+            ) {
               matches = true;
             }
-          } else if (baseBoundary === "distritos_locales" && secData.distrito_local === territoryId) {
+          } else if (
+            baseBoundary === "distritos_locales" &&
+            (secData.distrito_local === territoryId || Number(secData.distrito_local) === Number(territoryId))
+          ) {
             matches = true;
-          } else if (baseBoundary === "distritos_federales" && secData.distrito_federal === territoryId) {
+          } else if (
+            baseBoundary === "distritos_federales" &&
+            (secData.distrito_federal === territoryId || Number(secData.distrito_federal) === Number(territoryId))
+          ) {
             matches = true;
           }
 
@@ -302,21 +313,12 @@ export const TerritorialDetailModal: React.FC<TerritorialDetailModalProps> = ({
         }
       }
 
-      results[yr] = res;
+      if (res) {
+        results[yr] = res;
+      }
     });
     return results;
-  }, [selectedSection, electoralCache, modalElectionType, baseBoundary, territoryId, stateCfg.key]);
-
-  // Años y datos para la gráfica de tendencias y botones de ciclo
-  const trendYears = useMemo(() => {
-    if (stateCfg.key === "qro") {
-      return modalElectionType === "gubernatura" ? [2015, 2021] : [2018, 2021, 2024];
-    }
-    if (modalElectionType === "diputaciones") {
-      return [2018, 2021, 2024];
-    }
-    return stateCfg.key === "pue" ? [2018, 2021] : [2018, 2024];
-  }, [modalElectionType, stateCfg.key]);
+  }, [selectedSection, electoralCache, modalElectionType, baseBoundary, territoryId, trendYears]);
 
   const trendData = useMemo(() => {
     return trendYears.map((yr) => {
@@ -325,6 +327,8 @@ export const TerritorialDetailModal: React.FC<TerritorialDetailModalProps> = ({
 
       const panVotes = Number(
         vp["PAN_ALIANZA"] ??
+        vp["PAN-PRI-PRD-PSI"] ??
+        vp["PAN-PRD-MC-PSI"] ??
         vp["PAN-PRI-PRD"] ??
         vp["PAN-PRD-MC"] ??
         vp["PAN"] ??
@@ -333,6 +337,7 @@ export const TerritorialDetailModal: React.FC<TerritorialDetailModalProps> = ({
 
       const morenaVotes = Number(
         vp["OPOSICION_ALIANZA"] ??
+        vp["MORENA-PT-PVEM-NA"] ??
         vp["MORENA-PT-PVEM"] ??
         vp["MORENA-PT-PES"] ??
         vp["MORENA"] ??
@@ -454,12 +459,22 @@ export const TerritorialDetailModal: React.FC<TerritorialDetailModalProps> = ({
           .normalize("NFD")
           .replace(/[\u0300-\u036f]/g, "")
           .trim();
-        if (data.clave_municipio === territoryId || (munNameNorm && secMunNorm === munNameNorm)) {
+        if (
+          data.clave_municipio === territoryId ||
+          Number(data.clave_municipio) === Number(territoryId) ||
+          (munNameNorm && secMunNorm === munNameNorm)
+        ) {
           matches = true;
         }
-      } else if (baseBoundary === "distritos_locales" && data.distrito_local === territoryId) {
+      } else if (
+        baseBoundary === "distritos_locales" &&
+        (data.distrito_local === territoryId || Number(data.distrito_local) === Number(territoryId))
+      ) {
         matches = true;
-      } else if (baseBoundary === "distritos_federales" && data.distrito_federal === territoryId) {
+      } else if (
+        baseBoundary === "distritos_federales" &&
+        (data.distrito_federal === territoryId || Number(data.distrito_federal) === Number(territoryId))
+      ) {
         matches = true;
       }
 
@@ -563,6 +578,8 @@ export const TerritorialDetailModal: React.FC<TerritorialDetailModalProps> = ({
     const ignoredKeys = new Set(["PAN_PURO", "OPOSICION_ALIANZA", "TOTAL", "total_votos"]);
     const hasPanAli = Boolean(
       activeResult.votos_partidos["PAN_ALIANZA"] ||
+      activeResult.votos_partidos["PAN-PRI-PRD-PSI"] ||
+      activeResult.votos_partidos["PAN-PRD-MC-PSI"] ||
       activeResult.votos_partidos["PAN-PRI-PRD"] ||
       activeResult.votos_partidos["PAN-PRD-MC"]
     );
@@ -589,6 +606,8 @@ export const TerritorialDetailModal: React.FC<TerritorialDetailModalProps> = ({
 
       const isPanGroup =
         rawParty === "PAN_ALIANZA" ||
+        rawParty === "PAN-PRI-PRD-PSI" ||
+        rawParty === "PAN-PRD-MC-PSI" ||
         rawParty === "PAN-PRI-PRD" ||
         rawParty === "PAN-PRD-MC" ||
         rawParty === "PAN";
@@ -618,10 +637,25 @@ export const TerritorialDetailModal: React.FC<TerritorialDetailModalProps> = ({
   }, [activeResult]);
 
   // Voto de coalición vs Voto Puro (con fallback para PAN en solitario)
-  const vPanAli = activeResult?.votos_partidos?.["PAN_ALIANZA"] ?? activeResult?.votos_partidos?.["PAN-PRI-PRD"] ?? activeResult?.votos_partidos?.["PAN-PRD-MC"] ?? activeResult?.votos_partidos?.["PAN"] ?? 0;
-  const vPanPuro = activeResult?.votos_partidos?.["PAN_PURO"] ?? activeResult?.votos_partidos?.["PAN"] ?? vPanAli;
-  const vOppAli = activeResult?.votos_partidos?.["MORENA-PT-PVEM"] ?? activeResult?.votos_partidos?.["MORENA-PT-PES"] ?? activeResult?.votos_partidos?.["OPOSICION_ALIANZA"] ?? activeResult?.votos_partidos?.["MORENA"] ?? 0;
-  const vMc = activeResult?.votos_partidos?.["MC"] ?? 0;
+  const vPanAli = Number(
+    activeResult?.votos_partidos?.["PAN_ALIANZA"] ??
+    activeResult?.votos_partidos?.["PAN-PRI-PRD-PSI"] ??
+    activeResult?.votos_partidos?.["PAN-PRD-MC-PSI"] ??
+    activeResult?.votos_partidos?.["PAN-PRI-PRD"] ??
+    activeResult?.votos_partidos?.["PAN-PRD-MC"] ??
+    activeResult?.votos_partidos?.["PAN"] ??
+    0
+  );
+  const vPanPuro = Number(activeResult?.votos_partidos?.["PAN_PURO"] ?? activeResult?.votos_partidos?.["PAN"] ?? vPanAli);
+  const vOppAli = Number(
+    activeResult?.votos_partidos?.["MORENA-PT-PVEM-NA"] ??
+    activeResult?.votos_partidos?.["MORENA-PT-PVEM"] ??
+    activeResult?.votos_partidos?.["MORENA-PT-PES"] ??
+    activeResult?.votos_partidos?.["OPOSICION_ALIANZA"] ??
+    activeResult?.votos_partidos?.["MORENA"] ??
+    0
+  );
+  const vMc = Number(activeResult?.votos_partidos?.["MC"] ?? 0);
 
   // Generador e Impresor de Reporte PDF Ejecutivo
   const handleDownloadPdf = () => {
