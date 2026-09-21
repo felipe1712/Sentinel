@@ -1499,7 +1499,7 @@ export const TerritorialDetailModal: React.FC<TerritorialDetailModalProps> = ({
                         >
                           <i className="ri-file-pdf-2-line fs-14"></i> Reporte PDF
                         </button>
-                        <div className="input-group input-group-sm" style={{ maxWidth: "220px" }}>
+                      <div className="input-group input-group-sm" style={{ maxWidth: "220px" }}>
                         <span className="input-group-text bg-white border-end-0">
                           <i className="ri-search-line text-muted"></i>
                         </span>
@@ -1512,6 +1512,7 @@ export const TerritorialDetailModal: React.FC<TerritorialDetailModalProps> = ({
                         />
                       </div>
                     </div>
+                  </div>
 
                     <div className="table-responsive" style={{ maxHeight: "320px", overflowY: "auto" }}>
                       <table className="table table-sm table-hover align-middle fs-12 mb-0">
