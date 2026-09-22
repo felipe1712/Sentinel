@@ -24,6 +24,9 @@ function getAvailableYears(stateKey: string, electionType: "gubernatura" | "dipu
   if (stateKey === "pue") {
     return electionType === "gubernatura" ? [2018, 2021] : [2018, 2021, 2024];
   }
+  if (stateKey === "chi") {
+    return electionType === "gubernatura" ? [2016, 2021] : [2018, 2021, 2024];
+  }
   // GTO y otros
   return electionType === "gubernatura" ? [2018, 2024] : [2018, 2021, 2024];
 }

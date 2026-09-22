@@ -17,7 +17,8 @@ SERVICE_TOKEN = os.getenv("SERVICE_TOKEN", "sentineliq_internal_service_token_20
 ACTIVE_STATES = [
     {"key": "gto", "id": "00000000-0000-0000-0000-000000000011", "name": "Guanajuato"},
     {"key": "qro", "id": "11111111-1111-1111-1111-111111111111", "name": "Querétaro"},
-    {"key": "pue", "id": "21212121-2121-2121-2121-212121212121", "name": "Puebla"}
+    {"key": "pue", "id": "21212121-2121-2121-2121-212121212121", "name": "Puebla"},
+    {"key": "chi", "id": "08080808-0808-0808-0808-080808080808", "name": "Chihuahua"}
 ]
 
 async def fn_consume_argos_feed():

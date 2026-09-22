@@ -1,0 +1,101 @@
+name: sentineliq-chi
+
+services:
+  # ---------------------------------------------------------------------------
+  # 1. PostgreSQL + PostGIS (Chihuahua Dedicated DB on Port 5436)
+  # ---------------------------------------------------------------------------
+  sentineliq-chi-postgres:
+    image: postgis/postgis:15-3.3
+    container_name: sentineliq_chi_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-sentineliq}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-sentineliq_pass_2026}
+      POSTGRES_DB: ${POSTGRES_DB:-sentineliq_chi}
+    ports:
+      - "127.0.0.1:5436:5432"
+    volumes:
+      - chi_postgres_data:/var/lib/postgresql/data
+    networks:
+      - default
+      - sentineliq_net
+
+  # ---------------------------------------------------------------------------
+  # 2. Redis Cache & Job Broker (Chihuahua Dedicated Redis on Port 6383)
+  # ---------------------------------------------------------------------------
+  sentineliq-chi-redis:
+    image: redis:7-alpine
+    container_name: sentineliq_chi_redis
+    restart: always
+    command: redis-server --appendonly yes
+    ports:
+      - "127.0.0.1:6383:6379"
+    volumes:
+      - chi_redis_data:/data
+    networks:
+      - default
+      - sentineliq_net
+
+  # ---------------------------------------------------------------------------
+  # 3. Rust API Backend (Axum 0.7 - Chihuahua Instance on Port 8089)
+  # ---------------------------------------------------------------------------
+  sentineliq-chi-rust-api:
+    build:
+      context: ./rust-api
+      dockerfile: ../docker/Dockerfile.rust
+    container_name: sentineliq_chi_rust_api
+    restart: always
+    ports:
+      - "127.0.0.1:8089:8080"
+    environment:
+      DATABASE_URL: "postgres://${POSTGRES_USER:-sentineliq}:${POSTGRES_PASSWORD:-sentineliq_pass_2026}@sentineliq-chi-postgres:5432/${POSTGRES_DB:-sentineliq_chi}"
+      REDIS_URL: "redis://sentineliq-chi-redis:6379"
+      STATE_KEY: "chi"
+      INEGI_STATE_CODE: "08"
+      STATE_NAME: "Estado de Chihuahua"
+      ARGOS_URL: ${ARGOS_URL:-https://argos.sentineliq.com.mx}
+      ARGOS_SERVICE_TOKEN: ${ARGOS_SERVICE_TOKEN:-sentineliq_argos_token_shared_sec_2026}
+      NATIONAL_VIEW_ENABLED: "true"
+      PLATFORM_DOMAIN: "sentineliq.com.mx"
+      PORT: 8080
+      RUST_LOG: "info"
+    depends_on:
+      - sentineliq-chi-postgres
+      - sentineliq-chi-redis
+    networks:
+      - default
+      - sentineliq_net
+
+  # ---------------------------------------------------------------------------
+  # 4. Next.js Frontend Dashboard (Chihuahua Web App on Port 3007)
+  # ---------------------------------------------------------------------------
+  sentineliq-chi-nextjs:
+    build:
+      context: ./nextjs-app
+      dockerfile: ../docker/Dockerfile.nextjs
+    container_name: sentineliq_chi_nextjs
+    restart: always
+    ports:
+      - "127.0.0.1:3007:3000"
+    environment:
+      NODE_ENV: "production"
+      PORT: 3000
+      STATE_KEY: "chi"
+      NEXT_PUBLIC_STATE_KEY: "chi"
+      NEXT_PUBLIC_API_URL: "https://chi.sentineliq.com.mx/api"
+      ARGOS_URL: ${ARGOS_URL:-https://argos.sentineliq.com.mx}
+      ARGOS_SERVICE_TOKEN: ${ARGOS_SERVICE_TOKEN:-sentineliq_argos_token_shared_sec_2026}
+      NATIONAL_VIEW_ENABLED: "true"
+      PLATFORM_DOMAIN: "sentineliq.com.mx"
+    networks:
+      - default
+      - sentineliq_net
+
+networks:
+  sentineliq_net:
+    name: sentineliq_net
+    external: true
+
+volumes:
+  chi_postgres_data:
+  chi_redis_data:

@@ -74,15 +74,18 @@ pub async fn login(
         });
         (user.id, s_id, user.role, user.name, user.cargo)
     } else {
-        // Auto-resolución para usuarios de dependencias de Guanajuato / Querétaro / Puebla
+        // Auto-resolución para usuarios de dependencias de Guanajuato / Querétaro / Puebla / Chihuahua
         let is_pue = email_clean.contains("puebla") || email_clean.contains("pue");
         let is_qro = email_clean.contains("queretaro") || email_clean.contains("qro");
+        let is_chi = email_clean.contains("chihuahua") || email_clean.contains("chi");
         let is_gto = email_clean.contains("guanajuato") || email_clean.contains("fspe") || email_clean.contains("gto");
 
         let s_id = if is_pue {
             Uuid::parse_str("21212121-2121-2121-2121-212121212121").unwrap()
         } else if is_qro {
             Uuid::parse_str("11111111-1111-1111-1111-111111111111").unwrap()
+        } else if is_chi {
+            Uuid::parse_str("08080808-0808-0808-0808-080808080808").unwrap()
         } else {
             Uuid::parse_str("00000000-0000-0000-0000-000000000011").unwrap()
         };

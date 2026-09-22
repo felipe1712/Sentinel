@@ -43,6 +43,8 @@ fn resolve_request_state_id(parts: &Parts) -> Uuid {
             return Uuid::parse_str("11111111-1111-1111-1111-111111111111").unwrap();
         } else if key_val.eq_ignore_ascii_case("pue") || key_val.eq_ignore_ascii_case("puebla") {
             return Uuid::parse_str("21212121-2121-2121-2121-212121212121").unwrap();
+        } else if key_val.eq_ignore_ascii_case("chi") || key_val.eq_ignore_ascii_case("chihuahua") {
+            return Uuid::parse_str("08080808-0808-0808-0808-080808080808").unwrap();
         }
     }
 
@@ -54,6 +56,8 @@ fn resolve_request_state_id(parts: &Parts) -> Uuid {
             return Uuid::parse_str("11111111-1111-1111-1111-111111111111").unwrap();
         } else if env_key.eq_ignore_ascii_case("pue") {
             return Uuid::parse_str("21212121-2121-2121-2121-212121212121").unwrap();
+        } else if env_key.eq_ignore_ascii_case("chi") {
+            return Uuid::parse_str("08080808-0808-0808-0808-080808080808").unwrap();
         }
     }
 
@@ -63,6 +67,8 @@ fn resolve_request_state_id(parts: &Parts) -> Uuid {
             return Uuid::parse_str("00000000-0000-0000-0000-000000000011").unwrap();
         } else if host.contains("pue") {
             return Uuid::parse_str("21212121-2121-2121-2121-212121212121").unwrap();
+        } else if host.contains("chi") {
+            return Uuid::parse_str("08080808-0808-0808-0808-080808080808").unwrap();
         }
     }
 
@@ -132,6 +138,8 @@ where
                     Uuid::parse_str("11111111-1111-1111-1111-111111111111").unwrap()
                 } else if key_val.eq_ignore_ascii_case("pue") || key_val.eq_ignore_ascii_case("puebla") {
                     Uuid::parse_str("21212121-2121-2121-2121-212121212121").unwrap()
+                } else if key_val.eq_ignore_ascii_case("chi") || key_val.eq_ignore_ascii_case("chihuahua") {
+                    Uuid::parse_str("08080808-0808-0808-0808-080808080808").unwrap()
                 } else {
                     claims.state_id
                 }

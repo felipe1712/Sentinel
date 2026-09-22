@@ -77,10 +77,13 @@ export default function GisElectoralPage() {
   // Estados del WebGIS
   const [baseBoundary, setBaseBoundary] = useState<BaseLayerType>(() => {
     const cfg = getStateConfig();
-    return cfg.key === "pue" ? "municipios" : "secciones";
+    return cfg.key === "pue" || cfg.key === "chi" ? "municipios" : "secciones";
   });
   const [choroplethMode, setChoroplethMode] = useState<ChoroplethMode>("ganador");
-  const [selectedYear, setSelectedYear] = useState<number>(2024);
+  const [selectedYear, setSelectedYear] = useState<number>(() => {
+    const cfg = getStateConfig();
+    return cfg.key === "chi" ? 2021 : 2024;
+  });
   const [electionType, setElectionType] = useState<"gubernatura" | "diputaciones">(() => {
     const cfg = getStateConfig();
     return cfg.key === "pue" || cfg.key === "qro" ? "diputaciones" : "gubernatura";
@@ -118,6 +121,10 @@ export default function GisElectoralPage() {
       setBaseBoundary("secciones");
       setElectionType("diputaciones");
       setSelectedYear(2024);
+    } else if (cfg.key === "chi") {
+      setBaseBoundary("municipios");
+      setElectionType("gubernatura");
+      setSelectedYear(2021);
     }
 
     // Cargar caché de resultados electorales según el estado activo
@@ -126,6 +133,8 @@ export default function GisElectoralPage() {
         ? "/data/pue_electoral_results_cache.json"
         : cfg.key === "qro"
         ? "/data/qro_electoral_results_cache.json"
+        : cfg.key === "chi"
+        ? "/data/chi_electoral_results_cache.json"
         : "/data/electoral_results_cache.json";
     fetch(cacheUrl)
       .then((res) => res.json())
@@ -148,6 +157,12 @@ export default function GisElectoralPage() {
     } else if (stateCfg.key === "pue") {
       if (type === "gubernatura") {
         if (selectedYear === 2024) setSelectedYear(2021);
+      } else {
+        if (selectedYear !== 2024 && selectedYear !== 2021 && selectedYear !== 2018) setSelectedYear(2024);
+      }
+    } else if (stateCfg.key === "chi") {
+      if (type === "gubernatura") {
+        if (selectedYear !== 2021 && selectedYear !== 2016) setSelectedYear(2021);
       } else {
         if (selectedYear !== 2024 && selectedYear !== 2021 && selectedYear !== 2018) setSelectedYear(2024);
       }
@@ -181,7 +196,7 @@ export default function GisElectoralPage() {
   };
 
   const currentMunicipiosList = React.useMemo(() => {
-    if (stateCfg.key === "pue" || stateCfg.key === "qro") {
+    if (stateCfg.key === "pue" || stateCfg.key === "qro" || stateCfg.key === "chi") {
       const munObj =
         electoralCache?.municipios?.diputaciones?.["2024"] ||
         electoralCache?.municipios?.gubernatura?.["2021"];
@@ -267,7 +282,7 @@ export default function GisElectoralPage() {
             sectionResult={selectedSectionResult}
             associatedEvents={[]}
             selectedYear={selectedYear}
-            totalSectionsCount={stateCfg.key === "pue" ? 2847 : stateCfg.key === "qro" ? 1090 : 3357}
+            totalSectionsCount={stateCfg.key === "pue" ? 2847 : stateCfg.key === "qro" ? 1090 : stateCfg.key === "chi" ? 3212 : 3357}
             selectedMunicipio={selectedMunicipio}
             municipiosList={currentMunicipiosList}
             electoralCache={electoralCache}

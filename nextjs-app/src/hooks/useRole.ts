@@ -309,14 +309,14 @@ export function useRole() {
 
     // En entorno de producción SentinelIQ: redirigir al subdominio del estado
     if (hostname.includes("sentineliq.com.mx")) {
-      const targetSubdomain = targetKey === "qro" ? "qro" : targetKey === "pue" ? "pue" : "gto";
+      const targetSubdomain = targetKey === "qro" ? "qro" : targetKey === "pue" ? "pue" : targetKey === "chi" ? "chi" : "gto";
       const currentSubdomain = hostname.split(".")[0];
       if (currentSubdomain !== targetSubdomain) {
         window.location.href = `https://${targetSubdomain}.sentineliq.com.mx${pathname}${search}`;
         return;
       }
     } else if (hostname === "localhost" || hostname === "127.0.0.1") {
-      const targetPort = targetKey === "qro" ? "3004" : targetKey === "pue" ? "3006" : "3005";
+      const targetPort = targetKey === "qro" ? "3004" : targetKey === "pue" ? "3006" : targetKey === "chi" ? "3007" : "3005";
       if (window.location.port !== targetPort) {
         window.location.href = `http://${hostname}:${targetPort}${pathname}${search}`;
         return;
@@ -337,7 +337,7 @@ export function useRole() {
     isJefeOficina: role === "superadmin" || role === "gabinete",
     isAuthenticated:
       Boolean(user && (user.id || user.email || user.name) && role) ||
-      (typeof window !== "undefined" && (getStateConfig().key === "pue" || getStateConfig().key === "qro")),
+      (typeof window !== "undefined" && (getStateConfig().key === "pue" || getStateConfig().key === "qro" || getStateConfig().key === "chi")),
     switchGlobalState,
     loaded,
     logout,

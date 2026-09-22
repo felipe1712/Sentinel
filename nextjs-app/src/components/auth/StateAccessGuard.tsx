@@ -15,7 +15,7 @@ export default function StateAccessGuard({ children }: StateAccessGuardProps) {
   const { user, role, loaded, isAuthenticated } = useRole();
   const stateCfg = getStateConfig();
 
-  const isPublicDemo = stateCfg.key === "pue" || stateCfg.key === "qro";
+  const isPublicDemo = stateCfg.key === "pue" || stateCfg.key === "qro" || stateCfg.key === "chi";
 
   // Rutas exentas de validación de sesión (login y flujos auth)
   const isAuthRoute =

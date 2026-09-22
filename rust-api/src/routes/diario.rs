@@ -22,6 +22,8 @@ pub fn resolve_state_uuid(param: &str) -> Uuid {
         Uuid::parse_str("00000000-0000-0000-0000-000000000011").unwrap()
     } else if param == "pue" || param == "21" {
         Uuid::parse_str("21212121-2121-2121-2121-212121212121").unwrap()
+    } else if param == "chi" || param == "08" || param == "8" {
+        Uuid::parse_str("08080808-0808-0808-0808-080808080808").unwrap()
     } else {
         Uuid::parse_str("11111111-1111-1111-1111-111111111111").unwrap()
     }

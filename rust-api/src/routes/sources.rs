@@ -406,6 +406,16 @@ fn get_default_gdelt_queries_for_state(state_id_str: &str) -> Vec<GdeltQueryItem
             GdeltQueryItem { id: "pue-5".into(), query: "Autopista México-Puebla tráfico accidente".into(), category: "seguridad".into(), municipio: Some("Cuautlancingo".into()), active: true },
             GdeltQueryItem { id: "pue-6".into(), query: "Atlixco seguridad patrullaje".into(), category: "seguridad".into(), municipio: Some("Atlixco".into()), active: true },
         ]
+    } else if state_id_str == "08080808-0808-0808-0808-080808080808" {
+        // Chihuahua
+        vec![
+            GdeltQueryItem { id: "chi-1".into(), query: "Ciudad Juárez seguridad frontera operativo".into(), category: "seguridad".into(), municipio: Some("Juárez".into()), active: true },
+            GdeltQueryItem { id: "chi-2".into(), query: "Chihuahua Capital vialidad policía municipal".into(), category: "seguridad".into(), municipio: Some("Chihuahua".into()), active: true },
+            GdeltQueryItem { id: "chi-3".into(), query: "Cuauhtémoc seguridad campo producción".into(), category: "seguridad".into(), municipio: Some("Cuauhtémoc".into()), active: true },
+            GdeltQueryItem { id: "chi-4".into(), query: "Delicias Conchos presa agua protección civil".into(), category: "proteccion_civil".into(), municipio: Some("Delicias".into()), active: true },
+            GdeltQueryItem { id: "chi-5".into(), query: "Hidalgo del Parral seguridad tránsito carretera".into(), category: "seguridad".into(), municipio: Some("Hidalgo del Parral".into()), active: true },
+            GdeltQueryItem { id: "chi-6".into(), query: "Creel Guachochi Sierra Tarahumara turismo auxilio".into(), category: "proteccion_civil".into(), municipio: Some("Guachochi".into()), active: true },
+        ]
     } else {
         // Querétaro
         vec![

@@ -138,16 +138,37 @@ MUNICIPALITIES_PUE = {
     "acajete": {"clave": "21001", "nombre": "Acajete", "lat": 19.1000, "lng": -97.9500, "region": "Valle de Serdán"},
 }
 
+MUNICIPALITIES_CHI = {
+    "juarez": {"clave": "08037", "nombre": "Juárez", "lat": 31.7000, "lng": -106.4500, "region": "Zona Norte"},
+    "ciudad juarez": {"clave": "08037", "nombre": "Juárez", "lat": 31.7000, "lng": -106.4500, "region": "Zona Norte"},
+    "chihuahua": {"clave": "08019", "nombre": "Chihuahua", "lat": 28.6353, "lng": -106.0889, "region": "Centro"},
+    "cuauhtemoc": {"clave": "08017", "nombre": "Cuauhtémoc", "lat": 28.4050, "lng": -106.8650, "region": "Centro"},
+    "delicias": {"clave": "08021", "nombre": "Delicias", "lat": 28.1933, "lng": -105.4711, "region": "Delicias & Conchos"},
+    "parral": {"clave": "08032", "nombre": "Hidalgo del Parral", "lat": 26.9317, "lng": -105.6664, "region": "Sur"},
+    "hidalgo del parral": {"clave": "08032", "nombre": "Hidalgo del Parral", "lat": 26.9317, "lng": -105.6664, "region": "Sur"},
+    "guachochi": {"clave": "08027", "nombre": "Guachochi", "lat": 26.8208, "lng": -107.0722, "region": "Sierra Tarahumara"},
+    "bocoyna": {"clave": "08010", "nombre": "Bocoyna", "lat": 27.7500, "lng": -107.6333, "region": "Sierra Tarahumara"},
+    "creel": {"clave": "08010", "nombre": "Bocoyna", "lat": 27.7500, "lng": -107.6333, "region": "Sierra Tarahumara"},
+    "camargo": {"clave": "08009", "nombre": "Camargo", "lat": 27.6783, "lng": -105.1708, "region": "Delicias & Conchos"},
+    "meoqui": {"clave": "08045", "nombre": "Meoqui", "lat": 28.2725, "lng": -105.4808, "region": "Delicias & Conchos"},
+    "jimenez": {"clave": "08036", "nombre": "Jiménez", "lat": 27.1333, "lng": -104.9167, "region": "Sur"},
+    "nuevo casas grandes": {"clave": "08050", "nombre": "Nuevo Casas Grandes", "lat": 30.4167, "lng": -107.9167, "region": "Noroeste"},
+    "ojinaga": {"clave": "08052", "nombre": "Ojinaga", "lat": 29.5642, "lng": -104.4144, "region": "Centro"},
+    "guerrero": {"clave": "08031", "nombre": "Guerrero", "lat": 28.5500, "lng": -107.4833, "region": "Sierra Tarahumara"},
+}
+
 STATE_UUIDS = {
     "qro": "11111111-1111-1111-1111-111111111111",
     "gto": "00000000-0000-0000-0000-000000000011",
     "pue": "21212121-2121-2121-2121-212121212121",
+    "chi": "08080808-0808-0808-0808-080808080808",
 }
 
 STATE_CENTROIDS = {
     "qro": (20.5888, -100.3899, "Santiago de Querétaro"),
     "gto": (21.0190, -101.2574, "Guanajuato Capital"),
     "pue": (19.0414, -98.2063, "Puebla Capital"),
+    "chi": (28.6353, -106.0889, "Chihuahua Capital"),
 }
 
 
@@ -165,7 +186,7 @@ def geocode_territory(text: str, state_key: str = "qro") -> Tuple[Optional[str],
     clean_text = _strip_accents(text)
     state = state_key.lower().strip()
     
-    catalog = MUNICIPALITIES_QRO if state == "qro" else (MUNICIPALITIES_GTO if state == "gto" else MUNICIPALITIES_PUE)
+    catalog = MUNICIPALITIES_QRO if state == "qro" else (MUNICIPALITIES_GTO if state == "gto" else (MUNICIPALITIES_CHI if state == "chi" else MUNICIPALITIES_PUE))
     
     for key, info in catalog.items():
         pattern = r"\b" + re.escape(_strip_accents(key)) + r"\b"

@@ -47,6 +47,10 @@ export const EventFilterToolbar: React.FC<EventFilterToolbarProps> = ({
       ? electionType === "gubernatura"
         ? [2015, 2021]
         : [2018, 2021, 2024]
+      : stateKey === "chi"
+      ? electionType === "gubernatura"
+        ? [2016, 2021]
+        : [2018, 2021, 2024]
       : electionType === "diputaciones"
       ? [2018, 2021, 2024]
       : [2018, 2024];

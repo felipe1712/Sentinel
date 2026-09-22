@@ -482,11 +482,171 @@ export const PUEBLA_CONFIG: StateConfig = {
   ],
 };
 
+export const CHIHUAHUA_CONFIG: StateConfig = {
+  key: "chi",
+  stateId: "08080808-0808-0808-0808-080808080808",
+  name: "Estado de Chihuahua",
+  shortName: "Chihuahua",
+  inegiCode: "08",
+  governorTitle: "Oficina de la Gobernadora Constitucional del Estado de Chihuahua",
+  welcomeTitle: "Bienvenida, Señora Gobernadora",
+  capital: "Chihuahua Capital",
+  center: [28.6353, -106.0889],
+  zoom: 7,
+  geojsonPath: "/data/chi_municipios.geojson",
+  regions: [
+    "TODOS",
+    "Zona Norte (Juárez)",
+    "Centro (Chihuahua)",
+    "Sierra Tarahumara",
+    "Sur (Parral)",
+    "Delicias & Conchos",
+    "Noroeste (Casas Grandes)",
+  ],
+  totalMunicipios: 67,
+  coberturaText: "67 / 67 Cobertura",
+  prioridades: [
+    {
+      tag: "Prioridad 1 · Frontera & Seguridad",
+      region: "Zona Norte (Juárez)",
+      titulo: "Operativo y Blindaje Juárez - El Paso",
+      descripcion: "Vigilancia tecnológica en accesos fronterizos e industriales. Despliegue permanente de SSPE y coordinación con GN.",
+      border: "border-danger",
+      badgeBg: "bg-danger text-white",
+    },
+    {
+      tag: "Prioridad 2 · Gestión Hídrica",
+      region: "Delicias & Conchos",
+      titulo: "Seguridad Hídrica Cuenca del Conchos",
+      descripcion: "Supervisión permanente en presas La Boquilla y Las Vírgenes. Acuerdos de concertación con módulos de riego.",
+      border: "border-warning",
+      badgeBg: "bg-warning text-dark",
+    },
+    {
+      tag: "Prioridad 3 · Paz Serrana",
+      region: "Sierra Tarahumara",
+      titulo: "Operativo Sierra Tarahumara (Creel - Guachochi)",
+      descripcion: "Presencia disuasiva y de auxilio vial en corredores turísticos y comunidades serranas.",
+      border: "border-success",
+      badgeBg: "bg-success text-white",
+    },
+  ],
+  sintesisEjecutiva: "Durante las últimas 24 horas, las corporaciones de seguridad y protección civil del Estado de Chihuahua mantuvieron presencia activa en las 6 regiones estratégicas. La coordinación en el puente fronterizo de Juárez y corredores industriales opera con normalidad.",
+  narrativas: [
+    {
+      id: "nar-chi-1",
+      title: "Operativo Centinela & Vigilancia en Ciudad Juárez",
+      summary: "Monitoreo en accesos aduanales, parques maquiladores y cruces fronterizos.",
+      category: "Seguridad Pública",
+      trend: "subiendo",
+      volume_24h: 360,
+      sentiment: "Atención Requerida",
+      region: "Zona Norte (Juárez)",
+    },
+    {
+      id: "nar-chi-2",
+      title: "Monitoreo Hídrico en Cuenca del Río Conchos",
+      summary: "Supervisión de presas La Boquilla y Las Vírgenes en coordinación con módulos agrícolas.",
+      category: "Agua & Medio Ambiente",
+      trend: "estable",
+      volume_24h: 215,
+      sentiment: "Favorable",
+      region: "Delicias & Conchos",
+    },
+    {
+      id: "nar-chi-3",
+      title: "Atracción de Inversión y Manufactura Avanzada en Chihuahua Capital",
+      summary: "Expansión de clústeres aeroespaciales y automotrices en parques industriales norte.",
+      category: "Desarrollo Económico",
+      trend: "subiendo",
+      volume_24h: 195,
+      sentiment: "Muy Favorable",
+      region: "Centro (Chihuahua)",
+    },
+    {
+      id: "nar-chi-4",
+      title: "Auxilio Vial y Clima en Corredor Turístico Barrancas del Cobre",
+      summary: "Monitoreo de temperaturas y operativos de seguridad en Creel, Guachochi y Divisadero.",
+      category: "Turismo & Protección Civil",
+      trend: "estable",
+      volume_24h: 140,
+      sentiment: "Positivo",
+      region: "Sierra Tarahumara",
+    },
+  ],
+  perfiles: [
+    {
+      id: "p-chi-1",
+      name: "Secretario de Seguridad Pública del Estado",
+      cargo: "Mando Superior SSPE Chihuahua",
+      afiliacion: "Gabinete Estatal Chihuahua",
+      risk: "Alto",
+      summary: "Coordinador de los operativos de seguridad interinstitucionales y plataforma Centinela.",
+    },
+    {
+      id: "p-chi-2",
+      name: "Fiscal General del Estado de Chihuahua",
+      cargo: "Titular del Ministerio Público Estatal",
+      afiliacion: "FGE Chihuahua",
+      risk: "Medio",
+      summary: "Supervisión de investigaciones ministeriales y coordinación con autoridades federales.",
+    },
+    {
+      id: "p-chi-3",
+      name: "Presidente Municipal de Ciudad Juárez",
+      cargo: "Presidente Municipal Constitucional",
+      afiliacion: "Gobierno Municipal Juárez",
+      risk: "Medio",
+      summary: "Mesa de coordinación en seguridad fronteriza e infraestructura urbana.",
+    },
+    {
+      id: "p-chi-4",
+      name: "Presidente Municipal de Chihuahua Capital",
+      cargo: "Presidente Municipal Constitucional",
+      afiliacion: "Gobierno Municipal Chihuahua",
+      risk: "Bajo",
+      summary: "Gestión de servicios públicos metropolitanos y desarrollo económico.",
+    },
+  ],
+  fuentes: [
+    { id: "f-chi-1", name: "Secretaría de Seguridad Pública (SSPE)", type: "Oficial / API", identifier: "@SSPE_Chihuahua", credibility: "Oficial", active: true },
+    { id: "f-chi-2", name: "Fiscalía General del Estado (FGE)", type: "Oficial", identifier: "@FGE_Chihuahua", credibility: "Oficial", active: true },
+    { id: "f-chi-3", name: "Protección Civil Estatal Chihuahua", type: "Oficial", identifier: "@PC_Chihuahua", credibility: "Oficial", active: true },
+    { id: "f-chi-4", name: "El Heraldo de Chihuahua", type: "Prensa Digital", identifier: "@ElHeraldoChih", credibility: "Alta", active: true },
+    { id: "f-chi-5", name: "El Diario de Juárez", type: "Prensa Digital", identifier: "@DiarioJuarez", credibility: "Alta", active: true },
+    { id: "f-chi-6", name: "Puente Libre MX", type: "Medio Digital", identifier: "@PuenteLibre", credibility: "Media-Alta", active: true },
+    { id: "f-chi-7", name: "Monitoreo GDELT Chihuahua (MCP)", type: "MCP Tool", identifier: "intel_chihuahua_gdelt", credibility: "Oficial", active: true },
+  ],
+  municipios: [
+    { clave: "08037", nombre: "Juárez", region: "Zona Norte (Juárez)", actividad_nivel: "alto", eventos_24h: 18, poblacion: "1,512,450", responsable_region: "Sector Frontera Norte", lat: 31.7000, lng: -106.4500 },
+    { clave: "08019", nombre: "Chihuahua", region: "Centro (Chihuahua)", actividad_nivel: "alto", eventos_24h: 14, poblacion: "937,674", responsable_region: "Sector Capital", lat: 28.6353, lng: -106.0889 },
+    { clave: "08017", nombre: "Cuauhtémoc", region: "Centro (Chihuahua)", actividad_nivel: "medio", eventos_24h: 6, poblacion: "180,638", responsable_region: "Sector Manzanero", lat: 28.4050, lng: -106.8650 },
+    { clave: "08021", nombre: "Delicias", region: "Delicias & Conchos", actividad_nivel: "medio", eventos_24h: 5, poblacion: "150,506", responsable_region: "Sector Conchos", lat: 28.1933, lng: -105.4711 },
+    { clave: "08032", nombre: "Hidalgo del Parral", region: "Sur (Parral)", actividad_nivel: "medio", eventos_24h: 4, poblacion: "116,662", responsable_region: "Sector Parral", lat: 26.9317, lng: -105.6664 },
+    { clave: "08050", nombre: "Nuevo Casas Grandes", region: "Noroeste (Casas Grandes)", actividad_nivel: "medio", eventos_24h: 3, poblacion: "65,714", responsable_region: "Sector Noroeste", lat: 30.4167, lng: -107.9167 },
+    { clave: "08009", nombre: "Camargo", region: "Delicias & Conchos", actividad_nivel: "bajo", eventos_24h: 2, poblacion: "54,204", responsable_region: "Sector Conchos", lat: 27.6783, lng: -105.1708 },
+    { clave: "08036", nombre: "Jiménez", region: "Sur (Parral)", actividad_nivel: "bajo", eventos_24h: 2, poblacion: "40,859", responsable_region: "Sector Sur", lat: 27.1333, lng: -104.9167 },
+    { clave: "08045", nombre: "Meoqui", region: "Delicias & Conchos", actividad_nivel: "bajo", eventos_24h: 2, poblacion: "44,853", responsable_region: "Sector Conchos", lat: 28.2725, lng: -105.4808 },
+    { clave: "08027", nombre: "Guachochi", region: "Sierra Tarahumara", actividad_nivel: "medio", eventos_24h: 3, poblacion: "50,180", responsable_region: "Sector Sierra Tarahumara", lat: 26.8208, lng: -107.0722 },
+    { clave: "08010", nombre: "Bocoyna", region: "Sierra Tarahumara", actividad_nivel: "bajo", eventos_24h: 1, poblacion: "23,351", responsable_region: "Sector Creel", lat: 27.7500, lng: -107.6333 },
+    { clave: "08052", nombre: "Ojinaga", region: "Centro (Chihuahua)", actividad_nivel: "bajo", eventos_24h: 1, poblacion: "28,040", responsable_region: "Sector Frontera Este", lat: 29.5642, lng: -104.4144 },
+    { clave: "08031", nombre: "Guerrero", region: "Sierra Tarahumara", actividad_nivel: "bajo", eventos_24h: 1, poblacion: "35,473", responsable_region: "Sector Sierra", lat: 28.5500, lng: -107.4833 },
+    { clave: "08005", nombre: "Balleza", region: "Sierra Tarahumara", actividad_nivel: "bajo", eventos_24h: 0, poblacion: "16,440", responsable_region: "Sector Sierra Sur" },
+    { clave: "08029", nombre: "Guadalupe y Calvo", region: "Sierra Tarahumara", actividad_nivel: "medio", eventos_24h: 2, poblacion: "50,514", responsable_region: "Sector Sierra Alta" },
+    { clave: "08002", nombre: "Aldama", region: "Centro (Chihuahua)", actividad_nivel: "bajo", eventos_24h: 1, poblacion: "26,047", responsable_region: "Sector Centro" },
+    { clave: "08001", nombre: "Ahumada", region: "Zona Norte (Juárez)", actividad_nivel: "bajo", eventos_24h: 1, poblacion: "14,635", responsable_region: "Sector Norte" },
+    { clave: "08004", nombre: "Ascensión", region: "Noroeste (Casas Grandes)", actividad_nivel: "bajo", eventos_24h: 1, poblacion: "26,093", responsable_region: "Sector Noroeste" },
+    { clave: "08058", nombre: "San Francisco del Oro", region: "Sur (Parral)", actividad_nivel: "bajo", eventos_24h: 0, poblacion: "5,004", responsable_region: "Sector Parral" },
+    { clave: "08061", nombre: "Santa Bárbara", region: "Sur (Parral)", actividad_nivel: "bajo", eventos_24h: 0, poblacion: "11,582", responsable_region: "Sector Parral" },
+  ],
+};
+
 // Catálogo extensible de Estados registrados en SentinelIQ
 export const STATE_CATALOG: Record<string, StateConfig> = {
   gto: GUANAJUATO_CONFIG,
   qro: QUERETARO_CONFIG,
   pue: PUEBLA_CONFIG,
+  chi: CHIHUAHUA_CONFIG,
 };
 
 export function getAllSupportedStates(): StateConfig[] {
@@ -517,6 +677,9 @@ export function getStateConfig(overrideKey?: string): StateConfig {
     }
     if (host.startsWith("pue.") || host.includes("puebla") || port === "3006") {
       return PUEBLA_CONFIG;
+    }
+    if (host.startsWith("chi.") || host.includes("chihuahua") || port === "3007") {
+      return CHIHUAHUA_CONFIG;
     }
 
     // 1. Si el Superadministrador Global seleccionó un estado activo en dominio genérico o localhost
@@ -552,4 +715,5 @@ export function getStateConfig(overrideKey?: string): StateConfig {
   // Por defecto Guanajuato (o Querétaro según configuración base)
   return GUANAJUATO_CONFIG;
 }
+
 
