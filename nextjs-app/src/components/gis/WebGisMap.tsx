@@ -117,7 +117,10 @@ export const WebGisMap: React.FC<WebGisMapProps> = ({
       else if (baseBoundary === "distritos_federales") filePath = "/data/qro_distritos_federales.geojson";
       else filePath = "/data/qro_secciones.geojson";
     } else if (activeCfg.key === "chi") {
-      filePath = "/data/chi_municipios.geojson";
+      if (baseBoundary === "municipios") filePath = "/data/chi_municipios.geojson";
+      else if (baseBoundary === "distritos_locales") filePath = "/data/chi_distritos_locales.geojson";
+      else if (baseBoundary === "distritos_federales") filePath = "/data/chi_distritos_federales.geojson";
+      else filePath = "/data/chi_secciones.geojson";
     } else {
       if (baseBoundary === "municipios") filePath = "/data/gto_municipios.geojson";
       else if (baseBoundary === "distritos_locales") filePath = "/data/gto_distritos_locales.geojson";

@@ -334,6 +334,7 @@ export const TerritorialDetailModal: React.FC<TerritorialDetailModalProps> = ({
         vp["PAN-PRD-MC-PSI"] ??
         vp["PAN-PRI-PRD"] ??
         vp["PAN-PRD-MC"] ??
+        vp["PAN-PRD"] ??
         vp["PAN"] ??
         0
       );
@@ -343,12 +344,14 @@ export const TerritorialDetailModal: React.FC<TerritorialDetailModalProps> = ({
         vp["MORENA-PT-PVEM-NA"] ??
         vp["MORENA-PT-PVEM"] ??
         vp["MORENA-PT-PES"] ??
+        vp["MORENA-PT-NACH"] ??
         vp["MORENA"] ??
         0
       );
 
       const priVotes = Number(
         vp["PRI-PVEM-NA-PT"] ??
+        vp["PRI-PVEM-PT-PNA"] ??
         vp["PRI"] ??
         0
       );
