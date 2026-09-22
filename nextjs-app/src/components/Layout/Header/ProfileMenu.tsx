@@ -18,7 +18,7 @@ const ProfileMenu: React.FC = () => {
   const [active, setActive] = useState<boolean>(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const stateCfg = getStateConfig();
-  const isPublicDemo = stateCfg.key === "pue" || stateCfg.key === "qro";
+  const isPublicDemo = stateCfg.key === "pue" || stateCfg.key === "qro" || stateCfg.key === "chi";
 
   const currentRoleInfo = (role && ROLE_LABELS[role]) || ROLE_LABELS.analista;
   const stateUsers = getDefaultUsersForState(stateCfg.key);

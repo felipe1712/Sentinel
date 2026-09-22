@@ -375,6 +375,15 @@ INSERT INTO users (id, state_id, email, hashed_pwd, role, name, cargo) VALUES
   'analista',
   'Analista de Inteligencia Territorial',
   'Mesa de Análisis Estratégico Chihuahua'
+),
+(
+  '08080808-0000-0000-0000-000000000005',
+  '08080808-0808-0808-0808-080808080808',
+  'demo@chihuahua.gob.mx',
+  '$2b$12$e8x6s.eYmGkM.OQjL7eO8.k5sD7I8K5d7M3O9Q1S3U5W7Y9a1c3e5',
+  'asesor',
+  'Invitado Demo Chihuahua',
+  'Demostración Institucional / Gabinete'
 )
 ON CONFLICT (email) DO NOTHING;
 

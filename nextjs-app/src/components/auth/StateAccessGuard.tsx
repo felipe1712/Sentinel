@@ -62,8 +62,36 @@ export default function StateAccessGuard({ children }: StateAccessGuardProps) {
     );
   }
 
-  // 2. Control de Aislamiento Territorial / Jurisdicción
-  // Si es Superadministrador Global, cuenta con acreditación federal multiestado
+  // 2. Bloqueo total de administración y operación/fuentes en modo Demo Público
+  const isAdminRoute = pathname.startsWith("/admin") || pathname.startsWith("/auditoria");
+  const isOperacionRoute = pathname.startsWith("/fuentes") || pathname.startsWith("/ciberseguridad");
+
+  if (isPublicDemo && (isAdminRoute || isOperacionRoute)) {
+    return (
+      <div className="min-h-[70vh] flex items-center justify-center p-4">
+        <div className="max-w-md w-full bg-white dark:bg-[#0c1427] border border-red-500/30 rounded-2xl p-6 text-center shadow-lg">
+          <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-red-100 text-red-600 dark:bg-red-950/50 dark:text-red-400 flex items-center justify-center text-2xl">
+            <i className="ri-shield-keyhole-line"></i>
+          </div>
+          <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">
+            Módulo No Disponible
+          </h3>
+          <p className="text-xs text-gray-600 dark:text-gray-400 mb-5 leading-relaxed">
+            Este módulo se encuentra deshabilitado para esta instancia de demostración.
+          </p>
+          <button
+            onClick={() => router.push("/situacion")}
+            className="px-4 py-2 bg-primary-600 text-white text-xs font-bold rounded-lg hover:bg-primary-700 transition-all shadow-sm"
+          >
+            Regresar a Situación Ejecutiva
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // 3. Control de Aislamiento Territorial / Jurisdicción
+  // Si es Superadministrador Global o modo demo público (en rutas permitidas), permitir acceso directo
   const isGlobalSuperAdmin = Boolean(
     user &&
       (user.email?.toLowerCase() === "admin@sentineliq.com.mx" ||
@@ -139,34 +167,6 @@ export default function StateAccessGuard({ children }: StateAccessGuardProps) {
               <span>Cerrar Sesión</span>
             </button>
           </div>
-        </div>
-      </div>
-    );
-  }
-
-  // 3. Bloqueo total de administración y operación/fuentes en Puebla / Querétaro Demo
-  const isAdminRoute = pathname.startsWith("/admin") || pathname.startsWith("/auditoria");
-  const isOperacionRoute = pathname.startsWith("/fuentes") || pathname.startsWith("/ciberseguridad");
-
-  if (isPublicDemo && (isAdminRoute || isOperacionRoute)) {
-    return (
-      <div className="min-h-[70vh] flex items-center justify-center p-4">
-        <div className="max-w-md w-full bg-white dark:bg-[#0c1427] border border-red-500/30 rounded-2xl p-6 text-center shadow-lg">
-          <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-red-100 text-red-600 dark:bg-red-950/50 dark:text-red-400 flex items-center justify-center text-2xl">
-            <i className="ri-shield-keyhole-line"></i>
-          </div>
-          <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">
-            Módulo No Disponible
-          </h3>
-          <p className="text-xs text-gray-600 dark:text-gray-400 mb-5 leading-relaxed">
-            Este módulo se encuentra deshabilitado para esta instancia de demostración.
-          </p>
-          <button
-            onClick={() => router.push("/situacion")}
-            className="px-4 py-2 bg-primary-600 text-white text-xs font-bold rounded-lg hover:bg-primary-700 transition-all shadow-sm"
-          >
-            Regresar a Situación Ejecutiva
-          </button>
         </div>
       </div>
     );

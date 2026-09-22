@@ -13,7 +13,7 @@ export default function RootPage() {
       ? localStorage.getItem("sentinel_token") || localStorage.getItem("sentineliq_token")
       : null;
 
-    const isPublicDemo = cfg.key === "pue" || cfg.key === "qro";
+    const isPublicDemo = cfg.key === "pue" || cfg.key === "qro" || cfg.key === "chi";
 
     if (token) {
       router.replace(isPublicDemo ? "/situacion" : "/gabinete");

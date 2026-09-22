@@ -28,7 +28,7 @@ const SidebarMenu: React.FC<SidebarMenuProps> = ({ toggleActive }) => {
         : "text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#15203c] hover:text-black dark:hover:text-white"
     }`;
 
-  const isPublicDemo = stateCfg.key === "pue" || stateCfg.key === "qro";
+  const isPublicDemo = stateCfg.key === "pue" || stateCfg.key === "qro" || stateCfg.key === "chi";
 
   return (
     <div className="sidebar-area bg-white dark:bg-[#0c1427] fixed z-[7] top-0 h-screen transition-all rounded-r-md border-r border-gray-100 dark:border-[#172036]">

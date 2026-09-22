@@ -160,6 +160,44 @@ export const PREDEFINED_USERS_BY_STATE: Record<string, UserProfile[]> = {
       active: true,
     },
   ],
+  chi: [
+    {
+      id: "u_chi_superadmin",
+      name: "Superadministrador Chihuahua",
+      email: "admin.ti@chihuahua.gob.mx",
+      cargo: "Superadministrador de Plataforma Chihuahua",
+      role: "superadmin",
+      state_key: "chi",
+      active: true,
+    },
+    {
+      id: "u_chi_gobernador",
+      name: "María Eugenia Campos Galván",
+      email: "gobernadora@chihuahua.gob.mx",
+      cargo: "Gobernadora Constitucional del Estado de Chihuahua",
+      role: "gobernador",
+      state_key: "chi",
+      active: true,
+    },
+    {
+      id: "u_chi_gabinete",
+      name: "Mando Superior SSPE",
+      email: "seguridad@chihuahua.gob.mx",
+      cargo: "Secretaría de Seguridad Pública del Estado",
+      role: "gabinete",
+      state_key: "chi",
+      active: true,
+    },
+    {
+      id: "u_chi_analista",
+      name: "Mesa de Inteligencia Territorial",
+      email: "analista@chihuahua.gob.mx",
+      cargo: "Analista de Información Estratégica",
+      role: "analista",
+      state_key: "chi",
+      active: true,
+    },
+  ],
 };
 
 // Usuario Superadministrador Global con acceso a todas las entidades
@@ -195,6 +233,17 @@ export const QUERETARO_DEMO_USER: UserProfile = {
   active: true,
 };
 
+// Usuario Demo Institucional para Chihuahua (Acceso libre de demostración sin credenciales)
+export const CHIHUAHUA_DEMO_USER: UserProfile = {
+  id: "u_chi_demo",
+  name: "Invitado Demo Chihuahua",
+  email: "demo@chihuahua.gob.mx",
+  cargo: "Demostración Institucional / Gabinete",
+  role: "gabinete",
+  state_key: "chi",
+  active: true,
+};
+
 export function getDefaultUsersForState(stateKey: string): UserProfile[] {
   const normalized = stateKey.toLowerCase().trim();
   if (normalized === "pue") {
@@ -211,6 +260,13 @@ export function getDefaultUsersForState(stateKey: string): UserProfile[] {
       ...PREDEFINED_USERS_BY_STATE["qro"].filter((u) => u.role !== "superadmin"),
     ];
   }
+  if (normalized === "chi") {
+    // Para Chihuahua solo retornar usuarios no-administradores y demo
+    return [
+      CHIHUAHUA_DEMO_USER,
+      ...(PREDEFINED_USERS_BY_STATE["chi"] || []).filter((u) => u.role !== "superadmin"),
+    ];
+  }
   const list = PREDEFINED_USERS_BY_STATE[normalized] || [];
   // Asegurar que el superadministrador global esté disponible en ambos estados
   return [GLOBAL_SUPERADMIN_USER, ...list];
@@ -220,12 +276,15 @@ export function getStoredUser(): UserProfile | null {
   if (typeof window === "undefined") return null;
   try {
     const stateCfg = getStateConfig();
-    // En instancias de demostración pública (Puebla y Querétaro), forzar SIEMPRE el usuario demo
+    // En instancias de demostración pública (Puebla, Querétaro y Chihuahua), forzar SIEMPRE el usuario demo
     if (stateCfg.key === "pue") {
       return PUEBLA_DEMO_USER;
     }
     if (stateCfg.key === "qro") {
       return QUERETARO_DEMO_USER;
+    }
+    if (stateCfg.key === "chi") {
+      return CHIHUAHUA_DEMO_USER;
     }
     const userStr = localStorage.getItem("sentineliq_user");
     if (!userStr) return null;
@@ -253,8 +312,8 @@ export function logout(): void {
   localStorage.removeItem("sentineliq_token");
   document.cookie = "authUser=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
   window.dispatchEvent(new Event("sentineliq_auth_change"));
-  if (stateCfg.key === "pue" || stateCfg.key === "qro") {
-    // En Puebla y Querétaro regresa a /situacion en modo demo público
+  if (stateCfg.key === "pue" || stateCfg.key === "qro" || stateCfg.key === "chi") {
+    // En Puebla, Querétaro y Chihuahua regresa a /situacion en modo demo público
     window.location.href = "/situacion";
   } else {
     window.location.href = "/login";
@@ -276,6 +335,11 @@ export function useRole() {
     } else if (stateCfg.key === "qro") {
       current = QUERETARO_DEMO_USER;
       setStoredUser(QUERETARO_DEMO_USER);
+      localStorage.setItem("sentineliq_token", "sentineliq_internal_service_token_2026");
+      document.cookie = "authUser=sentineliq_internal_service_token_2026; path=/; max-age=86400";
+    } else if (stateCfg.key === "chi") {
+      current = CHIHUAHUA_DEMO_USER;
+      setStoredUser(CHIHUAHUA_DEMO_USER);
       localStorage.setItem("sentineliq_token", "sentineliq_internal_service_token_2026");
       document.cookie = "authUser=sentineliq_internal_service_token_2026; path=/; max-age=86400";
     }

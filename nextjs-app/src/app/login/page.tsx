@@ -10,6 +10,7 @@ import {
   PREDEFINED_USERS_BY_STATE,
   PUEBLA_DEMO_USER,
   QUERETARO_DEMO_USER,
+  CHIHUAHUA_DEMO_USER,
 } from "@/hooks/useRole";
 import { getStateConfig, getStateConfigByKey, StateConfig } from "@/lib/stateConfig";
 import { api, SERVICE_TOKEN } from "@/lib/api";
@@ -25,8 +26,13 @@ export default function LoginPage() {
   useEffect(() => {
     const cfg = getStateConfig();
     setStateCfg(cfg);
-    if (cfg.key === "pue" || cfg.key === "qro") {
-      const demoUser = cfg.key === "qro" ? QUERETARO_DEMO_USER : PUEBLA_DEMO_USER;
+    if (cfg.key === "pue" || cfg.key === "qro" || cfg.key === "chi") {
+      const demoUser =
+        cfg.key === "qro"
+          ? QUERETARO_DEMO_USER
+          : cfg.key === "chi"
+          ? CHIHUAHUA_DEMO_USER
+          : PUEBLA_DEMO_USER;
       setStoredUser(demoUser);
       localStorage.setItem("sentineliq_token", SERVICE_TOKEN);
       document.cookie = `authUser=${SERVICE_TOKEN}; path=/; max-age=86400`;
@@ -221,7 +227,7 @@ export default function LoginPage() {
               <input
                 type="email"
                 className="form-control form-control-lg fs-14 bg-dark text-white border-secondary"
-                placeholder={`usuario@${stateCfg.key === "gto" ? "guanajuato" : "queretaro"}.gob.mx`}
+                placeholder={`usuario@${stateCfg.key === "gto" ? "guanajuato" : stateCfg.key === "chi" ? "chihuahua" : "queretaro"}.gob.mx`}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
