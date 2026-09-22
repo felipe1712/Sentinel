@@ -1,4 +1,4 @@
-﻿# 🛡️ SentinelIQ · Plataforma de Inteligencia Situacional & WebGIS Territorial
+# 🛡️ SentinelIQ · Plataforma de Inteligencia Situacional & WebGIS Territorial
 
 Plataforma multi-estado de monitoreo estratégico, inteligencia en tiempo real, cartografía político-electoral (INE) y analítica territorial para toma de decisiones a nivel gubernamental.
 
@@ -11,6 +11,7 @@ Plataforma multi-estado de monitoreo estratégico, inteligencia en tiempo real, 
 | **Querétaro** | `qro.sentineliq.com.mx` | `22` | `:3004` (Web) / `:8085` (API) | 18 Municipios |
 | **Guanajuato** | `gto.sentineliq.com.mx` | `11` | `:3005` (Web) / `:8086` (API) | 46 Municipios |
 | **Puebla** | `pue.sentineliq.com.mx` | `21` | `:3006` (Web) / `:8087` (API) | 217 Municipios |
+| **Chihuahua** | `chi.sentineliq.com.mx` | `08` | `:3007` (Web) / `:8089` (API) | 67 Municipios |
 
 > [!NOTE]
 > La instancia de **Puebla (`pue.sentineliq.com.mx`)** está configurada en **modo demostración institucional público** (acceso directo sin requerir credenciales y con módulos administrativos bloqueados para protección del entorno).
@@ -56,6 +57,9 @@ Cada entidad cuenta con su archivo de composición dedicado:
 ```bash
 # Despliegue Puebla
 docker compose -f docker-compose.pue.yml up -d --build
+
+# Despliegue Chihuahua
+docker compose -f docker-compose.chi.yml up -d --build
 
 # Despliegue Guanajuato
 docker compose -f docker-compose.gto.yml up -d --build
