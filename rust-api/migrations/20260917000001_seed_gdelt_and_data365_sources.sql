@@ -180,7 +180,7 @@ INSERT INTO events (
   'https://twitter.com/Data365Radar/status/gto_silao_01',
   NOW() - INTERVAL '5 hours 45 minutes'
 )
-ON CONFLICT (dedup_hash) DO NOTHING;
+ON CONFLICT (id) DO NOTHING;
 
 
 -- 5. EVENTOS TERRITORIALES INICIALES GDELT / DATA365 PARA PUEBLA
@@ -245,7 +245,7 @@ INSERT INTO events (
   'https://twitter.com/Data365Radar/status/pue_atlixco_01',
   NOW() - INTERVAL '6 hours 15 minutes'
 )
-ON CONFLICT (dedup_hash) DO NOTHING;
+ON CONFLICT (id) DO NOTHING;
 
 
 -- 6. EVENTOS TERRITORIALES INICIALES GDELT / DATA365 PARA QUERÉTARO
@@ -291,4 +291,4 @@ INSERT INTO events (
   'https://twitter.com/Data365Radar/status/qro_corregidora_01',
   NOW() - INTERVAL '7 hours 10 minutes'
 )
-ON CONFLICT (dedup_hash) DO NOTHING;
+ON CONFLICT (id) DO NOTHING;
