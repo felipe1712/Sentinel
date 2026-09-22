@@ -102,7 +102,6 @@ if [ -f "data/seed_live_sources_36h.sql" ]; then
     docker exec -i sentineliq_gto_postgres psql -U sentineliq -d sentineliq_gto < "data/seed_live_sources_36h.sql" 2>/dev/null || true
     docker exec -i sentineliq_postgres psql -U sentinel -d sentineliq < "data/seed_live_sources_36h.sql" 2>/dev/null || true
     docker exec -i sentineliq_pue_postgres psql -U sentineliq -d sentineliq_pue < "data/seed_live_sources_36h.sql" 2>/dev/null || true
-    docker exec -i sentineliq_chi_postgres psql -U sentineliq -d sentineliq_chi < "data/seed_live_sources_36h.sql" 2>/dev/null || true
     echo "seed_live_sources_36h.sql" >> "$APPLIED_LOG"
     echo "  ✅ Fuentes vivas y eventos de 36h aplicados a bases de datos."
   fi
