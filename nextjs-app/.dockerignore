@@ -1,9 +1,0 @@
-node_modules
-.next
-.git
-.gitignore
-npm-debug.log
-README.md
-*.md
-.DS_Store
-nextjs-app-velzon-backup

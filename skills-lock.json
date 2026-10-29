@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "cli": {
+      "source": "saifyxpro/HeadlessX",
+      "sourceType": "github",
+      "skillPath": "skills/cli/SKILL.md",
+      "computedHash": "71a5f417db07bfcce3d13aabc198f6e718c285c9ed67c090b9cd8d770f0d47bd"
+    }
+  }
+}

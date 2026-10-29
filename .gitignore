@@ -1,41 +1,26 @@
-# Node / Next.js
-nextjs-app/node_modules/
-nextjs-app/.next/
-nextjs-app/out/
-nextjs-app/build/
-nextjs-app/.env*.local
-nextjs-app-velzon-backup/
-
-# Rust / Cargo
-rust-api/target/
-
-# Python / Virtualenvs
-workers/__pycache__/
-workers/*.pyc
-workers/.venv/
-workers/venv/
-workers/*.egg-info/
-workers/sample_report.pdf
-
-# Large Raw GIS Shapefiles (Raw INE layers > 100MB; GeoJSONs live in nextjs-app/public/data)
-Sf-gto/
-data/ShapeF/
-data/Queretaro/
-data/Chihuahua/
-data/electoral/*.xlsx
-data/electoral/*.xls
-
-# Environment & Credentials
+# Entornos y secretos
 .env
-*.pem
-*.key
+.env.local
+.env.production
 
-# Docker & Databases
-pgdata/
-*.mmdb
+# Frontend Vite + React
+frontend/node_modules/
+frontend/dist/
+node_modules/
 
-# IDE & OS
-.DS_Store
-.vscode/
-.idea/
-Thumbs.db
+# Backend Rust
+backend/target/
+**/target/
+
+# Python Workers
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Carpetas locales no rastreadas en Uwatch
+Sentinelv2/
+nextjs-app/
+nextjs-app-velzon-backup/
+Sf-gto/
+.applied_migrations

@@ -1,69 +1,24 @@
-# 🛡️ SentinelIQ · Plataforma de Inteligencia Situacional & WebGIS Territorial
+# UrbanWatch — Sistema de Inteligencia de Seguridad Urbana para CDMX
 
-Plataforma multi-estado de monitoreo estratégico, inteligencia en tiempo real, cartografía político-electoral (INE) y analítica territorial para toma de decisiones a nivel gubernamental.
+**Dominio**: `uw.sentineliq.com.mx`  
+**Unidad Geográfica**: Colonia (`~1,812 colonias CDMX` con polígonos INEGI/PostGIS)  
+**Plantilla Visual**: Trezo Dark Executive (CronosOne) + paleta `#0d0d0d` y naranja `#FF6B35` (Tipografía `Inter`)
 
----
+## Arquitectura del Sistema (R1–R7)
 
-## 🏛️ Entidades Federativas Soportadas
+- **Frontend (`frontend/`)**: React 18 + TypeScript + Bootstrap 5 + Vite (`:3100`) replicando el diseño ejecutivo Trezo de CronosOne, con MapLibre GL JS + `deck.gl` (`HeatmapLayer`), `TimeSlider` histórico (`2016–hoy`) y grafo de redes criminales `Cytoscape.js`.
+- **Backend API (`backend/`)**: Rust (`Axum 0.7` + `SQLx` + `PostGIS`) en `:8100`.
+- **Workers (`workers/`)**: Python 3.11 (`FastAPI` + `Celery 5` + `Redis 7` + `Surya OCR` + `Claude Sonnet 4.6` + `Lightpanda CDP` + `HeadlessX Camoufox` + `PixelRAG` + `WorldMonitor MCP`) en `:8001`.
+- **Base de Datos (`migrations/`)**: PostgreSQL 15 + PostGIS (`uwi_colonias`, `uwi_sources`, `uwi_documents`, `uwi_incidentes`, `uwi_actores`, `uwi_emedios_jobs`, `uwi_emedios_articulos`, `uwi_sitios_mira`, `uwi_capturas`, `uwi_resumenes`, `uwi_audit`).
 
-| Estado | Subdominio | Código INEGI | Puerto Local | Jurisdicción |
-|---|---|:---:|:---:|---|
-| **Querétaro** | `qro.sentineliq.com.mx` | `22` | `:3004` (Web) / `:8085` (API) | 18 Municipios |
-| **Guanajuato** | `gto.sentineliq.com.mx` | `11` | `:3005` (Web) / `:8086` (API) | 46 Municipios |
-| **Puebla** | `pue.sentineliq.com.mx` | `21` | `:3006` (Web) / `:8087` (API) | 217 Municipios |
-| **Chihuahua** | `chi.sentineliq.com.mx` | `08` | `:3007` (Web) / `:8089` (API) | 67 Municipios |
+## Reglas Operativas Implementadas
 
-> [!NOTE]
-> La instancia de **Puebla (`pue.sentineliq.com.mx`)** está configurada en **modo demostración institucional público** (acceso directo sin requerir credenciales y con módulos administrativos bloqueados para protección del entorno).
-
----
-
-## 🏗️ Arquitectura del Sistema
-
-El ecosistema opera mediante una arquitectura de microservicios contenerizados:
-
-1. **Frontend (`nextjs-app`):** Next.js 15 (App Router), React 19, Leaflet, ApexCharts, Tailwind CSS 4.
-2. **Backend API (`rust-api`):** Motor de alto rendimiento en Rust con Axum 0.7, Tokio, SQLx, geo/geojson, autenticación JWT y roles institucionales.
-3. **Base de Datos Espacial:** PostgreSQL 15 + PostGIS 3.3 para procesamiento y consulta geográfica de secciones electorales y municipios.
-4. **Caché y Mensajería:** Redis 7 para colas de trabajo y persistencia en memoria.
-5. **Vector Database:** Qdrant (v1.7.4) para indexación semántica y recuperación aumentada (RAG).
-6. **OSINT Gateway & Workers (`argos-gateway` & `workers`):**
-   - Conectores para canales de Telegram y monitoreo de redes en X (Twitter).
-   - Ingestores automatizados de cartografía Shapefiles del INE (EPSG:32614 a EPSG:4326).
-   - Generación de Briefings Matutinos ejecutivos asistidos por IA (Anthropic Claude API).
-   - Auditoría de ciberseguridad con SpiderFoot.
-
----
-
-## 🗺️ Módulos Principales de la Plataforma
-
-* **Situación Ejecutiva (`/situacion`):** Monitor situacional con mapa interactivo en tiempo real y categorización de eventos (seguridad, protección civil, vialidad, gobernabilidad).
-* **WebGIS Electoral (`/gis-electoral`):** Visualizador de secciones electorales, distritos locales/federales, municipios y resultados históricos con mapas coropléticos.
-* **Vista Gobernador (`/situacion/ejecutiva`):** Dashboard condensado de alta prioridad para titulares de despacho ejecutivo.
-* **Briefing Matutino (`/briefing`):** Reporte diario consolidado de incidencias y análisis de tendencias.
-* **Dossiers Estratégicos (`/dossiers`):** Expedientes e información de seguimiento institucional.
-* **Narrativas & Trends (`/narrativas`):** Detección de tendencias mediáticas y análisis de sentimiento.
-* **Territorio Municipal (`/municipios`):** Indicadores y semáforos por demarcación municipal.
-* **Perfiles & Watchlist (`/perfiles`):** Fichas biográficas y mapeo de actores clave.
-* **Sala de Gabinete (`/gabinete`):** Modo de visualización panorámica optimizado para proyectores en mesas de seguridad.
-* **Fuentes & Monitoreo (`/fuentes`):** Centro de control de feeds RSS, canales de Telegram y monitores de redes sociales.
-
----
-
-## 🚀 Despliegue en Producción (Docker)
-
-Cada entidad cuenta con su archivo de composición dedicado:
-
-```bash
-# Despliegue Puebla
-docker compose -f docker-compose.pue.yml up -d --build
-
-# Despliegue Chihuahua
-docker compose -f docker-compose.chi.yml up -d --build
-
-# Despliegue Guanajuato
-docker compose -f docker-compose.gto.yml up -d --build
-
-# Despliegue Querétaro
-docker compose -f docker-compose.prod.yml up -d --build
-```
+1. **R1 (Stack separado)**: Frontend en Vite + React 18 + TypeScript + Bootstrap 5; API en Rust Axum + Workers Python.
+2. **R2 (Selección de motor de navegador)**:
+   - `lightpanda` (`ws://localhost:9222`) para E-Medios y prensa abierta (~120MB RAM) con fallback automático a Playwright.
+   - `headlessx` (`http://localhost:38473` Camoufox C++ anti-fingerprint + Tor proxy) para `.onion`, foros clandestinos y sitios con Cloudflare.
+3. **R3 (`fecha_incidente` separada de `created_at`)**: Todas las consultas analíticas, heatmaps y el Time Slider filtran exclusivamente por `fecha_incidente`.
+4. **R4 (Niveles de confidencialidad Claude-OSINT)**: `publico`, `sensible`, `reservado` controlados por rol (`analista`, `jefe_operaciones`, `secretario`, `superadmin`).
+5. **R5 (Modo de ingesta Histórico vs Operativo)**: Toggle prominente en carga manual; `modo_operativo` valida `hoy ± 7 días` y `modo_historico` permite `2016–hoy`.
+6. **R6 (Deduplicación E-Medios)**: `SHA-256(titulo.lower().strip() + "|" + fecha_pub)` con `ON CONFLICT (hash_titulo) DO NOTHING`.
+7. **R7 (Auditoría Claude)**: Toda clasificación o resumen registra en `uwi_audit` fuentes, tokens usados y porcentaje de confianza.

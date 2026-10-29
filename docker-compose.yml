@@ -1,106 +1,150 @@
+name: urbanwatch
+
 services:
-  postgres:
-    image: postgis/postgis:15-3.3
-    container_name: sentineliq-postgres
-    restart: always
+  # 1. Frontend Vite + React 18 + TypeScript + Bootstrap 5 (Diseño Trezo CronosOne)
+  frontend:
+    build: ./frontend
+    container_name: uwi_frontend
+    ports:
+      - "127.0.0.1:3100:3100"
     environment:
-      POSTGRES_DB: sentineliq
-      POSTGRES_USER: sentinel
-      POSTGRES_PASSWORD: sentinel123
+      - VITE_API_URL=http://localhost:8100
+    depends_on:
+      - api
+    restart: unless-stopped
+
+  # 2. API Principal en Rust (Axum 0.7 + SQLx + PostGIS)
+  api:
+    build: ./backend
+    container_name: uwi_rust_api
     ports:
-      - "5432:5432"
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-    networks:
-      - sentinel-net
-
-  redis:
-    image: redis:7-alpine
-    container_name: sentineliq-redis
-    restart: always
-    ports:
-      - "6379:6379"
-    networks:
-      - sentinel-net
-
-  qdrant:
-    image: qdrant/qdrant:v1.7.4
-    container_name: sentineliq-qdrant
-    restart: always
-    expose:
-      - "6333"
-    networks:
-      - sentinel-net
-
-  spiderfoot:
-    build:
-      context: ./docker
-      dockerfile: Dockerfile.spiderfoot
-    container_name: sentineliq-spiderfoot
-    restart: always
-    expose:
-      - "5001"
-    networks:
-      - sentinel-net
-
-  rust-api:
-    build:
-      context: ./rust-api
-      dockerfile: ../docker/Dockerfile.rust
-    container_name: sentineliq-rust-api
-    restart: always
-    ports:
-      - "8080:8080"
+      - "127.0.0.1:8100:8100"
+    env_file:
+      - path: .env
+        required: false
     environment:
-      DATABASE_URL: postgres://sentinel:sentinel123@postgres:5432/sentineliq
-      JWT_SECRET: sentineliq_secret_key_change_me_in_production_min_256_bits_length_secure_string_key
-      CLAUDE_API_KEY: ${CLAUDE_API_KEY:-""}
-      SERVICE_TOKEN: sentineliq_internal_service_token_2026
-      PORT: 8080
-      RUST_LOG: info,sentineliq_api=debug
+      - HOST=0.0.0.0
+      - PORT=8100
+      - DATABASE_URL=postgresql://urbanwatch:${DB_PASSWORD:-urbanwatch_pass_2026}@postgres:5432/urbanwatch_db
+      - WORKERS_URL=http://workers:8001
+      - LIGHTPANDA_CDP_URL=ws://lightpanda:9222
+      - HEADLESSX_URL=http://headlessx:38473
+      - PIXELRAG_INDEX_DIR=/data/pixelrag_indexes
+      - DOCUMENTS_PATH=/data/documents
+      - CAPTURES_PATH=/data/captures
     depends_on:
       - postgres
-    networks:
-      - sentinel-net
-
-  nextjs-app:
-    build:
-      context: ./nextjs-app
-      dockerfile: ../docker/Dockerfile.nextjs
-    container_name: sentineliq-nextjs
-    restart: always
-    ports:
-      - "3000:3000"
-    environment:
-      NEXT_PUBLIC_API_URL: http://localhost:8080
-    networks:
-      - sentinel-net
-
-  python-workers:
-    build:
-      context: ./workers
-      dockerfile: ../docker/Dockerfile.workers
-    container_name: sentineliq-workers
-    restart: always
-    environment:
-      RUST_API_URL: http://rust-api:8080
-      REDIS_URL: redis://redis:6379/0
-      SERVICE_TOKEN: sentineliq_internal_service_token_2026
-      CLAUDE_API_KEY: ${CLAUDE_API_KEY:-""}
-      DATA365_API_KEY: ${DATA365_API_KEY:-""}
-      DATA365_BASE_URL: ${DATA365_BASE_URL:-https://api.data365.co/v1.1}
-      DATA365_CALLBACK_URL: ${DATA365_CALLBACK_URL:-""}
-      GDELT_BASE_URL: ${GDELT_BASE_URL:-https://api.gdeltproject.org/api/v2/doc/doc}
-      GDELT_TIMEOUT_SECS: ${GDELT_TIMEOUT_SECS:-15.0}
-    depends_on:
-      - rust-api
       - redis
-    networks:
-      - sentinel-net
+    volumes:
+      - uwi_data:/data
+    restart: unless-stopped
 
-networks:
-  sentinel-net:
-    driver: bridge
+  # 3. Workers Python (Surya OCR, Clasificador Claude, E-Medios Lightpanda, Vigía HeadlessX + PixelRAG, WorldMonitor MCP)
+  workers:
+    build: ./workers
+    container_name: uwi_workers
+    ports:
+      - "127.0.0.1:8001:8001"
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      - DATABASE_URL=postgresql://urbanwatch:${DB_PASSWORD:-urbanwatch_pass_2026}@postgres:5432/urbanwatch_db
+      - REDIS_URL=redis://redis:6379/1
+      - LIGHTPANDA_CDP_URL=ws://lightpanda:9222
+      - HEADLESSX_URL=http://headlessx:38473
+      - PIXELRAG_INDEX_DIR=/data/pixelrag_indexes
+      - DOCUMENTS_PATH=/data/documents
+      - CAPTURES_PATH=/data/captures
+    depends_on:
+      - postgres
+      - redis
+      - lightpanda
+    volumes:
+      - uwi_data:/data
+    restart: unless-stopped
+
+  # 4. Celery Worker (colas: default, emedios, vigia)
+  celery:
+    build: ./workers
+    container_name: uwi_celery
+    command: celery -A workers.celery_app worker -l info -c 4 -Q default,emedios,vigia
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      - DATABASE_URL=postgresql://urbanwatch:${DB_PASSWORD:-urbanwatch_pass_2026}@postgres:5432/urbanwatch_db
+      - REDIS_URL=redis://redis:6379/1
+      - LIGHTPANDA_CDP_URL=ws://lightpanda:9222
+      - HEADLESSX_URL=http://headlessx:38473
+    depends_on:
+      - redis
+      - postgres
+    volumes:
+      - uwi_data:/data
+    restart: unless-stopped
+
+  # 5. Celery Beat (Scheduler de jobs periódicos de Vigía y E-Medios)
+  celery-beat:
+    build: ./workers
+    container_name: uwi_celery_beat
+    command: celery -A workers.celery_app beat -l info
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      - REDIS_URL=redis://redis:6379/1
+    depends_on:
+      - redis
+    restart: unless-stopped
+
+  # 6. PostgreSQL 15 + PostGIS 3.3
+  postgres:
+    image: postgis/postgis:15-3.3-alpine
+    container_name: uwi_postgres
+    environment:
+      POSTGRES_DB: urbanwatch_db
+      POSTGRES_USER: urbanwatch
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-urbanwatch_pass_2026}
+    volumes:
+      - uwi_pg:/var/lib/postgresql/data
+      - ./migrations:/docker-entrypoint-initdb.d
+    ports:
+      - "127.0.0.1:5433:5432"
+    restart: unless-stopped
+
+  # 7. Redis 7
+  redis:
+    image: redis:7-alpine
+    container_name: uwi_redis
+    volumes:
+      - uwi_redis:/data
+    ports:
+      - "127.0.0.1:6380:6379"
+    restart: unless-stopped
+
+  # 8. Lightpanda (Browser headless Zig de alto rendimiento — Skill 3)
+  lightpanda:
+    image: lightpanda/browser:nightly
+    container_name: uwi_lightpanda
+    ports:
+      - "127.0.0.1:9222:9222"
+    restart: unless-stopped
+
+  # 9. HeadlessX (Camoufox anti-detección para Dark Web y foros — Skill 1)
+  headlessx:
+    image: saifyxpro/headlessx:latest
+    container_name: uwi_headlessx
+    ports:
+      - "127.0.0.1:38473:38473"
+    environment:
+      - HEADLESSX_API_KEY=${HEADLESSX_API_KEY:-hx_urbanwatch_key_2026}
+    volumes:
+      - uwi_browser:/app/data
+    restart: unless-stopped
 
 volumes:
-  pgdata:
+  uwi_pg:
+  uwi_redis:
+  uwi_browser:
+  uwi_data:

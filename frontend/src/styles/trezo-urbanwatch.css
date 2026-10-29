@@ -1,0 +1,217 @@
+:root {
+  --uw-bg-primary: #0d0d0d;
+  --uw-bg-card: #14171f;
+  --uw-bg-sidebar: #11131a;
+  --uw-bg-elevated: #1b202c;
+  --uw-border: #252b3b;
+  --uw-orange: #ff6b35;
+  --uw-orange-soft: rgba(255, 107, 53, 0.14);
+  --uw-red-critico: #ef4444;
+  --uw-amber-medio: #ffb347;
+  --uw-blue-colonia: #3b82f6;
+  --uw-text-main: #f1f5f9;
+  --uw-text-muted: #94a3b8;
+  --trezo-indigo: #605dff;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: var(--uw-bg-primary);
+  color: var(--uw-text-main);
+  overflow-x: hidden;
+}
+
+/* Plantilla Trezo (CronosOne) — Layout Principal */
+.trezo-wrapper {
+  display: flex;
+  min-height: 100vh;
+  background-color: var(--uw-bg-primary);
+}
+
+.trezo-sidebar {
+  width: 268px;
+  min-width: 268px;
+  background-color: var(--uw-bg-sidebar);
+  border-right: 1px solid var(--uw-border);
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  z-index: 1030;
+  transition: all 0.25s ease;
+}
+
+.trezo-sidebar.collapsed {
+  width: 76px;
+  min-width: 76px;
+}
+
+.trezo-logo-box {
+  height: 68px;
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--uw-border);
+}
+
+.trezo-logo-brand {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  text-decoration: none;
+  color: #ffffff;
+}
+
+.trezo-logo-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+  background: linear-gradient(135deg, #ff6b35 0%, #e11d48 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #0d0d0d;
+  font-weight: 800;
+  box-shadow: 0 4px 14px rgba(255, 107, 53, 0.35);
+}
+
+.trezo-section-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.1px;
+  color: var(--uw-orange);
+  padding: 16px 20px 6px;
+}
+
+.trezo-nav-list {
+  list-style: none;
+  padding: 0 12px;
+  margin: 0;
+}
+
+.trezo-nav-item {
+  margin-bottom: 4px;
+}
+
+.trezo-nav-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  color: var(--uw-text-muted);
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.18s ease;
+}
+
+.trezo-nav-link:hover {
+  background-color: rgba(255, 255, 255, 0.04);
+  color: #ffffff;
+}
+
+.trezo-nav-link.active {
+  background: var(--uw-orange-soft);
+  color: var(--uw-orange);
+  font-weight: 600;
+  border-left: 3px solid var(--uw-orange);
+}
+
+.trezo-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.trezo-topbar {
+  height: 68px;
+  background-color: var(--uw-bg-sidebar);
+  border-bottom: 1px solid var(--uw-border);
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 1020;
+}
+
+.trezo-content {
+  padding: 22px 24px;
+  flex: 1;
+}
+
+/* Tarjetas estilo Trezo Dark Executive */
+.uw-card {
+  background-color: var(--uw-bg-card);
+  border: 1px solid var(--uw-border);
+  border-radius: 12px;
+  padding: 18px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
+}
+
+.uw-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.uw-kpi-card {
+  background: linear-gradient(180deg, #161a24 0%, #11141c 100%);
+  border: 1px solid var(--uw-border);
+  border-radius: 12px;
+  padding: 16px 18px;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+.uw-kpi-card:hover {
+  border-color: rgba(255, 107, 53, 0.5);
+  transform: translateY(-2px);
+}
+
+.uw-btn-orange {
+  background-color: var(--uw-orange);
+  color: #0d0d0d;
+  font-weight: 600;
+  border: none;
+}
+
+.uw-btn-orange:hover {
+  background-color: #ff8255;
+  color: #0d0d0d;
+}
+
+.material-symbols-outlined {
+  font-size: 20px;
+  line-height: 1;
+  vertical-align: middle;
+}
+
+/* Scrollbar ejecutiva */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #0d0d0d;
+}
+::-webkit-scrollbar-thumb {
+  background: #2b3245;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #ff6b35;
+}
