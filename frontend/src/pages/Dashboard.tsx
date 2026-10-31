@@ -234,7 +234,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ rol }) => {
               </div>
             </div>
             <div className="table-responsive" style={{ maxHeight: 340 }}>
-              <table className="table table-hover table-sm align-middle mb-0" style={{ fontSize: '0.76rem' }}>
+              <table className="table table-hover table-sm align-middle mb-0" style={{ fontSize: '0.76rem', minWidth: 620 }}>
                 <thead className="table-light">
                   <tr className="text-secondary">
                     <th>#</th>

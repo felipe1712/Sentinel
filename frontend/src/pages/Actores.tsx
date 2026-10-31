@@ -113,7 +113,7 @@ export const Actores: React.FC = () => {
           </div>
         </div>
         <div className="table-responsive">
-          <table className="table table-hover table-sm align-middle mb-0" style={{ fontSize: '0.77rem' }}>
+          <table className="table table-hover table-sm align-middle mb-0" style={{ fontSize: '0.77rem', minWidth: 680 }}>
             <thead className="table-light">
               <tr className="text-secondary">
                 <th>Alcaldía</th>

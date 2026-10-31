@@ -155,7 +155,7 @@ export const EmediosJobs: React.FC = () => {
             </div>
 
             <div className="table-responsive">
-              <table className="table table-hover align-middle small mb-0">
+              <table className="table table-hover align-middle small mb-0" style={{ minWidth: 560 }}>
                 <thead className="table-light">
                   <tr className="text-secondary">
                     <th>Periodo</th>
