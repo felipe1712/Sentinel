@@ -28,6 +28,12 @@ docker exec -i uwi_postgres psql -U urbanwatch -d urbanwatch_db < migrations/002
 echo "⚙️ Construyendo y levantando servicios de UrbanWatch..."
 docker compose up -d --build
 
+# 5. Ejecutar seed de colonias CDMX y carga histórica 2016–2026
+echo "📊 Ejecutando seed de colonias CDMX y carga histórica SSPC (2016–2026)..."
+sleep 3
+docker exec -i uwi_workers python /app/scripts/seed_colonias.py || true
+docker exec -i uwi_workers python /app/scripts/bulk_import.py || true
+
 echo "=========================================================="
 echo " ✅ UrbanWatch desplegado exitosamente:"
 echo "    Frontend (Vite + React 18 Trezo): http://127.0.0.1:3100"
