@@ -1,0 +1,15 @@
+FROM debian:bookworm-slim
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl ca-certificates libstdc++6 libc6 \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN curl -fsSL -o /app/lightpanda \
+    https://github.com/lightpanda-io/browser/releases/download/nightly/lightpanda-x86_64-linux \
+    && chmod a+x /app/lightpanda || true
+
+EXPOSE 9222
+
+CMD ["/bin/sh", "-c", "if [ -x /app/lightpanda ]; then /app/lightpanda serve --host 0.0.0.0 --port 9222 || tail -f /dev/null; else tail -f /dev/null; fi"]
