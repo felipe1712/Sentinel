@@ -36,7 +36,7 @@ docker exec -i uwi_workers python /app/scripts/bulk_import.py || true
 
 echo "=========================================================="
 echo " ✅ UrbanWatch desplegado exitosamente:"
-echo "    Frontend (Vite + React 18 Trezo): http://127.0.0.1:3100"
+echo "    Frontend (Vite + React 18 Trezo): http://127.0.0.1:3101"
 echo "    API Backend (Rust Axum + PostGIS): http://127.0.0.1:8100/api/health"
-echo "    Workers Python (OCR/Claude/Vigía): http://127.0.0.1:8001/health"
+echo "    Workers Python (OCR/Claude/Vigía): http://127.0.0.1:8101/health"
 echo "=========================================================="

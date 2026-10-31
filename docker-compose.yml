@@ -6,14 +6,14 @@ services:
     build: ./frontend
     container_name: uwi_frontend
     ports:
-      - "127.0.0.1:3100:3100"
+      - "127.0.0.1:3101:3100"
     environment:
       - VITE_API_URL=http://localhost:8100
     depends_on:
       - api
     restart: unless-stopped
 
-  # 2. API Principal en Rust (Axum 0.7 + SQLx + PostGIS)
+  # 2. API Principal de UrbanWatch en Rust (Axum 0.7 + SQLx + PostGIS — exclusiva para CDMX)
   api:
     build: ./backend
     container_name: uwi_rust_api
@@ -45,7 +45,7 @@ services:
     build: ./workers
     container_name: uwi_workers
     ports:
-      - "127.0.0.1:8001:8001"
+      - "127.0.0.1:8101:8001"
     env_file:
       - path: .env
         required: false
@@ -101,7 +101,7 @@ services:
       - redis
     restart: unless-stopped
 
-  # 6. PostgreSQL 15 + PostGIS 3.3
+  # 6. PostgreSQL 15 + PostGIS 3.3 (Puerto host 5438 para no chocar con SentinelIQ/CronosOne)
   postgres:
     image: postgis/postgis:15-3.3-alpine
     container_name: uwi_postgres
@@ -113,27 +113,27 @@ services:
       - uwi_pg:/var/lib/postgresql/data
       - ./migrations:/docker-entrypoint-initdb.d
     ports:
-      - "127.0.0.1:5433:5432"
+      - "127.0.0.1:5438:5432"
     restart: unless-stopped
 
-  # 7. Redis 7
+  # 7. Redis 7 (Puerto host 6388 para no chocar con SentinelIQ/CronosOne)
   redis:
     image: redis:7-alpine
     container_name: uwi_redis
     volumes:
       - uwi_redis:/data
     ports:
-      - "127.0.0.1:6380:6379"
+      - "127.0.0.1:6388:6379"
     restart: unless-stopped
 
-  # 8. Lightpanda (Binario oficial desde GitHub Releases — Skill 3)
+  # 8. Lightpanda (Puerto host 9223 para no chocar con el 9222 de CronosOne)
   lightpanda:
     build:
       context: ./docker
       dockerfile: Dockerfile.lightpanda
     container_name: uwi_lightpanda
     ports:
-      - "127.0.0.1:9222:9222"
+      - "127.0.0.1:9223:9222"
     restart: unless-stopped
 
   # 9. HeadlessX (Servicio anti-detección en :38473 — Skill 1)

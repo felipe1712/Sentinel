@@ -30,9 +30,9 @@ server {
         proxy_read_timeout 180s;
     }
 
-    # Frontend Vite + React 18 (Plantilla Trezo :3100)
+    # Frontend Vite + React 18 (Plantilla Trezo :3101)
     location / {
-        proxy_pass http://127.0.0.1:3100;
+        proxy_pass http://127.0.0.1:3101;
         proxy_http_version 1.1;
         proxy_set_header Upgrade \$http_upgrade;
         proxy_set_header Connection 'upgrade';
