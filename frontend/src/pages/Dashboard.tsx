@@ -75,7 +75,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ rol }) => {
     <div>
       {/* KPIs ejecutivos */}
       <div className="row g-3 mb-3">
-        <div className="col-sm-6 col-xl-3">
+        <div className="col-12 col-sm-6 col-xl-3">
           <div className="uw-kpi-card">
             <div className="d-flex justify-content-between align-items-center mb-1">
               <small className="text-secondary fw-semibold">POLÍGONOS OFICIALES CDMX</small>
@@ -83,7 +83,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ rol }) => {
                 map
               </span>
             </div>
-            <div className="d-flex align-items-baseline justify-content-between">
+            <div className="d-flex flex-wrap align-items-baseline justify-content-between gap-2">
               <h3 className="mb-0 fw-bold text-dark">{coloniasCount.toLocaleString()}</h3>
               <span className="badge bg-light border text-secondary">
                 16 Alcaldías
@@ -92,16 +92,16 @@ export const Dashboard: React.FC<DashboardProps> = ({ rol }) => {
           </div>
         </div>
 
-        <div className="col-sm-6 col-xl-3">
+        <div className="col-12 col-sm-6 col-xl-3">
           <div className="uw-kpi-card">
             <div className="d-flex justify-content-between align-items-center mb-1">
               <small className="text-secondary fw-semibold">COLONIAS PRIORIDAD ALTA</small>
               <span className="material-symbols-outlined text-danger">warning</span>
             </div>
-            <div className="d-flex align-items-baseline justify-content-between">
+            <div className="d-flex flex-wrap align-items-baseline justify-content-between gap-2">
               <h3 className="mb-0 fw-bold text-danger">
                 {ESTADISTICAS_DELICTIVOS.colonias_prioridad_alta}{' '}
-                <small className="fs-6 text-secondary">
+                <small className="fs-6 text-secondary fw-normal">
                   ({ESTADISTICAS_DELICTIVOS.colonias_riesgo_critico} críticas)
                 </small>
               </h3>
@@ -110,7 +110,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ rol }) => {
           </div>
         </div>
 
-        <div className="col-sm-6 col-xl-3">
+        <div className="col-12 col-sm-6 col-xl-3">
           <div className="uw-kpi-card">
             <div className="d-flex justify-content-between align-items-center mb-1">
               <small className="text-secondary fw-semibold">DELITOS ALTO IMPACTO</small>
@@ -118,7 +118,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ rol }) => {
                 analytics
               </span>
             </div>
-            <div className="d-flex align-items-baseline justify-content-between">
+            <div className="d-flex flex-wrap align-items-baseline justify-content-between gap-2">
               <h3 className="mb-0 fw-bold" style={{ color: '#ea580c' }}>
                 {ESTADISTICAS_DELICTIVOS.total_alto_impacto_2024_2026.toLocaleString()}
               </h3>
@@ -129,13 +129,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ rol }) => {
           </div>
         </div>
 
-        <div className="col-sm-6 col-xl-3">
+        <div className="col-12 col-sm-6 col-xl-3">
           <div className="uw-kpi-card">
             <div className="d-flex justify-content-between align-items-center mb-1">
               <small className="text-secondary fw-semibold">PUNTOS PRIORITARIOS</small>
               <span className="material-symbols-outlined text-primary">crisis_alert</span>
             </div>
-            <div className="d-flex align-items-baseline justify-content-between">
+            <div className="d-flex flex-wrap align-items-baseline justify-content-between gap-2">
               <h3 className="mb-0 fw-bold text-dark">
                 {ESTADISTICAS_DELICTIVOS.total_sentinel_prioritarios_geojson.toLocaleString()}
               </h3>

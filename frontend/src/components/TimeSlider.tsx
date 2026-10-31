@@ -111,11 +111,11 @@ export const TimeSlider: React.FC<TimeSliderProps> = ({ onChange, onFullRange })
         style={{ '--bs-form-range-thumb-bg': '#ea580c' } as React.CSSProperties}
       />
 
-      <div className="d-flex justify-content-between align-items-center mt-1">
+      <div className="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-1">
         <small className="text-secondary">
           Cobertura histórica: {MIN_YEAR}–presente
         </small>
-        <div className="d-flex align-items-center gap-2">
+        <div className="d-flex align-items-center gap-2 flex-wrap">
           <select
             className="form-select form-select-sm bg-white text-dark border-secondary-subtle py-0"
             style={{ width: 'auto', fontSize: '0.72rem' }}

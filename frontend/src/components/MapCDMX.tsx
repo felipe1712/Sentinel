@@ -321,12 +321,13 @@ export const MapCDMX: React.FC<MapCDMXProps> = ({
 
       {/* Controles de capa prioritarios en esquina superior derecha */}
       <div
-        className="position-absolute top-0 end-0 me-5 mt-2 p-2 rounded-3 d-flex align-items-center gap-2 shadow-sm"
+        className="position-absolute top-0 end-0 me-5 mt-2 p-2 rounded-3 d-flex flex-wrap align-items-center gap-2 shadow-sm"
         style={{
           background: 'rgba(255, 255, 255, 0.94)',
           border: '1px solid #cbd5e1',
           backdropFilter: 'blur(6px)',
           fontSize: '0.73rem',
+          maxWidth: 'calc(100% - 56px)',
           zIndex: 4,
         }}
       >
@@ -345,7 +346,7 @@ export const MapCDMX: React.FC<MapCDMXProps> = ({
         {showPrioritarios && (
           <select
             className="form-select form-select-sm bg-white text-dark border-secondary-subtle py-0"
-            style={{ fontSize: '0.72rem', width: 220 }}
+            style={{ fontSize: '0.72rem', width: 'auto', maxWidth: '100%' }}
             value={familiaSentinel}
             onChange={(e) => setFamiliaSentinel(e.target.value)}
           >
@@ -361,12 +362,13 @@ export const MapCDMX: React.FC<MapCDMXProps> = ({
       {/* Tooltip superior al pasar el cursor sobre cualquier polígono real */}
       {hoveredColonia && (
         <div
-          className="position-absolute top-0 start-0 m-3 px-3 py-2 rounded-3 shadow-sm"
+          className="position-absolute top-0 start-0 m-2 px-3 py-2 rounded-3 shadow-sm"
           style={{
             background: 'rgba(255, 255, 255, 0.96)',
             border: '1px solid #ea580c',
             backdropFilter: 'blur(6px)',
             fontSize: '0.75rem',
+            maxWidth: 'calc(100% - 24px)',
             pointerEvents: 'none',
             zIndex: 5,
           }}
@@ -384,7 +386,7 @@ export const MapCDMX: React.FC<MapCDMXProps> = ({
               {hoveredColonia.nivel_riesgo}
             </span>
           </div>
-          <div className="d-flex gap-2 small" style={{ fontSize: '0.7rem' }}>
+          <div className="d-flex flex-wrap gap-2 small" style={{ fontSize: '0.7rem' }}>
             <span className="text-dark">
               Señales FGJ: <strong style={{ color: '#ea580c' }}>{hoveredColonia.total_senales}</strong>
             </span>
@@ -401,12 +403,13 @@ export const MapCDMX: React.FC<MapCDMXProps> = ({
 
       {/* Leyenda superpuesta */}
       <div
-        className="position-absolute bottom-0 start-0 m-3 p-2 rounded-3 shadow-sm"
+        className="position-absolute bottom-0 start-0 m-2 p-2 rounded-3 shadow-sm"
         style={{
           background: 'rgba(255, 255, 255, 0.94)',
           border: '1px solid #cbd5e1',
           backdropFilter: 'blur(6px)',
-          fontSize: '0.73rem',
+          fontSize: '0.72rem',
+          maxWidth: 'calc(100% - 20px)',
         }}
       >
         <div className="fw-bold mb-1" style={{ color: '#ea580c' }}>

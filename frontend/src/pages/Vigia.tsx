@@ -90,9 +90,14 @@ export const Vigia: React.FC = () => {
                     <span className="fw-bold text-dark">{s.nombre}</span>
                   </div>
                 </div>
-                <div className="small font-monospace mb-1" style={{ color: '#c2410c' }}>{s.url}</div>
+                <div
+                  className="small font-monospace mb-1 text-break"
+                  style={{ color: '#c2410c', wordBreak: 'break-all' }}
+                >
+                  {s.url}
+                </div>
                 <p className="small text-secondary mb-2">{s.descripcion}</p>
-                <div className="d-flex justify-content-between align-items-center">
+                <div className="d-flex flex-wrap justify-content-between align-items-center gap-2">
                   <div className="d-flex flex-wrap gap-1">
                     {(s.keywords || []).map((kw: string) => (
                       <span
@@ -106,7 +111,7 @@ export const Vigia: React.FC = () => {
                   </div>
                   <button
                     type="button"
-                    className="btn btn-sm uw-btn-orange py-0 px-2"
+                    className="btn btn-sm uw-btn-orange py-1 px-2 flex-shrink-0"
                     onClick={(e) => {
                       e.stopPropagation();
                       handleTriggerCapture(s.id);
