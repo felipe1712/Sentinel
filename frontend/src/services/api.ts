@@ -4,7 +4,15 @@ import {
   FALLBACK_INCIDENTES,
 } from '../data/fallbackData';
 
-const API_BASE = import.meta.env.VITE_API_URL || '';
+const rawEnvUrl = import.meta.env.VITE_API_URL || '';
+const API_BASE =
+  typeof window !== 'undefined' &&
+  window.location.hostname !== 'localhost' &&
+  window.location.hostname !== '127.0.0.1'
+    ? ''
+    : rawEnvUrl.includes('localhost')
+    ? ''
+    : rawEnvUrl;
 
 async function safeFetch<T>(path: string, init?: RequestInit, fallback?: T): Promise<T> {
   try {
