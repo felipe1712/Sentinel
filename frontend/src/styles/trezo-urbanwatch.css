@@ -1,17 +1,17 @@
 :root {
-  --uw-bg-primary: #0d0d0d;
-  --uw-bg-card: #14171f;
-  --uw-bg-sidebar: #11131a;
-  --uw-bg-elevated: #1b202c;
-  --uw-border: #252b3b;
-  --uw-orange: #ff6b35;
-  --uw-orange-soft: rgba(255, 107, 53, 0.14);
-  --uw-red-critico: #ef4444;
-  --uw-amber-medio: #ffb347;
-  --uw-blue-colonia: #3b82f6;
-  --uw-text-main: #f1f5f9;
-  --uw-text-muted: #94a3b8;
-  --trezo-indigo: #605dff;
+  --uw-bg-primary: #f1f5f9;
+  --uw-bg-card: #ffffff;
+  --uw-bg-sidebar: #ffffff;
+  --uw-bg-elevated: #f8fafc;
+  --uw-border: #e2e8f0;
+  --uw-orange: #ea580c;
+  --uw-orange-soft: rgba(234, 88, 12, 0.10);
+  --uw-red-critico: #dc2626;
+  --uw-amber-medio: #d97706;
+  --uw-blue-colonia: #2563eb;
+  --uw-text-main: #0f172a;
+  --uw-text-muted: #64748b;
+  --trezo-indigo: #4f46e5;
 }
 
 * {
@@ -26,7 +26,7 @@ body {
   overflow-x: hidden;
 }
 
-/* Plantilla Trezo (CronosOne) — Layout Principal */
+/* Plantilla Trezo — Layout Principal (Tema Claro Ejecutivo) */
 .trezo-wrapper {
   display: flex;
   min-height: 100vh;
@@ -34,8 +34,8 @@ body {
 }
 
 .trezo-sidebar {
-  width: 268px;
-  min-width: 268px;
+  width: 264px;
+  min-width: 264px;
   background-color: var(--uw-bg-sidebar);
   border-right: 1px solid var(--uw-border);
   display: flex;
@@ -45,6 +45,7 @@ body {
   height: 100vh;
   z-index: 1030;
   transition: all 0.25s ease;
+  box-shadow: 2px 0 12px rgba(15, 23, 42, 0.03);
 }
 
 .trezo-sidebar.collapsed {
@@ -53,7 +54,7 @@ body {
 }
 
 .trezo-logo-box {
-  height: 68px;
+  height: 64px;
   padding: 0 20px;
   display: flex;
   align-items: center;
@@ -66,29 +67,29 @@ body {
   align-items: center;
   gap: 11px;
   text-decoration: none;
-  color: #ffffff;
+  color: var(--uw-text-main);
 }
 
 .trezo-logo-icon {
   width: 36px;
   height: 36px;
   border-radius: 9px;
-  background: linear-gradient(135deg, #ff6b35 0%, #e11d48 100%);
+  background: linear-gradient(135deg, #ea580c 0%, #dc2626 100%);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #0d0d0d;
+  color: #ffffff;
   font-weight: 800;
-  box-shadow: 0 4px 14px rgba(255, 107, 53, 0.35);
+  box-shadow: 0 4px 12px rgba(234, 88, 12, 0.25);
 }
 
 .trezo-section-label {
   font-size: 0.68rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 1.1px;
-  color: var(--uw-orange);
-  padding: 16px 20px 6px;
+  letter-spacing: 1px;
+  color: var(--uw-text-muted);
+  padding: 18px 20px 6px;
 }
 
 .trezo-nav-list {
@@ -107,7 +108,7 @@ body {
   gap: 12px;
   padding: 10px 14px;
   border-radius: 8px;
-  color: var(--uw-text-muted);
+  color: #475569;
   text-decoration: none;
   font-size: 0.875rem;
   font-weight: 500;
@@ -115,8 +116,8 @@ body {
 }
 
 .trezo-nav-link:hover {
-  background-color: rgba(255, 255, 255, 0.04);
-  color: #ffffff;
+  background-color: #f8fafc;
+  color: var(--uw-text-main);
 }
 
 .trezo-nav-link.active {
@@ -134,7 +135,7 @@ body {
 }
 
 .trezo-topbar {
-  height: 68px;
+  height: 64px;
   background-color: var(--uw-bg-sidebar);
   border-bottom: 1px solid var(--uw-border);
   padding: 0 24px;
@@ -144,6 +145,7 @@ body {
   position: sticky;
   top: 0;
   z-index: 1020;
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.03);
 }
 
 .trezo-content {
@@ -151,13 +153,13 @@ body {
   flex: 1;
 }
 
-/* Tarjetas estilo Trezo Dark Executive */
+/* Tarjetas estilo Trezo Light Executive */
 .uw-card {
   background-color: var(--uw-bg-card);
   border: 1px solid var(--uw-border);
   border-radius: 12px;
   padding: 18px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
+  box-shadow: 0 2px 10px rgba(15, 23, 42, 0.04);
 }
 
 .uw-card-header {
@@ -166,32 +168,34 @@ body {
   justify-content: space-between;
   margin-bottom: 14px;
   padding-bottom: 10px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid var(--uw-border);
 }
 
 .uw-kpi-card {
-  background: linear-gradient(180deg, #161a24 0%, #11141c 100%);
+  background: #ffffff;
   border: 1px solid var(--uw-border);
   border-radius: 12px;
   padding: 16px 18px;
-  transition: transform 0.15s ease, border-color 0.15s ease;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .uw-kpi-card:hover {
-  border-color: rgba(255, 107, 53, 0.5);
+  border-color: rgba(234, 88, 12, 0.45);
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.07);
   transform: translateY(-2px);
 }
 
 .uw-btn-orange {
   background-color: var(--uw-orange);
-  color: #0d0d0d;
+  color: #ffffff;
   font-weight: 600;
   border: none;
 }
 
 .uw-btn-orange:hover {
-  background-color: #ff8255;
-  color: #0d0d0d;
+  background-color: #c2410c;
+  color: #ffffff;
 }
 
 .material-symbols-outlined {
@@ -200,18 +204,31 @@ body {
   vertical-align: middle;
 }
 
-/* Scrollbar ejecutiva */
+/* Adaptación de clases utilitarias para tema claro */
+.text-light {
+  color: var(--uw-text-main) !important;
+}
+
+.text-warning {
+  color: #d97706 !important;
+}
+
+.text-info {
+  color: #0284c7 !important;
+}
+
+/* Scrollbar ejecutiva clara */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #0d0d0d;
+  background: #f1f5f9;
 }
 ::-webkit-scrollbar-thumb {
-  background: #2b3245;
+  background: #cbd5e1;
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #ff6b35;
+  background: #ea580c;
 }

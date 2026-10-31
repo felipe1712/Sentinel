@@ -46,7 +46,7 @@ export const EmediosJobs: React.FC = () => {
           articulos_proc: 28,
           articulos_ok: 28,
           articulos_error: 0,
-          checkpoint: { current_month: fechaInicio.slice(0, 7), engine: 'lightpanda', ram_mb: 119 },
+          checkpoint: { current_month: fechaInicio.slice(0, 7) },
           status: 'corriendo',
           modo_ingesta: modo,
         },
@@ -77,24 +77,24 @@ export const EmediosJobs: React.FC = () => {
           <div className="uw-card h-100">
             <div className="uw-card-header">
               <div>
-                <h6 className="mb-0 text-light fw-bold">
-                  Nuevo Job Scraper E-Medios
+                <h6 className="mb-0 text-dark fw-bold">
+                  Nueva Tarea de Monitoreo de Medios
                 </h6>
                 <small className="text-secondary">
-                  Regla R2: Motor <code>lightpanda</code> (ws://localhost:9222) · ~120MB RAM
+                  Recolección automatizada de prensa y boletines de seguridad
                 </small>
               </div>
             </div>
 
             <div className="mb-2">
-              <label className="form-label small text-secondary mb-1">Modo de Ingesta (R5)</label>
+              <label className="form-label small text-secondary mb-1">Modo de Ingesta</label>
               <select
-                className="form-select form-select-sm bg-dark text-light border-secondary"
+                className="form-select form-select-sm bg-white text-dark border-secondary-subtle"
                 value={modo}
                 onChange={(e) => setModo(e.target.value)}
               >
-                <option value="operativo">Operativo (últimas 48h)</option>
-                <option value="historico">Histórico (2016–2026 por lotes mensuales)</option>
+                <option value="operativo">Operativo Reciente</option>
+                <option value="historico">Histórico por Lotes Mensuales</option>
               </select>
             </div>
 
@@ -103,7 +103,7 @@ export const EmediosJobs: React.FC = () => {
                 <label className="form-label small text-secondary mb-1">Fecha Inicio</label>
                 <input
                   type="date"
-                  className="form-control form-control-sm bg-dark text-light border-secondary"
+                  className="form-control form-control-sm bg-white text-dark border-secondary-subtle"
                   value={fechaInicio}
                   onChange={(e) => setFechaInicio(e.target.value)}
                 />
@@ -112,7 +112,7 @@ export const EmediosJobs: React.FC = () => {
                 <label className="form-label small text-secondary mb-1">Fecha Fin</label>
                 <input
                   type="date"
-                  className="form-control form-control-sm bg-dark text-light border-secondary"
+                  className="form-control form-control-sm bg-white text-dark border-secondary-subtle"
                   value={fechaFin}
                   onChange={(e) => setFechaFin(e.target.value)}
                 />
@@ -125,7 +125,7 @@ export const EmediosJobs: React.FC = () => {
               </label>
               <textarea
                 rows={2}
-                className="form-control form-control-sm bg-dark text-light border-secondary"
+                className="form-control form-control-sm bg-white text-dark border-secondary-subtle"
                 value={terminos}
                 onChange={(e) => setTerminos(e.target.value)}
               />
@@ -136,7 +136,7 @@ export const EmediosJobs: React.FC = () => {
               className="btn btn-sm uw-btn-orange w-100 py-2"
               onClick={handleCreateJob}
             >
-              🚀 Lanzar Job en Lightpanda CDP
+              🚀 Iniciar Recolección de Medios
             </button>
           </div>
         </div>
@@ -145,22 +145,21 @@ export const EmediosJobs: React.FC = () => {
           <div className="uw-card h-100">
             <div className="uw-card-header">
               <div>
-                <h6 className="mb-0 text-light fw-bold">
-                  Cola de Jobs E-Medios + Deduplicación SHA-256 (Regla R6)
+                <h6 className="mb-0 text-dark fw-bold">
+                  Cola de Tareas de Monitoreo y Deduplicación
                 </h6>
                 <small className="text-secondary">
-                  <code>hash_titulo = SHA-256(titulo.lower().strip() + "|" + fecha_pub)</code> · ON CONFLICT DO NOTHING
+                  Control automático de duplicados por título y fecha de publicación
                 </small>
               </div>
             </div>
 
             <div className="table-responsive">
-              <table className="table table-dark table-hover align-middle small mb-0">
-                <thead>
+              <table className="table table-hover align-middle small mb-0">
+                <thead className="table-light">
                   <tr className="text-secondary">
-                    <th>Rango (fecha_pub)</th>
+                    <th>Periodo</th>
                     <th>Modo</th>
-                    <th>Motor / RAM</th>
                     <th>Progreso</th>
                     <th>Estado</th>
                     <th>Acciones</th>
@@ -175,7 +174,7 @@ export const EmediosJobs: React.FC = () => {
                     return (
                       <tr key={j.id}>
                         <td>
-                          <div className="fw-semibold text-light">
+                          <div className="fw-semibold text-dark">
                             {j.fecha_inicio} → {j.fecha_fin}
                           </div>
                           <small className="text-secondary">
@@ -183,13 +182,8 @@ export const EmediosJobs: React.FC = () => {
                           </small>
                         </td>
                         <td>
-                          <span className="badge bg-dark border border-secondary">
+                          <span className="badge bg-light border text-dark">
                             {j.modo_ingesta}
-                          </span>
-                        </td>
-                        <td>
-                          <span className="badge bg-info bg-opacity-25 text-info border border-info">
-                            {j.checkpoint?.engine || 'lightpanda'} ({j.checkpoint?.ram_mb || 120}MB)
                           </span>
                         </td>
                         <td style={{ minWidth: 140 }}>
@@ -197,12 +191,12 @@ export const EmediosJobs: React.FC = () => {
                             <span>
                               {j.articulos_ok}/{j.articulos_total}
                             </span>
-                            <span style={{ color: '#FF6B35' }}>{pct}%</span>
+                            <span style={{ color: '#ea580c' }}>{pct}%</span>
                           </div>
-                          <div className="progress" style={{ height: 5, background: '#1e2433' }}>
+                          <div className="progress" style={{ height: 5, background: '#e2e8f0' }}>
                             <div
                               className="progress-bar"
-                              style={{ width: `${pct}%`, backgroundColor: '#FF6B35' }}
+                              style={{ width: `${pct}%`, backgroundColor: '#ea580c' }}
                             />
                           </div>
                         </td>

@@ -73,20 +73,20 @@ export const Dashboard: React.FC<DashboardProps> = ({ rol }) => {
 
   return (
     <div>
-      {/* KPIs ejecutivos estilo Trezo CronosOne con datos reales uw-sf */}
+      {/* KPIs ejecutivos */}
       <div className="row g-3 mb-3">
         <div className="col-sm-6 col-xl-3">
           <div className="uw-kpi-card">
             <div className="d-flex justify-content-between align-items-center mb-1">
-              <small className="text-secondary fw-semibold">POLÍGONOS REALES CDMX</small>
-              <span className="material-symbols-outlined" style={{ color: '#FF6B35' }}>
+              <small className="text-secondary fw-semibold">POLÍGONOS OFICIALES CDMX</small>
+              <span className="material-symbols-outlined" style={{ color: '#ea580c' }}>
                 map
               </span>
             </div>
             <div className="d-flex align-items-baseline justify-content-between">
-              <h3 className="mb-0 fw-bold text-light">{coloniasCount.toLocaleString()}</h3>
-              <span className="badge bg-dark border border-secondary text-warning">
-                16 Alcaldías · Shapefile Oficial
+              <h3 className="mb-0 fw-bold text-dark">{coloniasCount.toLocaleString()}</h3>
+              <span className="badge bg-light border text-secondary">
+                16 Alcaldías
               </span>
             </div>
           </div>
@@ -95,7 +95,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ rol }) => {
         <div className="col-sm-6 col-xl-3">
           <div className="uw-kpi-card">
             <div className="d-flex justify-content-between align-items-center mb-1">
-              <small className="text-secondary fw-semibold">PRIORIDAD ALTA (SEÑALES FGJ)</small>
+              <small className="text-secondary fw-semibold">COLONIAS PRIORIDAD ALTA</small>
               <span className="material-symbols-outlined text-danger">warning</span>
             </div>
             <div className="d-flex align-items-baseline justify-content-between">
@@ -113,13 +113,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ rol }) => {
         <div className="col-sm-6 col-xl-3">
           <div className="uw-kpi-card">
             <div className="d-flex justify-content-between align-items-center mb-1">
-              <small className="text-secondary fw-semibold">ALTO IMPACTO (2024–2026)</small>
-              <span className="material-symbols-outlined" style={{ color: '#FF6B35' }}>
+              <small className="text-secondary fw-semibold">DELITOS ALTO IMPACTO</small>
+              <span className="material-symbols-outlined" style={{ color: '#ea580c' }}>
                 analytics
               </span>
             </div>
             <div className="d-flex align-items-baseline justify-content-between">
-              <h3 className="mb-0 fw-bold" style={{ color: '#FF6B35' }}>
+              <h3 className="mb-0 fw-bold" style={{ color: '#ea580c' }}>
                 {ESTADISTICAS_DELICTIVOS.total_alto_impacto_2024_2026.toLocaleString()}
               </h3>
               <small className="text-secondary">
@@ -132,14 +132,14 @@ export const Dashboard: React.FC<DashboardProps> = ({ rol }) => {
         <div className="col-sm-6 col-xl-3">
           <div className="uw-kpi-card">
             <div className="d-flex justify-content-between align-items-center mb-1">
-              <small className="text-secondary fw-semibold">GEOJSON PRIORITARIOS</small>
-              <span className="material-symbols-outlined text-info">crisis_alert</span>
+              <small className="text-secondary fw-semibold">PUNTOS PRIORITARIOS</small>
+              <span className="material-symbols-outlined text-primary">crisis_alert</span>
             </div>
             <div className="d-flex align-items-baseline justify-content-between">
-              <h3 className="mb-0 fw-bold text-warning">
+              <h3 className="mb-0 fw-bold text-dark">
                 {ESTADISTICAS_DELICTIVOS.total_sentinel_prioritarios_geojson.toLocaleString()}
               </h3>
-              <span className="badge bg-danger bg-opacity-25 text-danger border border-danger">
+              <span className="badge bg-danger-subtle text-danger border border-danger-subtle">
                 {ESTADISTICAS_DELICTIVOS.total_senales_indice.toLocaleString()} señales índice
               </span>
             </div>
@@ -147,7 +147,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ rol }) => {
         </div>
       </div>
 
-      {/* Barra de filtros + Time Slider */}
+      {/* Barra de filtros + Línea de Tiempo */}
       <div className="row g-3 mb-3">
         <div className="col-lg-7">
           <TimeSlider
@@ -165,7 +165,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ rol }) => {
                   Filtrar por Delito
                 </label>
                 <select
-                  className="form-select form-select-sm bg-dark text-light border-secondary"
+                  className="form-select form-select-sm bg-white text-dark border-secondary-subtle"
                   value={tipoFiltro || ''}
                   onChange={(e) => setTipoFiltro(e.target.value || null)}
                 >
@@ -181,11 +181,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ rol }) => {
                   Filtrar por Alcaldía
                 </label>
                 <select
-                  className="form-select form-select-sm bg-dark text-light border-secondary"
+                  className="form-select form-select-sm bg-white text-dark border-secondary-subtle"
                   value={alcaldiaFiltro || ''}
                   onChange={(e) => setAlcaldiaFiltro(e.target.value || null)}
                 >
-                  <option value="">Todas las Alcaldías (16)</option>
+                  <option value="">Todas las Alcaldías</option>
                   {ALCALDIAS.filter(Boolean).map((a) => (
                     <option key={a} value={a}>
                       {a}
@@ -198,7 +198,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ rol }) => {
         </div>
       </div>
 
-      {/* Mapa principal MapLibre + deck.gl + sentinel_prioritarios.geojson y Panel Lateral de Colonia */}
+      {/* Mapa principal y Panel Lateral de Colonia */}
       <div className="row g-3 mb-4">
         <div className="col-xl-8">
           <div className="uw-card p-2" style={{ height: 575 }}>
@@ -219,14 +219,14 @@ export const Dashboard: React.FC<DashboardProps> = ({ rol }) => {
         </div>
       </div>
 
-      {/* Paneles de Inteligencia Delictiva (indice_senales_colonia.csv + resumen_fenomenos.csv) */}
+      {/* Paneles de Inteligencia Delictiva */}
       <div className="row g-3 mb-4">
         <div className="col-xl-7">
           <div className="uw-card h-100">
             <div className="uw-card-header">
               <div>
-                <h6 className="mb-0 text-light fw-bold">
-                  Top Colonias por Índice de Señales Delictivas FGJ (<code>indice_senales_colonia.csv</code>)
+                <h6 className="mb-0 text-dark fw-bold">
+                  Top Colonias por Índice de Señales Delictivas FGJ
                 </h6>
                 <small className="text-secondary">
                   Haz clic en cualquier colonia para consultar su radiografía operativa en el panel
@@ -234,17 +234,17 @@ export const Dashboard: React.FC<DashboardProps> = ({ rol }) => {
               </div>
             </div>
             <div className="table-responsive" style={{ maxHeight: 340 }}>
-              <table className="table table-dark table-hover table-sm align-middle mb-0" style={{ fontSize: '0.76rem' }}>
-                <thead>
+              <table className="table table-hover table-sm align-middle mb-0" style={{ fontSize: '0.76rem' }}>
+                <thead className="table-light">
                   <tr className="text-secondary">
                     <th>#</th>
                     <th>Colonia</th>
                     <th>Alcaldía</th>
-                    <th className="text-end text-info">Narco</th>
+                    <th className="text-end text-primary">Narco</th>
                     <th className="text-end text-danger">Extorsión</th>
-                    <th className="text-end text-warning">Armas</th>
+                    <th className="text-end" style={{ color: '#d97706' }}>Armas</th>
                     <th className="text-end">Despojo/Sec.</th>
-                    <th className="text-end" style={{ color: '#FF6B35' }}>Total</th>
+                    <th className="text-end" style={{ color: '#ea580c' }}>Total</th>
                     <th>Prioridad</th>
                   </tr>
                 </thead>
@@ -256,17 +256,17 @@ export const Dashboard: React.FC<DashboardProps> = ({ rol }) => {
                       onClick={() => setSelectedColoniaId(col.colonia)}
                     >
                       <td className="text-secondary">{idx + 1}</td>
-                      <td className="fw-bold text-light">{col.colonia}</td>
+                      <td className="fw-bold text-dark">{col.colonia}</td>
                       <td className="text-secondary">{col.alcaldia}</td>
-                      <td className="text-end text-info fw-semibold">{col.narco_venta}</td>
+                      <td className="text-end text-primary fw-semibold">{col.narco_venta}</td>
                       <td className="text-end text-danger fw-semibold">{col.extorsion_cobro}</td>
-                      <td className="text-end text-warning fw-semibold">{col.armas_violencia}</td>
-                      <td className="text-end text-light">{col.secuestro_despojo}</td>
-                      <td className="text-end fw-bold" style={{ color: '#FF6B35' }}>
+                      <td className="text-end fw-semibold" style={{ color: '#d97706' }}>{col.armas_violencia}</td>
+                      <td className="text-end text-dark">{col.secuestro_despojo}</td>
+                      <td className="text-end fw-bold" style={{ color: '#ea580c' }}>
                         {col.total_senales}
                       </td>
                       <td>
-                        <span className="badge bg-danger bg-opacity-25 text-danger border border-danger">
+                        <span className="badge bg-danger-subtle text-danger border border-danger-subtle">
                           {col.prioridad}
                         </span>
                       </td>
@@ -282,11 +282,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ rol }) => {
           <div className="uw-card h-100">
             <div className="uw-card-header">
               <div>
-                <h6 className="mb-0 text-light fw-bold">
-                  Resumen de Fenómenos Delictivos FGJ (<code>resumen_fenomenos.csv</code>)
+                <h6 className="mb-0 text-dark fw-bold">
+                  Resumen de Fenómenos Delictivos FGJ
                 </h6>
                 <small className="text-secondary">
-                  Taxonomía Sentinel en 8 familias delictivas y 20 categorías (Carpetas FGJ)
+                  Distribución en 8 familias delictivas y 20 categorías operativas
                 </small>
               </div>
             </div>
@@ -295,11 +295,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ rol }) => {
                 <div
                   key={famName}
                   className="p-2 rounded-3 mb-2"
-                  style={{ background: '#121620', border: '1px solid #262c3d' }}
+                  style={{ background: '#f8fafc', border: '1px solid #e2e8f0' }}
                 >
                   <div className="d-flex justify-content-between align-items-center mb-1">
-                    <span className="fw-bold text-light small">{famName}</span>
-                    <span className="badge" style={{ background: '#FF6B35', color: '#fff' }}>
+                    <span className="fw-bold text-dark small">{famName}</span>
+                    <span className="badge" style={{ background: '#ea580c', color: '#fff' }}>
                       {famData.total.toLocaleString()} carpetas
                     </span>
                   </div>
@@ -310,7 +310,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ rol }) => {
                       style={{ fontSize: '0.73rem' }}
                     >
                       <span>• {cat.categoria}</span>
-                      <span className="text-light fw-semibold">
+                      <span className="text-dark fw-semibold">
                         {cat.carpetas.toLocaleString()}
                       </span>
                     </div>
@@ -322,16 +322,15 @@ export const Dashboard: React.FC<DashboardProps> = ({ rol }) => {
         </div>
       </div>
 
-      {/* Feed de incidentes filtrados por fecha_incidente y nivel_conf */}
+      {/* Feed de incidentes */}
       <div className="uw-card">
         <div className="uw-card-header">
           <div>
-            <h6 className="mb-0 text-light fw-bold">
-              Bitácora Georreferenciada FGJ Alto Impacto + Sentinel ({incidentesEnVentana.length})
+            <h6 className="mb-0 text-dark fw-bold">
+              Bitácora Georreferenciada de Alto Impacto ({incidentesEnVentana.length})
             </h6>
             <small className="text-secondary">
-              Filtrado estrictamente por <code>fecha_incidente</code> (Regla R3) y nivel de
-              confidencialidad autorizado para rol <strong>{rol}</strong> (Regla R4)
+              Eventos filtrados por fecha del incidente y nivel de acceso autorizado
             </small>
           </div>
         </div>

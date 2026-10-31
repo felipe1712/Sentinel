@@ -25,10 +25,10 @@ export const ColoniaPanel: React.FC<ColoniaPanelProps> = ({ coloniaId, onClose }
   if (!coloniaId) {
     return (
       <div className="uw-card h-100 d-flex flex-column justify-content-center align-items-center text-center p-4">
-        <span className="material-symbols-outlined mb-2" style={{ fontSize: 44, color: '#FF6B35' }}>
+        <span className="material-symbols-outlined mb-2" style={{ fontSize: 44, color: '#ea580c' }}>
           radar
         </span>
-        <h6 className="text-light fw-bold mb-1">Selecciona una Colonia en el Mapa</h6>
+        <h6 className="text-dark fw-bold mb-1">Selecciona una Colonia en el Mapa</h6>
         <p className="text-secondary small mb-0">
           Haz clic sobre cualquiera de los 1,543 polígonos reales en el mapa para consultar su
           Índice de Señales FGJ, presencia de grupos criminales e incidentes georreferenciados.
@@ -53,10 +53,10 @@ export const ColoniaPanel: React.FC<ColoniaPanelProps> = ({ coloniaId, onClose }
     <div className="uw-card h-100 d-flex flex-column">
       <div className="uw-card-header">
         <div>
-          <small className="text-uppercase fw-bold" style={{ color: '#FF6B35', fontSize: '0.7rem' }}>
+          <small className="text-uppercase fw-bold" style={{ color: '#ea580c', fontSize: '0.7rem' }}>
             {col.alcaldia} · CVE {col.cve_colonia} · Prioridad {col.prioridad || 'Media'}
           </small>
-          <h5 className="mb-0 text-light fw-bold">{col.nombre}</h5>
+          <h5 className="mb-0 text-dark fw-bold">{col.nombre}</h5>
         </div>
         <div className="d-flex align-items-center gap-2">
           <AlertaBadge nivel={col.nivel_riesgo || 'alto'} />
@@ -71,8 +71,8 @@ export const ColoniaPanel: React.FC<ColoniaPanelProps> = ({ coloniaId, onClose }
       {/* KPIs rápidos de la colonia */}
       <div className="row g-2 mb-2">
         <div className="col-4">
-          <div className="p-2 rounded text-center" style={{ background: '#1b202c' }}>
-            <div className="fw-bold fs-5" style={{ color: '#FF6B35' }}>
+          <div className="p-2 rounded text-center" style={{ background: '#f8fafc', border: '1px solid #e2e8f0' }}>
+            <div className="fw-bold fs-5" style={{ color: '#ea580c' }}>
               {totalSenales}
             </div>
             <small className="text-secondary" style={{ fontSize: '0.68rem' }}>
@@ -81,8 +81,8 @@ export const ColoniaPanel: React.FC<ColoniaPanelProps> = ({ coloniaId, onClose }
           </div>
         </div>
         <div className="col-4">
-          <div className="p-2 rounded text-center" style={{ background: '#1b202c' }}>
-            <div className="fw-bold fs-5 text-light">
+          <div className="p-2 rounded text-center" style={{ background: '#f8fafc', border: '1px solid #e2e8f0' }}>
+            <div className="fw-bold fs-5 text-dark">
               {col.familias_presentes ?? 4}/4
             </div>
             <small className="text-secondary" style={{ fontSize: '0.68rem' }}>
@@ -91,7 +91,7 @@ export const ColoniaPanel: React.FC<ColoniaPanelProps> = ({ coloniaId, onClose }
           </div>
         </div>
         <div className="col-4">
-          <div className="p-2 rounded text-center" style={{ background: '#1b202c' }}>
+          <div className="p-2 rounded text-center" style={{ background: '#f8fafc', border: '1px solid #e2e8f0' }}>
             <div className="fw-bold fs-5 text-danger">
               {data.actores_activos?.length || 1}
             </div>
@@ -102,30 +102,30 @@ export const ColoniaPanel: React.FC<ColoniaPanelProps> = ({ coloniaId, onClose }
         </div>
       </div>
 
-      {/* Desglose del Índice de Señales por Colonia (indice_senales_colonia.csv) */}
+      {/* Desglose del Índice de Señales por Colonia */}
       <div
         className="p-2 rounded-3 mb-2"
-        style={{ background: '#121620', border: '1px solid #262c3d', fontSize: '0.74rem' }}
+        style={{ background: '#f8fafc', border: '1px solid #e2e8f0', fontSize: '0.74rem' }}
       >
         <div className="d-flex justify-content-between align-items-center mb-1">
           <span className="fw-bold text-uppercase text-secondary" style={{ fontSize: '0.68rem' }}>
             Índice de Señales FGJ en Colonia
           </span>
-          <span className="badge bg-dark border border-secondary text-warning">
+          <span className="badge bg-warning-subtle text-dark border border-warning">
             Prioridad {col.prioridad || 'Media'}
           </span>
         </div>
         <div className="row g-1 text-center">
           <div className="col-3">
-            <div className="p-1 rounded" style={{ background: '#191f2e' }}>
-              <div className="fw-bold text-info">{col.narco_venta ?? 0}</div>
+            <div className="p-1 rounded bg-white border">
+              <div className="fw-bold text-primary">{col.narco_venta ?? 0}</div>
               <small className="text-secondary" style={{ fontSize: '0.63rem' }}>
                 Narcomenudeo
               </small>
             </div>
           </div>
           <div className="col-3">
-            <div className="p-1 rounded" style={{ background: '#191f2e' }}>
+            <div className="p-1 rounded bg-white border">
               <div className="fw-bold text-danger">{col.extorsion_cobro ?? 0}</div>
               <small className="text-secondary" style={{ fontSize: '0.63rem' }}>
                 Extorsión
@@ -133,16 +133,16 @@ export const ColoniaPanel: React.FC<ColoniaPanelProps> = ({ coloniaId, onClose }
             </div>
           </div>
           <div className="col-3">
-            <div className="p-1 rounded" style={{ background: '#191f2e' }}>
-              <div className="fw-bold text-warning">{col.armas_violencia ?? 0}</div>
+            <div className="p-1 rounded bg-white border">
+              <div className="fw-bold" style={{ color: '#d97706' }}>{col.armas_violencia ?? 0}</div>
               <small className="text-secondary" style={{ fontSize: '0.63rem' }}>
                 Armas/Letal
               </small>
             </div>
           </div>
           <div className="col-3">
-            <div className="p-1 rounded" style={{ background: '#191f2e' }}>
-              <div className="fw-bold text-light">{col.secuestro_despojo ?? 0}</div>
+            <div className="p-1 rounded bg-white border">
+              <div className="fw-bold text-dark">{col.secuestro_despojo ?? 0}</div>
               <small className="text-secondary" style={{ fontSize: '0.63rem' }}>
                 Despojo/Sec.
               </small>
@@ -151,11 +151,11 @@ export const ColoniaPanel: React.FC<ColoniaPanelProps> = ({ coloniaId, onClose }
         </div>
       </div>
 
-      {/* Actores criminales con presencia (presencia_grupos_alcaldia.csv) */}
+      {/* Actores criminales con presencia */}
       {data.actores_activos?.length > 0 && (
         <div className="mb-2">
           <small className="text-uppercase fw-bold text-secondary d-block mb-1" style={{ fontSize: '0.68rem' }}>
-            Presencia Criminal en {col.alcaldia} (FGJ + Medios)
+            Presencia Criminal en {col.alcaldia}
           </small>
           <div className="d-flex flex-wrap gap-1">
             {data.actores_activos.map((act: any) => (
@@ -163,9 +163,9 @@ export const ColoniaPanel: React.FC<ColoniaPanelProps> = ({ coloniaId, onClose }
                 key={act.id || act.nombre}
                 className="badge"
                 style={{
-                  background: 'rgba(239, 68, 68, 0.18)',
-                  color: '#fca5a5',
-                  border: '1px solid #ef4444',
+                  background: '#fef2f2',
+                  color: '#b91c1c',
+                  border: '1px solid #fecaca',
                   fontSize: '0.69rem',
                 }}
               >
@@ -176,22 +176,22 @@ export const ColoniaPanel: React.FC<ColoniaPanelProps> = ({ coloniaId, onClose }
         </div>
       )}
 
-      {/* Resumen ejecutivo Claude + WorldMonitor */}
+      {/* Resumen ejecutivo */}
       {resumen && (
         <div
           className="p-2 rounded-3 mb-2"
           style={{
-            background: 'rgba(255, 107, 53, 0.08)',
-            border: '1px solid rgba(255, 107, 53, 0.35)',
+            background: '#fff7ed',
+            border: '1px solid #fed7aa',
           }}
         >
           <div className="d-flex justify-content-between align-items-center mb-1">
-            <small className="fw-bold" style={{ color: '#FF6B35', fontSize: '0.72rem' }}>
-              🤖 Síntesis Ejecutiva FGJ + WorldMonitor MCP
+            <small className="fw-bold" style={{ color: '#ea580c', fontSize: '0.72rem' }}>
+              📊 Síntesis Ejecutiva de Inteligencia
             </small>
             <AlertaBadge nivel={resumen.nivel_alerta || 'alerta'} />
           </div>
-          <p className="small text-light mb-1" style={{ fontSize: '0.76rem' }}>
+          <p className="small text-dark mb-1" style={{ fontSize: '0.76rem' }}>
             {resumen.resumen}
           </p>
         </div>
@@ -200,7 +200,7 @@ export const ColoniaPanel: React.FC<ColoniaPanelProps> = ({ coloniaId, onClose }
       {/* Historial reciente de la colonia */}
       <div className="d-flex justify-content-between align-items-center mb-2">
         <small className="text-uppercase fw-bold text-secondary" style={{ fontSize: '0.7rem' }}>
-          Carpetas e Incidentes (fecha_incidente)
+          Carpetas e Incidentes Recientes
         </small>
         <Link
           to={`/colonia/${col.id}`}

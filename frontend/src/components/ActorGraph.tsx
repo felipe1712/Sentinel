@@ -26,17 +26,17 @@ export const ActorGraph: React.FC<ActorGraphProps> = ({ elements, onNodeSelect }
           style: {
             'background-color': 'data(color)',
             label: 'data(label)',
-            color: '#f8fafc',
+            color: '#0f172a',
             'font-size': '11px',
             'font-weight': 600,
             'text-valign': 'bottom',
             'text-margin-y': 6,
             'text-outline-width': 2,
-            'text-outline-color': '#0d0d0d',
+            'text-outline-color': '#ffffff',
             width: 34,
             height: 34,
             'border-width': 2,
-            'border-color': '#ffffff33',
+            'border-color': '#ffffff',
           },
         },
         {
@@ -45,7 +45,7 @@ export const ActorGraph: React.FC<ActorGraphProps> = ({ elements, onNodeSelect }
             width: 48,
             height: 48,
             'border-width': 3,
-            'border-color': '#fca5a5',
+            'border-color': '#dc2626',
           },
         },
         {
@@ -54,7 +54,7 @@ export const ActorGraph: React.FC<ActorGraphProps> = ({ elements, onNodeSelect }
             width: 40,
             height: 40,
             'border-width': 2,
-            'border-color': '#fdba74',
+            'border-color': '#ea580c',
           },
         },
         {
@@ -69,25 +69,25 @@ export const ActorGraph: React.FC<ActorGraphProps> = ({ elements, onNodeSelect }
           selector: 'edge',
           style: {
             width: 2,
-            'line-color': '#475569',
-            'target-arrow-color': '#FF6B35',
+            'line-color': '#94a3b8',
+            'target-arrow-color': '#ea580c',
             'target-arrow-shape': 'triangle',
             'curve-style': 'bezier',
             label: 'data(label)',
             'font-size': '9px',
-            color: '#94a3b8',
+            color: '#475569',
             'text-rotation': 'autorotate',
-            'text-background-color': '#0d0d0d',
-            'text-background-opacity': 0.85,
+            'text-background-color': '#ffffff',
+            'text-background-opacity': 0.9,
           },
         },
         {
           selector: '.highlighted',
           style: {
             'border-width': 4,
-            'border-color': '#FF6B35',
-            'line-color': '#FF6B35',
-            'target-arrow-color': '#FF6B35',
+            'border-color': '#ea580c',
+            'line-color': '#ea580c',
+            'target-arrow-color': '#ea580c',
             opacity: 1,
           },
         },
@@ -158,8 +158,9 @@ export const ActorGraph: React.FC<ActorGraphProps> = ({ elements, onNodeSelect }
                 className="btn btn-sm py-0 px-2"
                 style={{
                   fontSize: '0.73rem',
-                  background: selectedLabel.includes(name) ? '#FF6B35' : '#1b202c',
-                  color: selectedLabel.includes(name) ? '#0d0d0d' : '#e2e8f0',
+                  background: selectedLabel.includes(name) ? '#ea580c' : '#f1f5f9',
+                  color: selectedLabel.includes(name) ? '#ffffff' : '#334155',
+                  border: '1px solid #cbd5e1',
                   fontWeight: 600,
                 }}
                 onClick={() => highlightActor(name)}
@@ -178,19 +179,19 @@ export const ActorGraph: React.FC<ActorGraphProps> = ({ elements, onNodeSelect }
           </button>
         </div>
 
-        {/* Leyenda de nodos OpenPlanter */}
-        <div className="d-flex align-items-center gap-3 small">
+        {/* Leyenda de nodos */}
+        <div className="d-flex align-items-center gap-3 small text-dark">
           <span>
-            <span style={{ color: '#EF4444' }}>●</span> Cártel
+            <span style={{ color: '#dc2626' }}>●</span> Cártel
           </span>
           <span>
-            <span style={{ color: '#FF6B35' }}>●</span> Banda Local
+            <span style={{ color: '#ea580c' }}>●</span> Banda Local
           </span>
           <span>
-            <span style={{ color: '#3B82F6' }}>■</span> Colonia CDMX
+            <span style={{ color: '#2563eb' }}>■</span> Colonia CDMX
           </span>
           <span>
-            <span style={{ color: '#64748B' }}>●</span> Incidente
+            <span style={{ color: '#64748b' }}>●</span> Incidente
           </span>
         </div>
       </div>
@@ -200,8 +201,8 @@ export const ActorGraph: React.FC<ActorGraphProps> = ({ elements, onNodeSelect }
         style={{
           width: '100%',
           height: 520,
-          background: '#0f1219',
-          border: '1px solid #252b3b',
+          background: '#f8fafc',
+          border: '1px solid #e2e8f0',
           borderRadius: 12,
         }}
       />

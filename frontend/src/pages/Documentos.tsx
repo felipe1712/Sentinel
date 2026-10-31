@@ -19,26 +19,26 @@ export const Documentos: React.FC = () => {
           <div className="uw-card h-100">
             <div className="uw-card-header">
               <div>
-                <h6 className="mb-0 text-light fw-bold">
-                  Barra de Cobertura Histórica (2016–2026)
+                <h6 className="mb-0 text-dark fw-bold">
+                  Cobertura Histórica Documental
                 </h6>
                 <small className="text-secondary">
-                  Regla R5: Estado del acervo histórico SSPC-CDMX, E-Medios y reportes manuales
+                  Estado del acervo histórico oficial, monitoreo de medios y reportes operativos
                 </small>
               </div>
             </div>
             {cobertura.map((yr: any) => (
               <div key={yr.anio} className="mb-2">
                 <div className="d-flex justify-content-between small mb-1">
-                  <span className="fw-semibold text-light">Año {yr.anio}</span>
-                  <span className="text-warning">
+                  <span className="fw-semibold text-dark">Año {yr.anio}</span>
+                  <span className="fw-semibold" style={{ color: '#c2410c' }}>
                     {yr.incidentes_count} eventos · {yr.cobertura_pct}%
                   </span>
                 </div>
-                <div className="progress" style={{ height: 7, background: '#1e2433' }}>
+                <div className="progress" style={{ height: 7, background: '#e2e8f0' }}>
                   <div
                     className="progress-bar"
-                    style={{ width: `${yr.cobertura_pct}%`, backgroundColor: '#FF6B35' }}
+                    style={{ width: `${yr.cobertura_pct}%`, backgroundColor: '#ea580c' }}
                   />
                 </div>
               </div>

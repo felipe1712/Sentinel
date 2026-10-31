@@ -41,17 +41,18 @@ export const TimeSlider: React.FC<TimeSliderProps> = ({ onChange, onFullRange })
     <div
       className="p-3 rounded-3"
       style={{
-        background: '#14171f',
-        border: '1px solid rgba(255, 107, 53, 0.55)',
+        background: '#ffffff',
+        border: '1px solid #e2e8f0',
+        boxShadow: '0 2px 8px rgba(15, 23, 42, 0.04)',
       }}
     >
       <div className="d-flex flex-wrap justify-content-between align-items-center mb-2 gap-2">
         <div className="d-flex align-items-center gap-2">
-          <span className="material-symbols-outlined" style={{ color: '#FF6B35' }}>
+          <span className="material-symbols-outlined" style={{ color: '#ea580c' }}>
             history
           </span>
-          <span className="fw-semibold small text-light">
-            Time Slider Histórico (Regla R3: <code>fecha_incidente</code>)
+          <span className="fw-semibold small text-dark">
+            Línea de Tiempo Histórica
           </span>
         </div>
         <div className="d-flex align-items-center gap-1 flex-wrap">
@@ -62,8 +63,9 @@ export const TimeSlider: React.FC<TimeSliderProps> = ({ onChange, onFullRange })
               className="btn btn-sm py-0 px-2"
               style={{
                 fontSize: '0.72rem',
-                background: mesActual.getFullYear() === yr ? '#FF6B35' : '#1e2433',
-                color: mesActual.getFullYear() === yr ? '#0d0d0d' : '#cbd5e1',
+                background: mesActual.getFullYear() === yr ? '#ea580c' : '#f1f5f9',
+                color: mesActual.getFullYear() === yr ? '#ffffff' : '#334155',
+                border: '1px solid #cbd5e1',
                 fontWeight: 600,
               }}
               onClick={() => handleQuickYear(yr)}
@@ -73,7 +75,7 @@ export const TimeSlider: React.FC<TimeSliderProps> = ({ onChange, onFullRange })
           ))}
           <button
             type="button"
-            className="btn btn-sm py-0 px-2 btn-outline-warning"
+            className="btn btn-sm py-0 px-2 btn-outline-secondary"
             style={{ fontSize: '0.72rem' }}
             onClick={() => {
               setMesActual(new Date());
@@ -81,21 +83,21 @@ export const TimeSlider: React.FC<TimeSliderProps> = ({ onChange, onFullRange })
               onFullRange?.();
             }}
           >
-            Todo 2016–Hoy
+            Todo el periodo
           </button>
         </div>
       </div>
 
       <div className="d-flex justify-content-between mb-1">
-        <small style={{ color: '#FF6B35' }}>Ene {MIN_YEAR}</small>
-        <small style={{ color: '#FF6B35', fontWeight: 700 }}>
+        <small style={{ color: '#ea580c' }}>Ene {MIN_YEAR}</small>
+        <small style={{ color: '#ea580c', fontWeight: 700 }}>
           Ventana hasta:{' '}
           {mesActual.toLocaleDateString('es-MX', {
             month: 'short',
             year: 'numeric',
           })}
         </small>
-        <small style={{ color: '#FF6B35' }}>Hoy</small>
+        <small style={{ color: '#ea580c' }}>Hoy</small>
       </div>
 
       <input
@@ -106,16 +108,16 @@ export const TimeSlider: React.FC<TimeSliderProps> = ({ onChange, onFullRange })
         step={2592000000} // ~1 mes
         value={mesActual.getTime()}
         onChange={handleChange}
-        style={{ '--bs-form-range-thumb-bg': '#FF6B35' } as React.CSSProperties}
+        style={{ '--bs-form-range-thumb-bg': '#ea580c' } as React.CSSProperties}
       />
 
       <div className="d-flex justify-content-between align-items-center mt-1">
         <small className="text-secondary">
-          Cobertura histórica SSPC/E-Medios: {MIN_YEAR}–presente
+          Cobertura histórica: {MIN_YEAR}–presente
         </small>
         <div className="d-flex align-items-center gap-2">
           <select
-            className="form-select form-select-sm bg-dark text-light border-secondary py-0"
+            className="form-select form-select-sm bg-white text-dark border-secondary-subtle py-0"
             style={{ width: 'auto', fontSize: '0.72rem' }}
             value={ventanaMeses}
             onChange={(e) => {
@@ -129,7 +131,7 @@ export const TimeSlider: React.FC<TimeSliderProps> = ({ onChange, onFullRange })
             <option value={12}>Ventana 12 meses</option>
             <option value={130}>Acumulado desde 2016</option>
           </select>
-          <small style={{ color: '#94a3b8' }}>{pct}% navegado</small>
+          <small className="text-secondary">{pct}% navegado</small>
         </div>
       </div>
     </div>

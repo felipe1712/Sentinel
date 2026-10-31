@@ -16,13 +16,13 @@ interface MapCDMXProps {
 }
 
 const FAMILIAS_SENTINEL = [
-  { value: '', label: 'Todas las familias Sentinel (46,116 pts)' },
-  { value: '1 Extorsión', label: '1 Extorsión (2,313)', color: '#EF4444' },
-  { value: '6 Mercado ilegal (narcomenudeo)', label: '6 Narcomenudeo (2,843)', color: '#A855F7' },
-  { value: '5 Violencia y armas', label: '5 Violencia y armas (1,530)', color: '#DC2626' },
-  { value: '4 Despojo y allanamiento', label: '4 Despojo y allanamiento (2,469)', color: '#F97316' },
-  { value: '2 Robo a negocio', label: '2 Robo a negocio (7,049)', color: '#F59E0B' },
-  { value: '3 Delincuencia común', label: '3 Delincuencia común (29,912)', color: '#38BDF8' },
+  { value: '', label: 'Todas las familias prioritarias (46,116)' },
+  { value: '1 Extorsión', label: '1 Extorsión (2,313)', color: '#dc2626' },
+  { value: '6 Mercado ilegal (narcomenudeo)', label: '6 Narcomenudeo (2,843)', color: '#9333ea' },
+  { value: '5 Violencia y armas', label: '5 Violencia y armas (1,530)', color: '#b91c1c' },
+  { value: '4 Despojo y allanamiento', label: '4 Despojo y allanamiento (2,469)', color: '#ea580c' },
+  { value: '2 Robo a negocio', label: '2 Robo a negocio (7,049)', color: '#d97706' },
+  { value: '3 Delincuencia común', label: '3 Delincuencia común (29,912)', color: '#0284c7' },
 ];
 
 export const MapCDMX: React.FC<MapCDMXProps> = ({
@@ -60,7 +60,7 @@ export const MapCDMX: React.FC<MapCDMXProps> = ({
 
     const map = new maplibregl.Map({
       container: divRef.current,
-      style: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
+      style: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
       center: [-99.1332, 19.385],
       zoom: 10.6,
     });
@@ -88,16 +88,16 @@ export const MapCDMX: React.FC<MapCDMXProps> = ({
             'match',
             ['get', 'nivel_riesgo'],
             'critico',
-            '#FF0000',
+            '#dc2626',
             'alto',
-            '#FF6B35',
+            '#ea580c',
             'medio',
-            '#FFB347',
+            '#f59e0b',
             'bajo',
-            '#1e3a5f',
-            '#1e3a5f',
+            '#93c5fd',
+            '#93c5fd',
           ],
-          'fill-opacity': 0.42,
+          'fill-opacity': 0.34,
         },
       });
 
@@ -110,11 +110,11 @@ export const MapCDMX: React.FC<MapCDMXProps> = ({
             'match',
             ['get', 'nivel_riesgo'],
             'critico',
-            '#FF3B30',
+            '#b91c1c',
             'alto',
-            '#FF6B35',
+            '#c2410c',
             'medio',
-            '#FFB347',
+            '#d97706',
             '#3b82f6',
           ],
           'line-width': [
@@ -138,13 +138,13 @@ export const MapCDMX: React.FC<MapCDMXProps> = ({
         source: 'colonias',
         filter: ['==', ['get', 'cve_colonia'], ''],
         paint: {
-          'line-color': '#FFFFFF',
-          'line-width': 2.2,
+          'line-color': '#0f172a',
+          'line-width': 2.4,
           'line-opacity': 0.95,
         },
       });
 
-      // Capa GeoJSON oficial de 46,116 puntos prioritarios (uw-sf/sentinel_prioritarios.geojson)
+      // Capa GeoJSON oficial de 46,116 puntos prioritarios
       map.addSource('sentinel-prioritarios', {
         type: 'geojson',
         data: '/sentinel_prioritarios.geojson',
@@ -160,9 +160,9 @@ export const MapCDMX: React.FC<MapCDMXProps> = ({
             ['linear'],
             ['zoom'],
             9,
-            1.2,
+            1.3,
             12,
-            2.4,
+            2.5,
             15,
             4.5,
           ],
@@ -170,22 +170,22 @@ export const MapCDMX: React.FC<MapCDMXProps> = ({
             'match',
             ['get', 'fam'],
             '1 Extorsión',
-            '#EF4444',
+            '#dc2626',
             '6 Mercado ilegal (narcomenudeo)',
-            '#A855F7',
+            '#9333ea',
             '5 Violencia y armas',
-            '#DC2626',
+            '#b91c1c',
             '4 Despojo y allanamiento',
-            '#F97316',
+            '#ea580c',
             '2 Robo a negocio',
-            '#F59E0B',
+            '#d97706',
             '3 Delincuencia común',
-            '#38BDF8',
-            '#FF6B35',
+            '#0284c7',
+            '#ea580c',
           ],
-          'circle-opacity': 0.68,
-          'circle-stroke-width': 0.3,
-          'circle-stroke-color': '#0d0d0d',
+          'circle-opacity': 0.72,
+          'circle-stroke-width': 0.4,
+          'circle-stroke-color': '#ffffff',
         },
       });
 
@@ -240,7 +240,6 @@ export const MapCDMX: React.FC<MapCDMXProps> = ({
     };
   }, [onColoniaClick, onColoniasLoaded]);
 
-  // Filtrar polígonos y capa prioritarios por alcaldía y familia Sentinel
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !map.isStyleLoaded()) return;
@@ -278,7 +277,6 @@ export const MapCDMX: React.FC<MapCDMXProps> = ({
     }
   }, [alcaldiaFiltro, showPrioritarios, familiaSentinel]);
 
-  // Actualizar HeatmapLayer de deck.gl cuando cambian los incidentes
   useEffect(() => {
     if (!deck.current) return;
     deck.current.setProps({
@@ -289,7 +287,7 @@ export const MapCDMX: React.FC<MapCDMXProps> = ({
           getPosition: (d: any) => [Number(d.lng), Number(d.lat)],
           getWeight: (d: any) => Number(d.severidad || 5),
           radiusPixels: 42,
-          intensity: 1.4,
+          intensity: 1.3,
           threshold: 0.08,
         }),
       ],
@@ -318,15 +316,15 @@ export const MapCDMX: React.FC<MapCDMXProps> = ({
       <div
         ref={divRef}
         className="w-100 h-100 rounded-3 overflow-hidden"
-        style={{ minHeight: 510, border: '1px solid #262c3d' }}
+        style={{ minHeight: 510, border: '1px solid #cbd5e1' }}
       />
 
-      {/* Controles de capa sentinel_prioritarios.geojson en esquina superior derecha (junto a zoom) */}
+      {/* Controles de capa prioritarios en esquina superior derecha */}
       <div
-        className="position-absolute top-0 end-0 me-5 mt-2 p-2 rounded-3 d-flex align-items-center gap-2"
+        className="position-absolute top-0 end-0 me-5 mt-2 p-2 rounded-3 d-flex align-items-center gap-2 shadow-sm"
         style={{
-          background: 'rgba(13, 13, 13, 0.90)',
-          border: '1px solid #262c3d',
+          background: 'rgba(255, 255, 255, 0.94)',
+          border: '1px solid #cbd5e1',
           backdropFilter: 'blur(6px)',
           fontSize: '0.73rem',
           zIndex: 4,
@@ -340,14 +338,14 @@ export const MapCDMX: React.FC<MapCDMXProps> = ({
             checked={showPrioritarios}
             onChange={(e) => setShowPrioritarios(e.target.checked)}
           />
-          <label className="form-check-label text-light fw-semibold" htmlFor="toggleSentinelPts">
-            GeoJSON Prioritarios
+          <label className="form-check-label text-dark fw-semibold" htmlFor="toggleSentinelPts">
+            Puntos Prioritarios
           </label>
         </div>
         {showPrioritarios && (
           <select
-            className="form-select form-select-sm bg-dark text-light border-secondary py-0"
-            style={{ fontSize: '0.72rem', width: 225 }}
+            className="form-select form-select-sm bg-white text-dark border-secondary-subtle py-0"
+            style={{ fontSize: '0.72rem', width: 220 }}
             value={familiaSentinel}
             onChange={(e) => setFamiliaSentinel(e.target.value)}
           >
@@ -363,64 +361,66 @@ export const MapCDMX: React.FC<MapCDMXProps> = ({
       {/* Tooltip superior al pasar el cursor sobre cualquier polígono real */}
       {hoveredColonia && (
         <div
-          className="position-absolute top-0 start-0 m-3 px-3 py-2 rounded-3"
+          className="position-absolute top-0 start-0 m-3 px-3 py-2 rounded-3 shadow-sm"
           style={{
-            background: 'rgba(13, 13, 13, 0.94)',
-            border: '1px solid #FF6B35',
+            background: 'rgba(255, 255, 255, 0.96)',
+            border: '1px solid #ea580c',
             backdropFilter: 'blur(6px)',
             fontSize: '0.75rem',
             pointerEvents: 'none',
             zIndex: 5,
           }}
         >
-          <div className="fw-bold text-light">
+          <div className="fw-bold text-dark">
             {hoveredColonia.nombre}{' '}
-            <span className="badge bg-dark border border-secondary text-warning ms-1">
+            <span className="badge bg-warning-subtle text-dark border border-warning ms-1">
               Prioridad {hoveredColonia.prioridad}
             </span>
           </div>
           <div className="text-secondary mb-1">
             {hoveredColonia.alcaldia} · CVE{' '}
-            <span style={{ color: '#FF6B35' }}>{hoveredColonia.cve_colonia}</span> · Riesgo{' '}
-            <span className="text-uppercase fw-semibold text-warning">
+            <span style={{ color: '#ea580c' }}>{hoveredColonia.cve_colonia}</span> · Riesgo{' '}
+            <span className="text-uppercase fw-semibold" style={{ color: '#c2410c' }}>
               {hoveredColonia.nivel_riesgo}
             </span>
           </div>
           <div className="d-flex gap-2 small" style={{ fontSize: '0.7rem' }}>
-            <span className="text-light">
-              Señales FGJ: <strong style={{ color: '#FF6B35' }}>{hoveredColonia.total_senales}</strong>
+            <span className="text-dark">
+              Señales FGJ: <strong style={{ color: '#ea580c' }}>{hoveredColonia.total_senales}</strong>
             </span>
             <span className="text-secondary">|</span>
-            <span className="text-info">Narco: {hoveredColonia.narco_venta}</span>
-            <span className="text-danger">Extorsión: {hoveredColonia.extorsion_cobro}</span>
-            <span className="text-warning">Armas: {hoveredColonia.armas_violencia}</span>
-            <span className="text-light">Despojo/Sec.: {hoveredColonia.secuestro_despojo}</span>
+            <span className="text-primary fw-semibold">Narco: {hoveredColonia.narco_venta}</span>
+            <span className="text-danger fw-semibold">Extorsión: {hoveredColonia.extorsion_cobro}</span>
+            <span style={{ color: '#d97706' }} className="fw-semibold">
+              Armas: {hoveredColonia.armas_violencia}
+            </span>
+            <span className="text-dark">Despojo/Sec.: {hoveredColonia.secuestro_despojo}</span>
           </div>
         </div>
       )}
 
       {/* Leyenda superpuesta */}
       <div
-        className="position-absolute bottom-0 start-0 m-3 p-2 rounded-3"
+        className="position-absolute bottom-0 start-0 m-3 p-2 rounded-3 shadow-sm"
         style={{
-          background: 'rgba(13, 13, 13, 0.88)',
-          border: '1px solid #262c3d',
+          background: 'rgba(255, 255, 255, 0.94)',
+          border: '1px solid #cbd5e1',
           backdropFilter: 'blur(6px)',
           fontSize: '0.73rem',
         }}
       >
-        <div className="fw-bold mb-1" style={{ color: '#FF6B35' }}>
-          Polígonos Oficiales CDMX ({coloniasCount.toLocaleString()} colonias) · Sentinel Prioritarios (46,116 pts)
+        <div className="fw-bold mb-1" style={{ color: '#ea580c' }}>
+          Polígonos Oficiales CDMX ({coloniasCount.toLocaleString()} colonias) · Puntos Prioritarios (46,116)
         </div>
-        <div className="d-flex flex-wrap align-items-center gap-3">
+        <div className="d-flex flex-wrap align-items-center gap-3 text-dark">
           <span>
-            <span style={{ color: '#FF0000' }}>■</span> Crítico (26)
+            <span style={{ color: '#dc2626' }}>■</span> Crítico (26)
           </span>
           <span>
-            <span style={{ color: '#FF6B35' }}>■</span> Alto (52)
+            <span style={{ color: '#ea580c' }}>■</span> Alto (52)
           </span>
           <span>
-            <span style={{ color: '#FFB347' }}>■</span> Medio (270)
+            <span style={{ color: '#f59e0b' }}>■</span> Medio (270)
           </span>
           <span>
             <span style={{ color: '#3b82f6' }}>■</span> Bajo (1,195)

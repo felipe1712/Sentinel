@@ -6,14 +6,14 @@ interface AlertaBadgeProps {
 }
 
 const COLORS: Record<string, { bg: string; border: string; text: string; label: string }> = {
-  critico:    { bg: 'rgba(239, 68, 68, 0.16)',  border: '#EF4444', text: '#F87171', label: 'CRÍTICO' },
-  emergencia: { bg: 'rgba(239, 68, 68, 0.16)',  border: '#EF4444', text: '#F87171', label: 'EMERGENCIA' },
-  alto:       { bg: 'rgba(255, 107, 53, 0.18)', border: '#FF6B35', text: '#FF6B35', label: 'ALTO' },
-  alerta:     { bg: 'rgba(255, 107, 53, 0.18)', border: '#FF6B35', text: '#FF6B35', label: 'ALERTA' },
-  medio:      { bg: 'rgba(255, 179, 71, 0.16)', border: '#FFB347', text: '#FBBF24', label: 'MEDIO' },
-  vigilancia: { bg: 'rgba(255, 179, 71, 0.16)', border: '#FFB347', text: '#FBBF24', label: 'VIGILANCIA' },
-  bajo:       { bg: 'rgba(34, 197, 94, 0.14)',  border: '#22C55E', text: '#4ADE80', label: 'BAJO' },
-  normal:     { bg: 'rgba(34, 197, 94, 0.14)',  border: '#22C55E', text: '#4ADE80', label: 'NORMAL' },
+  critico:    { bg: '#fef2f2', border: '#ef4444', text: '#b91c1c', label: 'CRÍTICO' },
+  emergencia: { bg: '#fef2f2', border: '#ef4444', text: '#b91c1c', label: 'EMERGENCIA' },
+  alto:       { bg: '#fff7ed', border: '#ea580c', text: '#c2410c', label: 'ALTO' },
+  alerta:     { bg: '#fff7ed', border: '#ea580c', text: '#c2410c', label: 'ALERTA' },
+  medio:      { bg: '#fffbeb', border: '#f59e0b', text: '#b45309', label: 'MEDIO' },
+  vigilancia: { bg: '#fffbeb', border: '#f59e0b', text: '#b45309', label: 'VIGILANCIA' },
+  bajo:       { bg: '#f0fdf4', border: '#22c55e', text: '#15803d', label: 'BAJO' },
+  normal:     { bg: '#f0fdf4', border: '#22c55e', text: '#15803d', label: 'NORMAL' },
 };
 
 export const AlertaBadge: React.FC<AlertaBadgeProps> = ({ nivel, size = 'sm' }) => {

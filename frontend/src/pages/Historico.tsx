@@ -18,12 +18,11 @@ export const Historico: React.FC = () => {
       <div className="uw-card mb-3">
         <div className="uw-card-header">
           <div>
-            <h5 className="mb-0 text-light fw-bold">
-              Evolución Temporal e Histórica CDMX (2016–2026)
+            <h5 className="mb-0 text-dark fw-bold">
+              Evolución Temporal e Histórica CDMX
             </h5>
             <small className="text-secondary">
-              Regla R3: Toda consulta filtra por <code>fecha_incidente</code>, permitiendo auditar
-              patrones desde 2016 sin contaminar el corte operativo actual.
+              Toda consulta filtra por la fecha real del incidente, permitiendo auditar patrones históricos sin alterar el corte operativo actual.
             </small>
           </div>
         </div>
@@ -35,30 +34,30 @@ export const Historico: React.FC = () => {
           }}
         />
 
-        {/* Barra de cobertura histórica por año (Regla R5 y Tarea 11) */}
+        {/* Barra de cobertura histórica por año */}
         <div className="mt-3">
           <small className="text-uppercase fw-bold text-secondary d-block mb-2" style={{ fontSize: '0.72rem' }}>
-            Cobertura Histórica Cargada por Año (2016–Presente)
+            Cobertura Histórica Cargada por Año
           </small>
           <div className="row g-2">
             {cobertura.map((yr: any) => (
               <div key={yr.anio} className="col-6 col-md-3 col-xl-2">
                 <div
                   className="p-2 rounded-3"
-                  style={{ background: '#11141c', border: '1px solid #262c3d', cursor: 'pointer' }}
+                  style={{ background: '#f8fafc', border: '1px solid #e2e8f0', cursor: 'pointer' }}
                   onClick={() => {
                     setFechaInicio(new Date(yr.anio, 0, 1));
                     setFechaFin(new Date(yr.anio, 11, 31));
                   }}
                 >
                   <div className="d-flex justify-content-between align-items-center mb-1">
-                    <span className="fw-bold text-light small">{yr.anio}</span>
-                    <span className="badge bg-dark text-warning">{yr.cobertura_pct}%</span>
+                    <span className="fw-bold text-dark small">{yr.anio}</span>
+                    <span className="badge bg-warning-subtle text-dark border border-warning">{yr.cobertura_pct}%</span>
                   </div>
-                  <div className="progress mb-1" style={{ height: 5, background: '#1e2433' }}>
+                  <div className="progress mb-1" style={{ height: 5, background: '#e2e8f0' }}>
                     <div
                       className="progress-bar"
-                      style={{ width: `${yr.cobertura_pct}%`, backgroundColor: '#FF6B35' }}
+                      style={{ width: `${yr.cobertura_pct}%`, backgroundColor: '#ea580c' }}
                     />
                   </div>
                   <small className="text-secondary" style={{ fontSize: '0.68rem' }}>
@@ -80,7 +79,7 @@ export const Historico: React.FC = () => {
         />
       </div>
       {selectedColonia && (
-        <div className="mt-2 small text-warning">
+        <div className="mt-2 small fw-semibold" style={{ color: '#c2410c' }}>
           Colonia seleccionada en histórico: {selectedColonia}
         </div>
       )}

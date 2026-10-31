@@ -51,16 +51,15 @@ export const Vigia: React.FC = () => {
       <div className="uw-card mb-3">
         <div className="d-flex flex-wrap justify-content-between align-items-center gap-2">
           <div>
-            <h5 className="mb-0 text-light fw-bold">
-              Módulo Vigía — Dark Web & Monitoreo Visual (HeadlessX Camoufox + PixelRAG)
+            <h5 className="mb-0 text-dark fw-bold">
+              Vigía Web Profunda y Monitoreo Visual
             </h5>
             <small className="text-secondary">
-              Regla R2: Sitios <code>.onion</code> y foros clandestinos usan{' '}
-              <code>browser_engine = 'headlessx'</code> (:38473) · PixelRAG alerta cambios visuales &gt; 15%
+              Seguimiento continuo de portales clandestinos y detección automática de alteraciones relevantes
             </small>
           </div>
           <span className="badge bg-danger px-3 py-2">
-            Nivel Confidencialidad R4: RESERVADO
+            Nivel de Confidencialidad: RESERVADO
           </span>
         </div>
       </div>
@@ -69,18 +68,18 @@ export const Vigia: React.FC = () => {
         <div className="col-lg-6">
           <div className="uw-card h-100">
             <div className="uw-card-header">
-              <h6 className="mb-0 text-light fw-bold">Sitios en la Mira (uwi_sitios_mira)</h6>
+              <h6 className="mb-0 text-dark fw-bold">Objetivos en Monitoreo</h6>
             </div>
             {sitios.map((s) => (
               <div
                 key={s.id}
                 className="p-3 mb-2 rounded-3"
                 style={{
-                  background: selectedSitioId === s.id ? 'rgba(255, 107, 53, 0.1)' : '#11141c',
+                  background: selectedSitioId === s.id ? '#fff7ed' : '#f8fafc',
                   border:
                     selectedSitioId === s.id
-                      ? '1px solid #FF6B35'
-                      : '1px solid #262c3d',
+                      ? '1px solid #ea580c'
+                      : '1px solid #e2e8f0',
                   cursor: 'pointer',
                 }}
                 onClick={() => setSelectedSitioId(s.id)}
@@ -88,20 +87,17 @@ export const Vigia: React.FC = () => {
                 <div className="d-flex justify-content-between align-items-start mb-1">
                   <div>
                     <span className="badge bg-danger me-2 text-uppercase">{s.tipo}</span>
-                    <span className="fw-bold text-light">{s.nombre}</span>
+                    <span className="fw-bold text-dark">{s.nombre}</span>
                   </div>
-                  <span className="badge bg-dark border border-warning text-warning">
-                    {s.browser_engine}
-                  </span>
                 </div>
-                <div className="small text-warning font-monospace mb-1">{s.url}</div>
+                <div className="small font-monospace mb-1" style={{ color: '#c2410c' }}>{s.url}</div>
                 <p className="small text-secondary mb-2">{s.descripcion}</p>
                 <div className="d-flex justify-content-between align-items-center">
                   <div className="d-flex flex-wrap gap-1">
                     {(s.keywords || []).map((kw: string) => (
                       <span
                         key={kw}
-                        className="badge bg-dark border border-secondary text-secondary"
+                        className="badge bg-white border text-secondary"
                         style={{ fontSize: '0.67rem' }}
                       >
                         #{kw}
@@ -129,8 +125,8 @@ export const Vigia: React.FC = () => {
           <div className="uw-card h-100">
             <div className="uw-card-header">
               <div>
-                <h6 className="mb-0 text-light fw-bold">
-                  Capturas Indexadas en PixelRAG (Qwen3-VL-Embedding-2B + FAISS)
+                <h6 className="mb-0 text-dark fw-bold">
+                  Bitácora de Capturas y Cambios Visuales
                 </h6>
                 <small className="text-secondary">
                   Detección automática de diferencias visuales entre capturas consecutivas
@@ -143,10 +139,10 @@ export const Vigia: React.FC = () => {
                 key={cap.id}
                 className="p-3 mb-3 rounded-3"
                 style={{
-                  background: '#11141c',
+                  background: cap.cambio_detectado ? '#fef2f2' : '#f8fafc',
                   border: cap.cambio_detectado
-                    ? '1px solid #ef4444'
-                    : '1px solid #262c3d',
+                    ? '1px solid #fecaca'
+                    : '1px solid #e2e8f0',
                 }}
               >
                 <div className="d-flex justify-content-between align-items-center mb-2">
@@ -156,19 +152,15 @@ export const Vigia: React.FC = () => {
                     }`}
                   >
                     {cap.cambio_detectado
-                      ? `🚨 ALERTA CAMBIO VISUAL (${cap.diff_pct || 28.6}% > 15%)`
-                      : `✓ ESTABLE (${cap.diff_pct || 4.2}% <= 15%)`}
+                      ? `🚨 ALERTA DE CAMBIO (${cap.diff_pct || 28.6}%)`
+                      : `✓ ESTABLE (${cap.diff_pct || 4.2}%)`}
                   </span>
                   <small className="text-secondary">
                     {new Date(cap.created_at).toLocaleString('es-MX')}
                   </small>
                 </div>
-                <p className="small text-light fw-semibold mb-1">{cap.cambio_descripcion}</p>
-                <p className="small text-secondary mb-2">{cap.contenido_texto}</p>
-                <div className="d-flex justify-content-between small font-monospace text-warning" style={{ fontSize: '0.7rem' }}>
-                  <span>FAISS: {cap.pixelrag_index}</span>
-                  <span>PNG: {cap.screenshot_path}</span>
-                </div>
+                <p className="small text-dark fw-semibold mb-1">{cap.cambio_descripcion}</p>
+                <p className="small text-secondary mb-0">{cap.contenido_texto}</p>
               </div>
             ))}
           </div>

@@ -5,10 +5,10 @@ interface IncidenteCardProps {
   onSelectColonia?: (coloniaId: string) => void;
 }
 
-const CONF_COLORS: Record<string, { bg: string; color: string }> = {
-  publico:   { bg: 'rgba(59, 130, 246, 0.16)', color: '#60A5FA' },
-  sensible:  { bg: 'rgba(245, 158, 11, 0.18)', color: '#FBBF24' },
-  reservado: { bg: 'rgba(239, 68, 68, 0.2)',   color: '#F87171' },
+const CONF_COLORS: Record<string, { bg: string; color: string; border: string }> = {
+  publico:   { bg: '#eff6ff', color: '#1d4ed8', border: '#bfdbfe' },
+  sensible:  { bg: '#fffbeb', color: '#b45309', border: '#fde68a' },
+  reservado: { bg: '#fef2f2', color: '#b91c1c', border: '#fecaca' },
 };
 
 export const IncidenteCard: React.FC<IncidenteCardProps> = ({ incidente, onSelectColonia }) => {
@@ -18,8 +18,8 @@ export const IncidenteCard: React.FC<IncidenteCardProps> = ({ incidente, onSelec
     <div
       className="p-3 mb-2 rounded-3"
       style={{
-        background: '#161a24',
-        border: '1px solid #262c3d',
+        background: '#f8fafc',
+        border: '1px solid #e2e8f0',
         transition: 'border-color 0.15s ease',
       }}
     >
@@ -27,7 +27,7 @@ export const IncidenteCard: React.FC<IncidenteCardProps> = ({ incidente, onSelec
         <div className="d-flex flex-wrap align-items-center gap-2">
           <span
             className="badge text-uppercase"
-            style={{ background: '#FF6B35', color: '#0d0d0d', fontWeight: 700 }}
+            style={{ background: '#ea580c', color: '#ffffff', fontWeight: 700 }}
           >
             {(incidente.tipo_incidente || 'incidente').replace('_', ' ')}
           </span>
@@ -36,34 +36,34 @@ export const IncidenteCard: React.FC<IncidenteCardProps> = ({ incidente, onSelec
             style={{
               background: conf.bg,
               color: conf.color,
-              border: `1px solid ${conf.color}44`,
+              border: `1px solid ${conf.border}`,
               fontSize: '0.68rem',
             }}
           >
-            R4: {(incidente.nivel_conf || 'publico').toUpperCase()}
+            {(incidente.nivel_conf || 'publico').toUpperCase()}
           </span>
-          <span className="badge bg-dark border border-secondary text-light">
+          <span className="badge bg-white border text-dark">
             Sev {incidente.severidad || 5}/10
           </span>
         </div>
-        <small className="text-warning fw-semibold" title="Regla R3: fecha_incidente">
+        <small className="fw-semibold" style={{ color: '#c2410c' }}>
           📅 {incidente.fecha_incidente}
         </small>
       </div>
 
-      <h6 className="mb-1 text-light fw-semibold" style={{ fontSize: '0.9rem' }}>
+      <h6 className="mb-1 text-dark fw-semibold" style={{ fontSize: '0.9rem' }}>
         {incidente.titulo || incidente.subtipo || 'Incidente georreferenciado'}
       </h6>
-      <p className="mb-2 small" style={{ color: '#94a3b8' }}>
+      <p className="mb-2 small text-secondary">
         {incidente.descripcion}
       </p>
 
-      <div className="d-flex flex-wrap justify-content-between align-items-center gap-2 pt-1 border-top border-secondary border-opacity-25">
+      <div className="d-flex flex-wrap justify-content-between align-items-center gap-2 pt-1 border-top">
         <div className="d-flex align-items-center gap-2 flex-wrap">
           <button
             type="button"
-            className="btn btn-link btn-sm p-0 text-decoration-none"
-            style={{ color: '#FF6B35', fontSize: '0.78rem' }}
+            className="btn btn-link btn-sm p-0 text-decoration-none fw-semibold"
+            style={{ color: '#ea580c', fontSize: '0.78rem' }}
             onClick={() => incidente.colonia_id && onSelectColonia?.(incidente.colonia_id)}
           >
             📍 {incidente.colonia_nombre || incidente.ubicacion_texto || 'Colonia CDMX'} · {incidente.alcaldia}
@@ -73,9 +73,9 @@ export const IncidenteCard: React.FC<IncidenteCardProps> = ({ incidente, onSelec
               key={idx}
               className="badge rounded-pill"
               style={{
-                background: 'rgba(239, 68, 68, 0.15)',
-                color: '#fca5a5',
-                border: '1px solid rgba(239, 68, 68, 0.4)',
+                background: '#fef2f2',
+                color: '#b91c1c',
+                border: '1px solid #fecaca',
                 fontSize: '0.68rem',
               }}
             >

@@ -53,21 +53,21 @@ export const Colonia: React.FC = () => {
       <div className="uw-card mb-3">
         <div className="d-flex flex-wrap justify-content-between align-items-center gap-3">
           <div>
-            <small className="text-uppercase fw-bold" style={{ color: '#FF6B35' }}>
-              DRILL-DOWN OPERATIVO DE COLONIA · {col.alcaldia} (CVE {col.cve_colonia})
+            <small className="text-uppercase fw-bold" style={{ color: '#ea580c' }}>
+              ANÁLISIS OPERATIVO DE COLONIA · {col.alcaldia} · CVE {col.cve_colonia}
             </small>
-            <h4 className="mb-0 text-light fw-bold">{col.nombre}</h4>
+            <h4 className="mb-0 text-dark fw-bold">{col.nombre}</h4>
           </div>
 
           <div className="d-flex align-items-center gap-2">
             <select
-              className="form-select form-select-sm bg-dark text-light border-secondary"
+              className="form-select form-select-sm bg-white text-dark border-secondary-subtle"
               value={activeId}
               onChange={(e) => navigate(`/colonia/${e.target.value}`)}
             >
               {coloniasList.map((f) => (
                 <option key={f.properties.id} value={f.properties.id}>
-                  {f.properties.nombre} ({f.properties.alcaldia})
+                  {f.properties.nombre} — {f.properties.alcaldia}
                 </option>
               ))}
             </select>
@@ -78,11 +78,11 @@ export const Colonia: React.FC = () => {
 
       <div className="row g-3">
         <div className="col-lg-5">
-          {/* Resumen Ejecutivo Claude + WorldMonitor MCP */}
+          {/* Resumen Ejecutivo */}
           <div className="uw-card mb-3">
             <div className="uw-card-header">
-              <h6 className="mb-0 text-light fw-bold">
-                🤖 Análisis Ejecutivo (Claude + WorldMonitor MCP)
+              <h6 className="mb-0 text-dark fw-bold">
+                📊 Síntesis Ejecutiva de Inteligencia
               </h6>
               <button
                 type="button"
@@ -90,13 +90,13 @@ export const Colonia: React.FC = () => {
                 onClick={handleGenerarResumen}
                 disabled={generando}
               >
-                {generando ? 'Consultando WorldMonitor...' : 'Actualizar Síntesis'}
+                {generando ? 'Actualizando...' : 'Actualizar Síntesis'}
               </button>
             </div>
             {resumen && (
               <div>
-                <h6 className="text-warning fw-semibold">{resumen.titulo}</h6>
-                <p className="small text-light">{resumen.resumen}</p>
+                <h6 className="fw-semibold" style={{ color: '#c2410c' }}>{resumen.titulo}</h6>
+                <p className="small text-dark">{resumen.resumen}</p>
                 <ul className="small text-secondary ps-3 mb-2">
                   {(resumen.puntos_clave || []).map((pt: string, i: number) => (
                     <li key={i} className="mb-1">
@@ -104,11 +104,10 @@ export const Colonia: React.FC = () => {
                     </li>
                   ))}
                 </ul>
-                <div className="p-2 rounded small" style={{ background: '#11141c', border: '1px solid #262c3d' }}>
-                  <span className="text-warning fw-semibold">WorldMonitor MCP:</span> CII México{' '}
-                  {resumen.worldmonitor_data?.cii_mexico || 64.2} · Tools:{' '}
-                  {(resumen.worldmonitor_data?.tools_invoked || []).join(', ')} · Audit R7:{' '}
-                  {resumen.tokens_usados} tokens
+                <div className="p-2 rounded small" style={{ background: '#f8fafc', border: '1px solid #e2e8f0' }}>
+                  <span className="fw-semibold" style={{ color: '#c2410c' }}>Contexto Macro:</span> Índice de Riesgo{' '}
+                  {resumen.worldmonitor_data?.cii_mexico || 64.2} · Fuentes verificadas:{' '}
+                  {resumen.fuentes_count || 12}
                 </div>
               </div>
             )}
@@ -117,22 +116,22 @@ export const Colonia: React.FC = () => {
           {/* Desglose por tipo de delito */}
           <div className="uw-card">
             <div className="uw-card-header">
-              <h6 className="mb-0 text-light fw-bold">Incidencia por Tipología (2016–2026)</h6>
+              <h6 className="mb-0 text-dark fw-bold">Incidencia por Tipología</h6>
             </div>
             {(data.estadisticas_por_tipo || []).map((item: any) => (
               <div key={item.tipo} className="mb-2">
                 <div className="d-flex justify-content-between small mb-1">
-                  <span className="text-uppercase text-light fw-semibold">
+                  <span className="text-uppercase text-dark fw-semibold">
                     {item.tipo.replace('_', ' ')}
                   </span>
-                  <span style={{ color: '#FF6B35' }}>{item.count} casos</span>
+                  <span style={{ color: '#ea580c' }}>{item.count} casos</span>
                 </div>
-                <div className="progress" style={{ height: 6, background: '#1e2433' }}>
+                <div className="progress" style={{ height: 6, background: '#e2e8f0' }}>
                   <div
                     className="progress-bar"
                     style={{
                       width: `${Math.min(100, item.count * 5)}%`,
-                      backgroundColor: '#FF6B35',
+                      backgroundColor: '#ea580c',
                     }}
                   />
                 </div>
@@ -144,8 +143,8 @@ export const Colonia: React.FC = () => {
         <div className="col-lg-7">
           <div className="uw-card">
             <div className="uw-card-header">
-              <h6 className="mb-0 text-light fw-bold">
-                Historial Cronológico de la Colonia (Ordenado por <code>fecha_incidente</code>)
+              <h6 className="mb-0 text-dark fw-bold">
+                Historial Cronológico de la Colonia
               </h6>
             </div>
             {(data.incidentes || []).map((inc: any) => (

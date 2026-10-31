@@ -15,29 +15,27 @@ export const Admin: React.FC = () => {
         <SkillsStatus />
       </div>
 
-      {/* Audit Log R7 */}
+      {/* Bitácora de Auditoría */}
       <div className="uw-card">
         <div className="uw-card-header">
           <div>
-            <h6 className="mb-0 text-light fw-bold">
-              Audit Log de Trazabilidad Claude API (Regla R7 — <code>uwi_audit</code>)
+            <h6 className="mb-0 text-dark fw-bold">
+              Bitácora de Auditoría y Trazabilidad de Inteligencia
             </h6>
             <small className="text-secondary">
-              Registro inmutable de fuentes consultadas, tokens consumidos, nivel de confianza (0–100%) y
-              nivel de confidencialidad accedido
+              Registro inmutable de fuentes consultadas, nivel de confianza y perfil de confidencialidad accedido
             </small>
           </div>
         </div>
 
         <div className="table-responsive">
-          <table className="table table-dark table-hover align-middle small mb-0">
-            <thead>
+          <table className="table table-hover align-middle small mb-0">
+            <thead className="table-light">
               <tr className="text-secondary">
                 <th>Acción</th>
                 <th>Recurso</th>
-                <th>Nivel Conf (R4)</th>
+                <th>Nivel de Acceso</th>
                 <th>Fuentes Consultadas</th>
-                <th>Tokens</th>
                 <th>Confianza %</th>
                 <th>Fecha</th>
               </tr>
@@ -45,19 +43,18 @@ export const Admin: React.FC = () => {
             <tbody>
               {auditLogs.map((log) => (
                 <tr key={log.id}>
-                  <td className="font-monospace text-warning">{log.accion}</td>
-                  <td className="text-light fw-semibold">{log.recurso}</td>
+                  <td className="font-monospace fw-semibold" style={{ color: '#c2410c' }}>{log.accion}</td>
+                  <td className="text-dark fw-semibold">{log.recurso}</td>
                   <td>
-                    <span className="badge bg-dark border border-secondary text-uppercase">
+                    <span className="badge bg-light border text-dark text-uppercase">
                       {log.nivel_conf_accedido}
                     </span>
                   </td>
                   <td>
-                    <code className="text-info" style={{ fontSize: '0.72rem' }}>
+                    <code className="text-primary" style={{ fontSize: '0.72rem' }}>
                       {JSON.stringify(log.fuentes_json)}
                     </code>
                   </td>
-                  <td>{log.tokens_usados}</td>
                   <td>
                     <span className="badge bg-success">{log.confianza_pct}%</span>
                   </td>
