@@ -6,7 +6,13 @@ export default defineConfig({
   server: {
     host: '0.0.0.0',
     port: 3100,
-    allowedHosts: true,
+    allowedHosts: [
+      'uw.sentineliq.com.mx',
+      'cdmx.urbanwatch.mx',
+      '.sentineliq.com.mx',
+      'localhost',
+      '127.0.0.1',
+    ],
     proxy: {
       '/api': {
         target: process.env.VITE_API_URL || 'http://localhost:8100',
@@ -17,6 +23,12 @@ export default defineConfig({
   preview: {
     host: '0.0.0.0',
     port: 3100,
-    allowedHosts: true,
+    allowedHosts: [
+      'uw.sentineliq.com.mx',
+      'cdmx.urbanwatch.mx',
+      '.sentineliq.com.mx',
+      'localhost',
+      '127.0.0.1',
+    ],
   },
 });
