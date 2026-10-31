@@ -10,7 +10,16 @@ export const Colonia: React.FC = () => {
   const navigate = useNavigate();
   const activeId = id || '11111111-0001-4000-a000-000000000001';
   const [data, setData] = useState<any>(null);
+  const [coloniasList, setColoniasList] = useState<any[]>(FALLBACK_COLONIAS_GEOJSON.features);
   const [generando, setGenerando] = useState(false);
+
+  useEffect(() => {
+    uwApi.getColoniasGeoJSON().then((geo) => {
+      if (geo?.features?.length) {
+        setColoniasList(geo.features);
+      }
+    });
+  }, []);
 
   useEffect(() => {
     uwApi.getColoniaDetalle(activeId).then(setData);
@@ -56,7 +65,7 @@ export const Colonia: React.FC = () => {
               value={activeId}
               onChange={(e) => navigate(`/colonia/${e.target.value}`)}
             >
-              {FALLBACK_COLONIAS_GEOJSON.features.map((f) => (
+              {coloniasList.map((f) => (
                 <option key={f.properties.id} value={f.properties.id}>
                   {f.properties.nombre} ({f.properties.alcaldia})
                 </option>

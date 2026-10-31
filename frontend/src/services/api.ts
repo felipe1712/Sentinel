@@ -3,6 +3,7 @@ import {
   FALLBACK_GRAPH,
   FALLBACK_INCIDENTES,
 } from '../data/fallbackData';
+import { PRESENCIA_GRUPOS_ALCALDIA } from '../data/delictivosData';
 
 const rawEnvUrl = import.meta.env.VITE_API_URL || '';
 const API_BASE =
@@ -25,47 +26,175 @@ async function safeFetch<T>(path: string, init?: RequestInit, fallback?: T): Pro
   }
 }
 
+let cachedColoniasGeoJSON: typeof FALLBACK_COLONIAS_GEOJSON | null = null;
+
+function hasSquareGeometries(features: any[]): boolean {
+  if (!features || features.length === 0) return true;
+  const sample = features.slice(0, Math.min(20, features.length));
+  const squareCount = sample.filter((f) => {
+    const ring = f?.geometry?.coordinates?.[0];
+    return Array.isArray(ring) && ring.length <= 5;
+  }).length;
+  return squareCount > sample.length / 2;
+}
+
+async function loadStaticColoniasGeoJSON(): Promise<typeof FALLBACK_COLONIAS_GEOJSON> {
+  if (cachedColoniasGeoJSON && cachedColoniasGeoJSON.features.length > 100) {
+    return cachedColoniasGeoJSON;
+  }
+  try {
+    const res = await fetch('/colonias_cdmx.geojson');
+    if (res.ok) {
+      const data = await res.json();
+      if (data?.features?.length) {
+        cachedColoniasGeoJSON = data;
+        return data;
+      }
+    }
+  } catch {
+    // Fallback al dataset embebido de 26 colonias con polígonos reales
+  }
+  cachedColoniasGeoJSON = FALLBACK_COLONIAS_GEOJSON;
+  return FALLBACK_COLONIAS_GEOJSON;
+}
+
 export const uwApi = {
-  getColoniasGeoJSON: () =>
-    safeFetch('/api/colonias/geojson', undefined, FALLBACK_COLONIAS_GEOJSON),
+  getColoniasGeoJSON: async () => {
+    try {
+      const res = await fetch(`${API_BASE}/api/colonias/geojson`);
+      if (res.ok) {
+        const apiGeo = await res.json();
+        const apiFeatures = apiGeo?.features || [];
+        // Si el backend ya tiene los 1,543 polígonos reales cargados, usarlos directamente
+        if (apiFeatures.length >= 1000 && !hasSquareGeometries(apiFeatures)) {
+          cachedColoniasGeoJSON = apiGeo;
+          return apiGeo;
+        }
+        // Si el backend aún tenía cuadrados o solo las 26 colonias semilla, combinar con los 1,543 polígonos reales del shapefile
+        const staticGeo = await loadStaticColoniasGeoJSON();
+        const byId = new Map<string, any>();
+        const byCve = new Map<string, any>();
+        for (const f of apiFeatures) {
+          if (f?.properties?.id) byId.set(String(f.properties.id), f.properties);
+          if (f?.properties?.cve_colonia) byCve.set(String(f.properties.cve_colonia), f.properties);
+        }
+        const mergedFeatures = staticGeo.features.map((sf) => {
+          const match =
+            byId.get(String(sf.properties.id)) ||
+            byCve.get(String(sf.properties.cve_colonia));
+          return match
+            ? {
+                ...sf,
+                properties: {
+                  ...sf.properties,
+                  id: match.id || sf.properties.id,
+                  nivel_riesgo: match.nivel_riesgo || sf.properties.nivel_riesgo,
+                  incidentes_count:
+                    match.incidentes_count ?? sf.properties.incidentes_count,
+                  poblacion: match.poblacion || sf.properties.poblacion,
+                },
+              }
+            : sf;
+        });
+        const merged = {
+          type: 'FeatureCollection' as const,
+          features: mergedFeatures,
+        };
+        cachedColoniasGeoJSON = merged;
+        return merged;
+      }
+    } catch {
+      // Backend offline -> cargar GeoJSON estático generado de uw-sf/colonias
+    }
+    return loadStaticColoniasGeoJSON();
+  },
 
   getColoniaDetalle: async (coloniaId: string) => {
+    const pool = cachedColoniasGeoJSON?.features || FALLBACK_COLONIAS_GEOJSON.features;
     const feature =
+      pool.find(
+        (f) =>
+          f.properties.id === coloniaId ||
+          f.properties.cve_colonia === coloniaId ||
+          f.properties.nombre?.toUpperCase() === coloniaId.toUpperCase()
+      ) ||
       FALLBACK_COLONIAS_GEOJSON.features.find((f) => f.properties.id === coloniaId) ||
       FALLBACK_COLONIAS_GEOJSON.features[0];
-    const incs = FALLBACK_INCIDENTES.filter((i) => i.colonia_id === feature.properties.id);
+    const props = feature.properties;
+    const incs = FALLBACK_INCIDENTES.filter(
+      (i) => i.colonia_id === props.id || i.colonia_nombre === props.nombre
+    );
+    const alcNorm = (props.alcaldia || '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toUpperCase();
+    const grupoInfo = PRESENCIA_GRUPOS_ALCALDIA.find(
+      (g) =>
+        g.alcaldia
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '')
+          .toUpperCase() === alcNorm
+    );
+    const gruposLocales = props.grupos_locales?.length
+      ? props.grupos_locales
+      : grupoInfo?.grupos_locales || ['Unión Tepito'];
+    const cartelesMedios = props.carteles_medios?.length
+      ? props.carteles_medios
+      : grupoInfo?.carteles_medios || ['CJNG'];
+
+    const actoresActivos = [
+      ...gruposLocales.map((gName, idx) => ({
+        id: `fgj-loc-${idx}`,
+        nombre: gName,
+        tipo: gName.toLowerCase().includes('unión') || gName.toLowerCase().includes('tláhuac') ? 'cartel' : 'banda_local',
+        nivel_amenaza: gName.toLowerCase().includes('unión') ? 10 : 8,
+        aliases: ['Reconocido FGJ (Transparencia 2024)'],
+        descripcion: grupoInfo?.fuente_1 || 'Grupo local reconocido por FGJ-CDMX vía transparencia.',
+      })),
+      ...cartelesMedios.map((cName, idx) => ({
+        id: `med-car-${idx}`,
+        nombre: cName,
+        tipo: 'cartel',
+        nivel_amenaza: 9,
+        aliases: ['Atribuido Sedena/Semar/CNI/DEA'],
+        descripcion: grupoInfo?.fuente_2 || 'Cártel con presencia atribuida por informes federales en medios.',
+      })),
+    ];
+
     const fallback = {
-      colonia: feature.properties,
-      incidentes: incs.length ? incs : FALLBACK_INCIDENTES.slice(0, 4),
+      colonia: {
+        ...props,
+        fuente_grupos_fgj: grupoInfo?.fuente_1,
+        fuente_carteles_medios: grupoInfo?.fuente_2,
+        confianza_grupos: grupoInfo?.confianza,
+        extorsion_alcaldia_2024: grupoInfo?.extorsion_cobro_carpetas_2024 ?? 0,
+        narco_alcaldia_2024: grupoInfo?.narcomenudeo_venta_carpetas_2024 ?? 0,
+      },
+      incidentes: incs.length ? incs : FALLBACK_INCIDENTES.slice(0, 6),
       estadisticas_por_tipo: [
-        { tipo: 'extorsion', count: 16 },
-        { tipo: 'homicidio', count: 9 },
-        { tipo: 'narcomenudeo', count: 8 },
-        { tipo: 'robo_negocio', count: 6 },
-        { tipo: 'robo_vehiculo', count: 5 },
+        { tipo: 'narcomenudeo', count: props.narco_venta ?? 12 },
+        { tipo: 'secuestro_despojo', count: props.secuestro_despojo ?? 8 },
+        { tipo: 'extorsion', count: props.extorsion_cobro ?? 6 },
+        { tipo: 'armas_violencia', count: props.armas_violencia ?? 5 },
       ],
-      actores_activos: [
-        {
-          id: '33333333-0001-4000-a000-000000000001',
-          nombre: 'Unión Tepito',
-          tipo: 'cartel',
-          nivel_amenaza: 10,
-          aliases: ['La Unión', 'La U'],
-          descripcion: 'Cobro de piso, extorsión logística y narcomenudeo.',
-        },
-      ],
+      actores_activos: actoresActivos,
       ultimo_resumen: {
         id: '66666666-0001-4000-a000-000000000001',
-        titulo: `Radiografía Ejecutiva: ${feature.properties.nombre}`,
-        resumen:
-          'Análisis longitudinal (2016–2026) y telemetría de las últimas 72h confirman alta densidad de riesgo operativo para custodia de mercancías y comercios.',
-        nivel_alerta: 'emergencia',
+        titulo: `Radiografía Ejecutiva FGJ + Sentinel: ${props.nombre} (${props.alcaldia})`,
+        resumen: `Colonia clasificada con prioridad ${props.prioridad || 'Media'} en el Índice de Señales Delictivas FGJ-CDMX (${props.total_senales ?? 0} señales acumuladas en ${props.familias_presentes ?? 0} familias: ${props.narco_venta ?? 0} narcomenudeo, ${props.extorsion_cobro ?? 0} extorsión/cobro de piso, ${props.armas_violencia ?? 0} armas/violencia letal y ${props.secuestro_despojo ?? 0} secuestro/despojo). Presencia en alcaldía ${props.alcaldia} de: ${gruposLocales.join(', ')}.`,
+        nivel_alerta:
+          props.nivel_riesgo === 'critico'
+            ? 'emergencia'
+            : props.nivel_riesgo === 'alto'
+            ? 'alerta'
+            : 'vigilancia',
         tokens_usados: 1840,
-        fuentes_count: 12,
+        fuentes_count: 14,
         puntos_clave: [
-          'Incremento de exigencias de cuota en cuadrante comercial',
-          'Correlación positiva con alertas de Dark Web en módulo Vigía (PixelRAG >15%)',
-          'Recomendación: escolta doble y rotación de rutas de traslado',
+          `Índice de Señales FGJ en colonia: ${props.total_senales ?? 0} carpetas prioritarias (Prioridad ${props.prioridad || 'Baja'})`,
+          `Grupos reconocidos por FGJ en ${props.alcaldia}: ${gruposLocales.join(', ')}`,
+          `Cárteles atribuidos por fuentes federales/medios: ${cartelesMedios.join(', ')}`,
+          `Contexto alcaldía 2024: ${grupoInfo?.extorsion_cobro_carpetas_2024 ?? 0} carpetas de extorsión y ${grupoInfo?.narcomenudeo_venta_carpetas_2024 ?? 0} de narcomenudeo`,
         ],
         worldmonitor_data: {
           cii_mexico: 64.2,
@@ -73,7 +202,11 @@ export const uwApi = {
         },
       },
     };
-    return safeFetch(`/api/colonias/${coloniaId}`, undefined, fallback);
+    const res: any = await safeFetch(`/api/colonias/${coloniaId}`, undefined, fallback);
+    if (res?.colonia && res.colonia.total_senales === undefined) {
+      res.colonia = { ...fallback.colonia, ...res.colonia };
+    }
+    return res;
   },
 
   getIncidentesGeo: async (params: {
@@ -295,9 +428,9 @@ export const uwApi = {
         { anio: 2021, incidentes_count: 265, meses_cubiertos: 12, cobertura_pct: 96 },
         { anio: 2022, incidentes_count: 310, meses_cubiertos: 12, cobertura_pct: 98 },
         { anio: 2023, incidentes_count: 348, meses_cubiertos: 12, cobertura_pct: 99 },
-        { anio: 2024, incidentes_count: 392, meses_cubiertos: 12, cobertura_pct: 100 },
-        { anio: 2025, incidentes_count: 418, meses_cubiertos: 12, cobertura_pct: 100 },
-        { anio: 2026, incidentes_count: 356, meses_cubiertos: 10, cobertura_pct: 100 },
+        { anio: 2024, incidentes_count: 59192, meses_cubiertos: 12, cobertura_pct: 100 },
+        { anio: 2025, incidentes_count: 20802, meses_cubiertos: 12, cobertura_pct: 100 },
+        { anio: 2026, incidentes_count: 14191, meses_cubiertos: 10, cobertura_pct: 100 },
       ],
     }),
 

@@ -36,6 +36,7 @@ services:
     volumes:
       - uwi_data:/data
       - ./scripts:/app/scripts
+      - ./uw-sf:/app/uw-sf:ro
     restart: unless-stopped
 
   # 3. Workers Python (Surya OCR, Clasificador Claude, E-Medios Lightpanda, Vigía HeadlessX + PixelRAG, WorldMonitor MCP)
@@ -62,6 +63,7 @@ services:
     volumes:
       - uwi_data:/data
       - ./scripts:/app/scripts
+      - ./uw-sf:/app/uw-sf:ro
     restart: unless-stopped
 
   # 4. Celery Worker (colas: default, emedios, vigia)
@@ -83,6 +85,7 @@ services:
     volumes:
       - uwi_data:/data
       - ./scripts:/app/scripts
+      - ./uw-sf:/app/uw-sf:ro
     restart: unless-stopped
 
   # 5. Celery Beat (Scheduler de jobs periódicos de Vigía y E-Medios)
