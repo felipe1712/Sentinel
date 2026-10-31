@@ -37,6 +37,8 @@ async def health():
     }
 
 
+DEFAULT_TOR_PROXY = os.getenv("TOR_PROXY", "socks5://tor:9050")
+
 @app.post("/api/operators/website/scrape")
 async def scrape_website(
     payload: ScrapePayload,
@@ -49,12 +51,17 @@ async def scrape_website(
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
         "Accept-Language": "es-MX,es;q=0.9,en-US;q=0.8,en;q=0.7",
     }
+    proxy = payload.options.proxy
+    if not proxy and ".onion" in payload.url:
+        proxy = DEFAULT_TOR_PROXY
+
     text_out = ""
     try:
         async with httpx.AsyncClient(
             headers=headers,
+            proxy=proxy,
             follow_redirects=True,
-            timeout=25.0,
+            timeout=35.0,
         ) as client:
             resp = await client.get(payload.url)
             soup = BeautifulSoup(resp.text, "html.parser")

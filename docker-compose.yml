@@ -53,6 +53,7 @@ services:
       - REDIS_URL=redis://redis:6379/1
       - LIGHTPANDA_CDP_URL=ws://lightpanda:9222
       - HEADLESSX_URL=http://headlessx:38473
+      - TOR_PROXY=socks5://tor:9050
       - PIXELRAG_INDEX_DIR=/data/pixelrag_indexes
       - DOCUMENTS_PATH=/data/documents
       - CAPTURES_PATH=/data/captures
@@ -60,6 +61,7 @@ services:
       - postgres
       - redis
       - lightpanda
+      - tor
     volumes:
       - uwi_data:/data
       - ./scripts:/app/scripts
@@ -147,8 +149,17 @@ services:
       - "127.0.0.1:38473:38473"
     environment:
       - HEADLESSX_API_KEY=${HEADLESSX_API_KEY:-hx_urbanwatch_key_2026}
+      - TOR_PROXY=socks5://tor:9050
+    depends_on:
+      - tor
     volumes:
       - uwi_browser:/app/data
+    restart: unless-stopped
+
+  # 10. Tor Proxy (SOCKS5 en :9050 para scraping .onion sin costo)
+  tor:
+    image: osminogin/tor-simple:latest
+    container_name: uwi_tor
     restart: unless-stopped
 
 volumes:
