@@ -215,7 +215,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ rol }) => {
           </div>
         </div>
         <div className="col-xl-4">
-          <ColoniaPanel coloniaId={selectedColoniaId} />
+          <ColoniaPanel coloniaId={selectedColoniaId} height={575} />
         </div>
       </div>
 
