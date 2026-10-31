@@ -9,8 +9,6 @@ services:
       - "127.0.0.1:3101:3100"
     environment:
       - VITE_API_URL=http://localhost:8100
-    depends_on:
-      - api
     restart: unless-stopped
 
   # 2. API Principal de UrbanWatch en Rust (Axum 0.7 + SQLx + PostGIS — exclusiva para CDMX)
