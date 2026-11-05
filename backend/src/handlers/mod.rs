@@ -1369,6 +1369,7 @@ pub async fn list_capturas(
         ORDER BY created_at DESC
         "#,
     )
+    .bind(sitio_id)
     .fetch_all(&state.pool)
     .await
     .unwrap_or_default();
@@ -1476,7 +1477,7 @@ pub async fn generar_resumen(
         "Contexto regional: riesgo elevado en traslados de mercancía y cobro de piso",
         "Protocolo recomendado: custodia preventiva, validación de perímetro y rotación de horarios de relevo"
     ]);
-    let mut nivel_alerta = if inc_count > 10 { "emergencia" } else { "alerta" };
+    let mut nivel_alerta = if inc_count > 10 { "emergencia".to_string() } else { "alerta".to_string() };
     let mut tokens_usados = 1690;
 
     // Consultar Worker Python (Claude Sonnet + WorldMonitor MCP en vivo)
@@ -1526,7 +1527,7 @@ pub async fn generar_resumen(
                 puntos_clave = pk.clone();
             }
             if let Some(na) = body.get("nivel_alerta").and_then(|v| v.as_str()) {
-                nivel_alerta = na;
+                nivel_alerta = na.to_string();
             }
             if let Some(tu) = body.get("tokens_usados").and_then(|v| v.as_i64()) {
                 tokens_usados = tu as i32;
@@ -1552,7 +1553,7 @@ pub async fn generar_resumen(
     .bind(&titulo)
     .bind(&resumen_txt)
     .bind(&puntos_clave)
-    .bind(nivel_alerta)
+    .bind(&nivel_alerta)
     .bind(tokens_usados)
     .bind(inc_count as i32)
     .bind(&worldmonitor_data)
