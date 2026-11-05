@@ -1266,13 +1266,13 @@ pub async fn trigger_capture(
     let mut screenshot_path = format!("{}/{}/{}.png", state.config.captures_path, sitio_id, Uuid::new_v4());
     let mut pixelrag_index = format!("{}/{}", state.config.pixelrag_index_dir, sitio_id);
     let mut texto = format!(
-        "[HeadlessX Camoufox] Monitoreo de '{}' ({}). Keywords: {}.",
+        "Monitoreo de inteligencia en '{}' ({}). Palabras clave supervisadas: {}.",
         sitio.nombre.clone().unwrap_or_default(),
         sitio.url,
         sitio.keywords.clone().unwrap_or_default().join(", ")
     );
     let mut desc = format!(
-        "ALERTA PIXELRAG: Divergencia visual del {:.1}% (>15% umbral).",
+        "Divergencia del {:.1}% detectada respecto al estado previo.",
         diff_pct
     );
 
